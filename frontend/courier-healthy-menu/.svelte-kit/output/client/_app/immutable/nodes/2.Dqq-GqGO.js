@@ -1,0 +1,1 @@
+import{f as t,a}from"../chunks/Dexp1yiY.js";import"../chunks/ifL9KKwh.js";import{n as e}from"../chunks/sF-5qWL7.js";var p=t('<h1 class="text-2xl font-bold">Courier Service</h1> <p>Выберите раздел в меню</p>',1);function i(o){var r=p();e(2),a(o,r)}export{i as component};

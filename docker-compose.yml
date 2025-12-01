@@ -1,0 +1,157 @@
+services:
+  # Frontend services
+  admin-frontend:
+    build: ./frontend/admin-healthy-menu
+    ports:
+      - "3001:80"
+    networks:
+      - healthy-menu-network
+
+  order-frontend:
+    build: ./frontend/order-healthy-menu
+    ports:
+      - "3002:80"
+    networks:
+      - healthy-menu-network
+
+  courier-frontend:
+    build: ./frontend/courier-healthy-menu
+    ports:
+      - "3003:80"
+    networks:
+      - healthy-menu-network
+
+  # Backend services
+  postgres:
+    image: postgres:16
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+      POSTGRES_DB: ${POSTGRES_DB:-healthy_menu}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - healthy-menu-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-healthy_menu}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    restart: always
+    ports:
+      - "6380:6379"
+    networks:
+      - healthy-menu-network
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    restart: always
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+    networks:
+      - healthy-menu-network
+
+  kafka:
+    image: confluentinc/cp-kafka:7.4.0
+    restart: always
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
+      KAFKA_NUM_PARTITIONS: 1
+      KAFKA_DEFAULT_REPLICATION_FACTOR: 1
+    ports:
+      - "9092:9092"
+    networks:
+      - healthy-menu-network
+
+  admin-backend:
+    build:
+      context: ./backend/admin
+      dockerfile: Dockerfile
+    ports:
+      - "8001:8000"
+    env_file:
+      - ./backend/.env
+    environment:
+      - DATABASE_URL
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - healthy-menu-network
+
+  order-backend:
+    build:
+      context: ./backend/order
+      dockerfile: Dockerfile
+    ports:
+      - "8002:8000"
+    env_file:
+      - ./backend/.env
+    environment:
+      - DATABASE_URL
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+    networks:
+      - healthy-menu-network
+
+  courier-backend:
+    build:
+      context: ./backend/courier
+      dockerfile: Dockerfile
+    ports:
+      - "8003:8000"
+    env_file:
+      - ./backend/.env
+    environment:
+      - DATABASE_URL
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+    networks:
+      - healthy-menu-network
+
+  nginx-proxy:
+    build: ./frontend/nginx-proxy
+    ports:
+      - "80:80"
+    depends_on:
+      - admin-frontend
+      - order-frontend
+      - courier-frontend
+      - admin-backend
+      - order-backend
+      - courier-backend
+    networks:
+      - healthy-menu-network
+
+volumes:
+  postgres_data:
+
+networks:
+  healthy-menu-network:
+    driver: bridge

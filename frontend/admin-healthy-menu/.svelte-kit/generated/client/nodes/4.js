@@ -1,0 +1,1 @@
+export { default as component } from "../../../../src/routes/dish-ingredients/+page.svelte";
