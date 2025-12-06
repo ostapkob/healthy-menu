@@ -21,6 +21,7 @@ services:
     networks:
       - healthy-menu-network
 
+  # Backend services
   admin-backend:
     build:
       context: ./backend

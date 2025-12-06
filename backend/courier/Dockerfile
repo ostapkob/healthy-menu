@@ -1,36 +1,44 @@
 # Первая стадия: сборка зависимостей и общих модулей
-FROM python:3.11-slim AS builder
+FROM python:3.11-slim AS builder_courier
 
 WORKDIR /app
 
 # Копируем общие зависимости
 COPY ./shared/requirements.txt .
 
-RUN pip install --upgrade pip
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
 
 # Копируем общие модули
 COPY ./shared/ /app/shared/
-
-# Устанавливаем PYTHONPATH для импортов
-ENV PYTHONPATH=/app
 
 # Вторая стадия: финальный образ для запуска
 FROM python:3.11-slim
 
 # Копируем установленные зависимости из стадии builder
-COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
-COPY --from=builder /usr/local/bin /usr/local/bin
+COPY --from=builder_courier /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
+COPY --from=builder_courier /usr/local/bin /usr/local/bin
 
 # Копируем общие модули
-COPY --from=builder /app/shared /app/shared
-
-# Устанавливаем PYTHONPATH для импортов
-ENV PYTHONPATH=/app
+COPY --from=builder_courier /app/shared /app/shared
 
 # Копируем код приложения
 COPY ./courier /app
 
+# Настройки Python
+ENV PYTHONPATH=/app \
+    PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1
+
+RUN adduser --disabled-password --gecos '' appuser && \
+    chown -R appuser:appuser /app
+USER appuser
+
+
 WORKDIR /app
 
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+
+# Используем gunicorn для продакшена
+# CMD ["gunicorn", "-w", "4", "-k", "uvicorn.workers.UvicornWorker", "main:app", "--bind", "0.0.0.0:8000"]
+
