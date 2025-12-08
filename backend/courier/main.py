@@ -9,7 +9,7 @@ import threading
 import time
 from sqlalchemy.sql import func
 from sqlalchemy.sql import func  # <-- добавлен импорт
-
+import os
 
 from shared.database import get_db
 from shared.models import Courier as CourierModel, Delivery as DeliveryModel, Order as OrderModel
@@ -64,7 +64,7 @@ def kafka_listener():
         try:
             consumer = KafkaConsumer(
                 'new_orders',
-                bootstrap_servers=['kafka:9092'],
+                bootstrap_servers=[os.environ.get('KAFKA_BOOTSTRAP_SERVERS', 'kafka:9092')],
                 value_deserializer=lambda m: json.loads(m.decode('utf-8')),
                 auto_offset_reset='earliest',
                 group_id='courier_group'

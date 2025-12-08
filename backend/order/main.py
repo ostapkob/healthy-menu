@@ -8,6 +8,7 @@ import threading
 from fastapi.middleware.cors import CORSMiddleware
 from shared.database import get_db
 from shared.models import Dish as DishModel, Order as OrderModel, OrderItem as OrderItemModel
+import os
 
 app = FastAPI(title="Order Service")
 
@@ -34,7 +35,7 @@ def get_kafka_producer():
     global producer
     if not producer:
         producer = KafkaProducer(
-            bootstrap_servers=['kafka:9092'],
+            bootstrap_servers=[os.environ.get('KAFKA_BOOTSTRAP_SERVERS', 'kafka:9092')],
             value_serializer=lambda v: json.dumps(v).encode('utf-8')
         )
     return producer
