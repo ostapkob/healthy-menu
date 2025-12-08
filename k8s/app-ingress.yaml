@@ -1,0 +1,54 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: healthy-menu-ingress
+spec:
+  rules:
+  # Замените 'healthy-menu.local' на любой домен, который вы можете прописать в /etc/hosts
+  # или используйте IP Minikube
+  - host: healthy-menu.local
+    http:
+      paths:
+      - path: /admin
+        pathType: Prefix
+        backend:
+          service:
+            name: admin-frontend
+            port:
+              number: 80
+      - path: /order
+        pathType: Prefix
+        backend:
+          service:
+            name: order-frontend
+            port:
+              number: 80
+      - path: /courier
+        pathType: Prefix
+        backend:
+          service:
+            name: courier-frontend
+            port:
+              number: 80
+      # Проксируем API запросы к бэкендам
+      - path: /api/admin
+        pathType: Prefix
+        backend:
+          service:
+            name: admin-backend
+            port:
+              number: 8000
+      - path: /api/order
+        pathType: Prefix
+        backend:
+          service:
+            name: order-backend
+            port:
+              number: 8000
+      - path: /api/courier
+        pathType: Prefix
+        backend:
+          service:
+            name: courier-backend
+            port:
+              number: 8000

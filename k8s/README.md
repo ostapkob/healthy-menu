@@ -13,10 +13,7 @@ docker build -t healthy-menu-admin:latest -f backend/admin/Dockerfile ./backend
 eval $(minikube docker-env) в моем случае не работает
 
 ## поэтому
-minikube delete
-
 minikube start --insecure-registry my-private-registry:5000
-
 echo "$(minikube ip) my-private-registry" | sudo tee -a /etc/hosts
 minikube ssh -- docker run -d -p 5000:5000 --restart=always --name registry registry:2
  в /etc/docker/daemon.json
@@ -43,7 +40,7 @@ minikube ssh -- "curl http://localhost:5000/v2/_catalog"
 # в деплое
 image: localhost:5000/admin-backend:latest
 
-# Если regestery работает
+# Если registry работает
 ./publish-to-registry.sh
 
 

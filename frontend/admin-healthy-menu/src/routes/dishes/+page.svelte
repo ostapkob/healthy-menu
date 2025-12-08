@@ -2,9 +2,11 @@
     import { onMount } from 'svelte';
 
     let dishes = [];
+    // const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:8001'; // Значение по умолчанию для разработки
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8001'; // Значение по умолчанию для dev
 
     onMount(async () => {
-        const response = await fetch('http://localhost:8001/dishes/');
+        const response = await fetch(`${API_BASE_URL}/dishes/`);
         dishes = await response.json();
     });
 </script>

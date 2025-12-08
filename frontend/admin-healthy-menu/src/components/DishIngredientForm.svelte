@@ -6,11 +6,13 @@
     let amountGrams = '';
     let dishes = [];
     let ingredients = [];
+    // const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:8001'; // Значение по умолчанию для разработки
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8001'; // Значение по умолчанию для dev
 
     onMount(async () => {
         const [dishesRes, ingredientsRes] = await Promise.all([
-            fetch('http://localhost:8001/dishes/'),
-            fetch('http://localhost:8001/ingredients/')
+            fetch(`${API_BASE_URL}/dishes/`),
+            fetch(`${API_BASE_URL}/ingredients/`)
         ]);
         dishes = await dishesRes.json();
         ingredients = await ingredientsRes.json();
@@ -18,7 +20,7 @@
 
     const submitForm = async (e) => {
         e.preventDefault();
-        const response = await fetch('http://localhost:8001/dish-ingredients/', {
+        const response = await fetch(`${API_BASE_URL}/dish-ingredients/`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({

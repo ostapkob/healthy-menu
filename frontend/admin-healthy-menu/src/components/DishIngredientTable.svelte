@@ -1,10 +1,12 @@
 <script>
     export let items = [];
     let selectedId = null;
+    // const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:8001'; // Значение по умолчанию для разработки
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8001'; // Значение по умолчанию для dev
 
     const deleteItem = async (id) => {
         if (confirm('Удалить запись?')) {
-            await fetch(`http://localhost:8001/dish-ingredients/${id}`, {
+            await fetch(`${API_BASE_URL}/dish-ingredients/${id}`, {
                 method: 'DELETE'
             });
             // обновить список

@@ -1,11 +1,14 @@
 <script>
     import { onMount } from 'svelte';
     import CoverageReportTable from '../../components/CoverageReportTable.svelte';
+    // const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:8001'; // Значение по умолчанию для разработки
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8001'; // Значение по умолчанию для dev
+
 
     let report = [];
 
     onMount(async () => {
-        const response = await fetch('http://localhost:8001/coverage-report/');
+        const response = await fetch(`${API_BASE_URL}/coverage-report/`);
         report = await response.json();
     });
 </script>

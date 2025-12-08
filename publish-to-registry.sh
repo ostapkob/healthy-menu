@@ -3,32 +3,35 @@
 REGISTRY="192.168.49.2:5000"
 TAG="latest"
 
-echo "🚀 Publishing to $REGISTRY"
-echo "============================="
+# Аргументы сборки для каждого сервиса
+declare -A BUILD_ARGS=(
+    ["admin-frontend"]="--build-arg API_BASE_URL=http://admin-backend:8000"
+    ["order-frontend"]="--build-arg API_BASE_URL=http://order-backend:8000" 
+    ["courier-frontend"]="--build-arg API_BASE_URL=http://courier-backend:8000"
+    ["admin-backend"]=""
+    ["order-backend"]=""
+    ["courier-backend"]=""
+    ["nginx-proxy"]=""
+)
 
-# Функция для обработки ошибок
-handle_error() {
-    echo "❌ Error at line $1"
-    echo "Continuing with next service..."
-}
-
-trap 'handle_error $LINENO' ERR
-
-# Массив сервисов с правильными путями
-services=(
+# Все сервисы с путями
+declare -a SERVICES=(
     "admin-frontend   ./frontend/admin-healthy-menu"
     "order-frontend   ./frontend/order-healthy-menu"
     "courier-frontend ./frontend/courier-healthy-menu"
-    "admin-backend ./backend ./backend/admin/Dockerfile"
-    "order-backend ./backend ./backend/order/Dockerfile"
-    "courier-backend ./backend ./backend/courier/Dockerfile"
-    "nginx-proxy ./frontend/nginx-proxy"
+    "admin-backend    ./backend ./backend/admin/Dockerfile"
+    "order-backend    ./backend ./backend/order/Dockerfile"
+    "courier-backend  ./backend ./backend/courier/Dockerfile"
+    "nginx-proxy      ./frontend/nginx-proxy"
 )
+
+echo "🚀 Publishing to $REGISTRY"
+echo "============================="
 
 success=0
 fail=0
 
-for item in "${services[@]}"; do
+for item in "${SERVICES[@]}"; do
     read -r name context dockerfile <<< "$item"
     
     echo "=== $name ==="
@@ -47,18 +50,26 @@ for item in "${services[@]}"; do
     
     if [ ! -f "$dockerfile" ]; then
         echo "❌ Dockerfile not found: $dockerfile"
-        echo "  Looking for Dockerfile in $context..."
-        find "$context" -name "Dockerfile" -type f 2>/dev/null | head -2
         ((fail++))
         continue
     fi
     
-    echo "  Context: $context"
-    echo "  Dockerfile: $dockerfile"
+    # Получаем аргументы сборки для этого сервиса
+    ARGS="${BUILD_ARGS[$name]}"
     
+    # echo "  Context: $context"
+    # echo "  Dockerfile: $dockerfile"
+    # if [ -n "$ARGS" ]; then
+    #     echo "  Build args: $ARGS"
+    # fi
+    
+    # Формируем и выполняем команду сборки
+    BUILD_CMD="docker build $ARGS -t $REGISTRY/$name:$TAG -f $dockerfile $context"
+    
+    echo "\$ $BUILD_CMD"
     # Сборка
     echo "  Building..."
-    if docker build -t "$REGISTRY/$name:$TAG" -f "$dockerfile" "$context" 2>/dev/null; then
+    if eval "$BUILD_CMD" > /dev/null 2>&1; then
         echo "  ✅ Built"
     else
         echo "❌ Build failed"
@@ -68,7 +79,7 @@ for item in "${services[@]}"; do
     
     # Публикация
     echo "  Pushing..."
-    if docker push "$REGISTRY/$name:$TAG" 2>/dev/null; then
+    if docker push "$REGISTRY/$name:$TAG" > /dev/null 2>&1; then
         echo "  ✅ Published"
         ((success++))
     else
@@ -86,6 +97,6 @@ echo "======================================="
 if [ $fail -eq 0 ]; then
     echo "🎉 Success!"
 else
-    echo "⚠️  Check the errors above"
+    echo "⚠️  Some images failed to publish"
     exit 1
 fi
