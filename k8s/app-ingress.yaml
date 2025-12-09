@@ -2,51 +2,55 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: healthy-menu-ingress
+  annotations:
+    # Явно указываем, что делать с префиксом /admin
+    # $2 означает вторую группу захвата в регулярном выражении
+    # path: /admin(/|$)(.*) -> regexp: ^(/admin)(.*) -> $1=/admin, $2=оставшаяся_часть_пути
+    # rewrite-target: /$2 -> удаляем /admin, оставляем остальное
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
 spec:
   rules:
-  # Замените 'healthy-menu.local' на любой домен, который вы можете прописать в /etc/hosts
-  # или используйте IP Minikube
   - host: healthy-menu.local
     http:
       paths:
-      - path: /admin
-        pathType: Prefix
+      - path: /admin(/|$)(.*) # Обновляем путь для регулярного выражения, захватываем /
+        pathType: ImplementationSpecific # Обязательно для rewrite-target
         backend:
           service:
             name: admin-frontend
             port:
               number: 80
-      - path: /order
-        pathType: Prefix
+      # Повторите для других фронтендов и бэкендов
+      - path: /order(/|$)(.*)
+        pathType: ImplementationSpecific
         backend:
           service:
             name: order-frontend
             port:
               number: 80
-      - path: /courier
-        pathType: Prefix
+      - path: /courier(/|$)(.*)
+        pathType: ImplementationSpecific
         backend:
           service:
             name: courier-frontend
             port:
               number: 80
-      # Проксируем API запросы к бэкендам
-      - path: /api/admin
-        pathType: Prefix
+      - path: /api/admin(/|$)(.*)
+        pathType: ImplementationSpecific
         backend:
           service:
             name: admin-backend
             port:
               number: 8000
-      - path: /api/order
-        pathType: Prefix
+      - path: /api/order(/|$)(.*)
+        pathType: ImplementationSpecific
         backend:
           service:
             name: order-backend
             port:
               number: 8000
-      - path: /api/courier
-        pathType: Prefix
+      - path: /api/courier(/|$)(.*)
+        pathType: ImplementationSpecific
         backend:
           service:
             name: courier-backend

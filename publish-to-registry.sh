@@ -5,7 +5,7 @@ TAG="latest"
 
 # Аргументы сборки для каждого сервиса
 declare -A BUILD_ARGS=(
-    ["admin-frontend"]="--build-arg API_BASE_URL=http://admin-backend:8000"
+    ["admin-frontend"]="--build-arg API_BASE_URL=http://admin-backend:8000 --build-arg SVELTEKIT_BASEPATH="/admin""
     ["order-frontend"]="--build-arg API_BASE_URL=http://order-backend:8000" 
     ["courier-frontend"]="--build-arg API_BASE_URL=http://courier-backend:8000"
     ["admin-backend"]=""

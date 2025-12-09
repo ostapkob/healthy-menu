@@ -1,9 +1,10 @@
 import adapter from '@sveltejs/adapter-static';
 
+const basePath = process.env.SVELTEKIT_BASEPATH || '';
 export default {
   kit: {
     paths: {
-      base: '/admin', // <-- Указываем базовый путь
+      base: basePath,
     },
     adapter: adapter({
       pages: 'build', // Папка для статических файлов
@@ -12,4 +13,3 @@ export default {
     })
   }
 };
-
