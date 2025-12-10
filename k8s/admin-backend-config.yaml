@@ -3,6 +3,7 @@ kind: ConfigMap
 metadata:
   name: admin-backend-config
 data:
-  POSTGRES_HOST: postgres # Имя Service PostgreSQL
+  # POSTGRES_HOST: postgres # Имя Service PostgreSQL
+  POSTGRES_HOST: host.minikube.internal
   POSTGRES_PORT: "5432"
-  POSTGRES_DB: "food_db" #  из .env
+  POSTGRES_DB: "food_db"

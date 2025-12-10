@@ -5,7 +5,7 @@ TAG="latest"
 
 # Аргументы сборки для каждого сервиса
 declare -A BUILD_ARGS=(
-    ["admin-frontend"]="--build-arg API_BASE_URL=http://admin-backend:8000 --build-arg SVELTEKIT_BASEPATH="/admin""
+    ["admin-frontend"]="--build-arg API_BASE_URL=http://healthy-menu.local/api/admin --build-arg SVELTEKIT_BASEPATH="/admin""
     ["order-frontend"]="--build-arg API_BASE_URL=http://order-backend:8000" 
     ["courier-frontend"]="--build-arg API_BASE_URL=http://courier-backend:8000"
     ["admin-backend"]=""
@@ -80,6 +80,7 @@ for item in "${SERVICES[@]}"; do
     # Публикация
     echo "  Pushing..."
     if docker push "$REGISTRY/$name:$TAG" > /dev/null 2>&1; then
+        echo 'docker push "$REGISTRY/$name:$TAG"'
         echo "  ✅ Published"
         ((success++))
     else

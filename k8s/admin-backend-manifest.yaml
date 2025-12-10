@@ -36,7 +36,7 @@ spec:
             configMapKeyRef:
               name: admin-backend-config
               key: POSTGRES_DB
-        # Загружаем чувствительные переменные из Secret (если создавали)
+        # Загружаем чувствительные переменные из Secret
         - name: POSTGRES_USER
           valueFrom:
             secretKeyRef:
@@ -47,14 +47,9 @@ spec:
             secretKeyRef:
               name: postgres-secret
               key: POSTGRES_PASSWORD
-        # - name: SECRET_KEY
-        #   valueFrom:
-        #     secretKeyRef:
-        #       name: admin-backend-secret
-        #       key: SECRET_KEY
-        # Если ваше приложение ожидает переменную DATABASE_URL, сформируйте её:
-        # value: postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@$(POSTGRES_HOST):$(POSTGRES_PORT)/$(POSTGRES_DB)
-        # Или передавайте компоненты отдельно, как в примере выше.
+        # Формируем DATABASE_URL через args
+        - name: DATABASE_URL
+          value: "postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@$(POSTGRES_HOST):$(POSTGRES_PORT)/$(POSTGRES_DB)"
 ---
 apiVersion: v1
 kind: Service
