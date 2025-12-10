@@ -6,6 +6,13 @@ RUN npm ci
 
 # Stage 2: Сборка
 FROM node:20-alpine as builder
+
+# Объявляем ARG в Stage 2
+ARG API_BASE_URL='http://localhost:8001'
+ARG SVELTEKIT_BASEPATH=""
+ENV VITE_API_BASE_URL=$API_BASE_URL
+ENV SVELTEKIT_BASEPATH=$SVELTEKIT_BASEPATH
+
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
@@ -13,6 +20,10 @@ RUN npm run build
 
 # Stage 3: Production
 FROM nginx:alpine
+
+# Повторяем ARG в Stage 3
+ARG API_BASE_URL='http://localhost:8001'
+ENV VITE_API_BASE_URL=$API_BASE_URL
 
 # Копируем статику из stage builder
 COPY --from=builder /app/build /usr/share/nginx/html

@@ -1,10 +1,11 @@
 <script>
     import { onMount } from 'svelte';
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8003'; // Значение по умолчанию для dev
 
     let couriers = [];
 
     onMount(async () => {
-        const response = await fetch('http://localhost:8003/couriers/');
+        const response = await fetch(`${API_BASE_URL}/couriers/`);
         couriers = await response.json();
     });
 </script>

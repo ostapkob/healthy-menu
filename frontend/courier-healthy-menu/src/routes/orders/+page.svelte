@@ -2,6 +2,7 @@
     import { onMount, onDestroy } from 'svelte';
     import OrderCard from '../../components/OrderCard.svelte';
     const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8003'; // Значение по умолчанию для dev
+    const WEB_SOCKET_URL = import.meta.env.VITE_WEB_SOCKET_URL || 'ws://localhost:8003'; // Значение по умолчанию для dev
 
     let orders = [];
     let ws = null;
@@ -12,7 +13,7 @@
         orders = await response.json();
 
         // Подключаемся к WebSocket
-        ws = new WebSocket(__WEB_SOCKET_URL__ + '/ws/1'); // FIX courier_id = 1
+        ws = new WebSocket(WEB_SOCKET_URL + '/ws/1'); // FIX courier_id = 1
 
         ws.onmessage = (event) => {
             const data = JSON.parse(event.data);

@@ -1,0 +1,37 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: courier-frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: courier-frontend
+  template:
+    metadata:
+      labels:
+        app: courier-frontend
+    spec:
+      containers:
+      - name: courier-frontend
+        image: localhost:5000/courier-frontend:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: courier-frontend
+spec:
+  selector:
+    app: courier-frontend
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+      # NodePort позволяет получить доступ снаружи Minikube
+      # Kubernetes сам назначит порт в диапазоне 30000-32767
+      nodePort: 30003
+  type: NodePort

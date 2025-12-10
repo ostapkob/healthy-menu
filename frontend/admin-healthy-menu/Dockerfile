@@ -8,8 +8,8 @@ RUN npm ci
 FROM node:20-alpine as builder
 
 # Объявляем ARG в Stage 2
-ARG API_BASE_URL=http://localhost:8001
-ARG SVELTEKIT_BASEPATH=""
+ARG API_BASE_URL='http://localhost:8001'
+ARG SVELTEKIT_BASEPATH=''
 ENV VITE_API_BASE_URL=$API_BASE_URL
 ENV SVELTEKIT_BASEPATH=$SVELTEKIT_BASEPATH
 
@@ -22,7 +22,7 @@ RUN npm run build
 FROM nginx:alpine
 
 # Повторяем ARG в Stage 3
-ARG API_BASE_URL=http://localhost:8001
+ARG API_BASE_URL='http://localhost:8001'
 ENV VITE_API_BASE_URL=$API_BASE_URL
 
 # Копируем статику из stage builder
