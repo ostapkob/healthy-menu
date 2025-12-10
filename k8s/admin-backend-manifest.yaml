@@ -24,17 +24,17 @@ spec:
         - name: POSTGRES_HOST
           valueFrom:
             configMapKeyRef:
-              name: admin-backend-config
+              name: postgres-config
               key: POSTGRES_HOST
         - name: POSTGRES_PORT
           valueFrom:
             configMapKeyRef:
-              name: admin-backend-config
+              name: postgres-config
               key: POSTGRES_PORT
         - name: POSTGRES_DB
           valueFrom:
             configMapKeyRef:
-              name: admin-backend-config
+              name: postgres-config
               key: POSTGRES_DB
         # Загружаем чувствительные переменные из Secret
         - name: POSTGRES_USER

@@ -8,6 +8,17 @@ metadata:
     # path: /admin(/|$)(.*) -> regexp: ^(/admin)(.*) -> $1=/admin, $2=оставшаяся_часть_пути
     # rewrite-target: /$2 -> удаляем /admin, оставляем остальное
     nginx.ingress.kubernetes.io/rewrite-target: /$2
+    # Аннотации для WebSocket
+    # nginx.ingress.kubernetes.io/configuration-snippet: |
+    #   proxy_read_timeout 86400s;
+    #   proxy_send_timeout 86400s;
+    #   proxy_connect_timeout 86400s;
+    #   proxy_set_header Upgrade $http_upgrade;
+    #   proxy_set_header Connection "upgrade";
+    #   proxy_set_header Host $host;
+    #   proxy_set_header X-Real-IP $remote_addr;
+    #   proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    #   proxy_set_header X-Forwarded-Proto $scheme;
 spec:
   rules:
   - host: healthy-menu.local

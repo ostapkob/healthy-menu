@@ -1,10 +1,10 @@
 <script>
     import { onMount } from 'svelte';
-
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8002'; // Значение по умолчанию для dev
     let orders = [];
 
     onMount(async () => {
-        const response = await fetch('http://localhost:8002/orders/1'); // user_id = 1
+        const response = await fetch(`${API_BASE_URL}/orders/1`); // FIX user_id = 1
         orders = await response.json();
     });
 </script>

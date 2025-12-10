@@ -5,9 +5,9 @@ TAG="latest"
 
 # Аргументы сборки для каждого сервиса
 declare -A BUILD_ARGS=(
-    ["admin-frontend"]="--build-arg API_BASE_URL=http://healthy-menu.local/api/admin --build-arg SVELTEKIT_BASEPATH="/admin""
-    ["order-frontend"]="--build-arg API_BASE_URL=http://order-backend:8000" 
-    ["courier-frontend"]="--build-arg API_BASE_URL=http://courier-backend:8000"
+    ["admin-frontend"]="--build-arg API_BASE_URL=http://healthy-menu.local/api/admin --build-arg SVELTEKIT_BASEPATH='/admin'"
+    ["order-frontend"]="--build-arg API_BASE_URL=http://healthy-menu.local/api/order --build-arg SVELTEKIT_BASEPATH='/order'" 
+    ["courier-frontend"]="--build-arg API_BASE_URL=http://healthy-menu.local/api/courier --build-arg SVELTEKIT_BASEPATH='/courier' --build-arg VITE_WEB_SOCKET_URL=ws://healthy-menu.local/api/courier"
     ["admin-backend"]=""
     ["order-backend"]=""
     ["courier-backend"]=""
@@ -57,18 +57,11 @@ for item in "${SERVICES[@]}"; do
     # Получаем аргументы сборки для этого сервиса
     ARGS="${BUILD_ARGS[$name]}"
     
-    # echo "  Context: $context"
-    # echo "  Dockerfile: $dockerfile"
-    # if [ -n "$ARGS" ]; then
-    #     echo "  Build args: $ARGS"
-    # fi
-    
     # Формируем и выполняем команду сборки
     BUILD_CMD="docker build $ARGS -t $REGISTRY/$name:$TAG -f $dockerfile $context"
     
     echo "\$ $BUILD_CMD"
     # Сборка
-    echo "  Building..."
     if eval "$BUILD_CMD" > /dev/null 2>&1; then
         echo "  ✅ Built"
     else
@@ -78,9 +71,9 @@ for item in "${SERVICES[@]}"; do
     fi
     
     # Публикация
-    echo "  Pushing..."
-    if docker push "$REGISTRY/$name:$TAG" > /dev/null 2>&1; then
-        echo 'docker push "$REGISTRY/$name:$TAG"'
+    PUBLISH_CMD="docker push $REGISTRY/$name:$TAG"
+    if eval "$PUBLISH_CMD" > /dev/null 2>&1; then
+        echo "\$ $PUBLISH_CMD"
         echo "  ✅ Published"
         ((success++))
     else

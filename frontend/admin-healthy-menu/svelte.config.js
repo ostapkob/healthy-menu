@@ -1,6 +1,7 @@
 import adapter from '@sveltejs/adapter-static';
 
 const basePath = process.env.SVELTEKIT_BASEPATH || '';
+
 export default {
   kit: {
     paths: {

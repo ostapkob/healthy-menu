@@ -1,6 +1,7 @@
 <script>
     import { cart, clearCart } from '../stores/cart.js';
     import CartItem from '../components/CartItem.svelte';
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8002'; // Значение по умолчанию для dev
 
     let total = 0;
 
@@ -15,7 +16,7 @@
             }))
         };
 
-        const response = await fetch('http://localhost:8002/orders/', {
+        const response = await fetch(`${API_BASE_URL}/orders/`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(order)

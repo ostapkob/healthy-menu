@@ -2,15 +2,16 @@
     import { onMount } from 'svelte';
 
     let deliveries = [];
-    const courierId = 1; // можно заменить на логин
+    const courierId = 1; // FIX можно заменить на логин
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8003'; // Значение по умолчанию для dev
 
     onMount(async () => {
-        const response = await fetch(`http://localhost:8003/my-deliveries/${courierId}`);
+        const response = await fetch(`${API_BASE_URL}/my-deliveries/${courierId}`);
         deliveries = await response.json();
     });
 
     const updateStatus = async (deliveryId, newStatus) => {
-        const response = await fetch(`http://localhost:8003/update-delivery-status/${deliveryId}?status=${newStatus}`, {
+        const response = await fetch(`${API_BASE_URL}/update-delivery-status/${deliveryId}?status=${newStatus}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ status: newStatus })

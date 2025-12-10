@@ -1,18 +1,18 @@
-
 <script>
     import { onMount, onDestroy } from 'svelte';
     import OrderCard from '../../components/OrderCard.svelte';
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8003'; // Значение по умолчанию для dev
 
     let orders = [];
     let ws = null;
 
     onMount(async () => {
         // Получаем начальные заказы
-        const response = await fetch('http://localhost:8003/available-orders/');
+        const response = await fetch(`${API_BASE_URL}/available-orders/`);
         orders = await response.json();
 
         // Подключаемся к WebSocket
-        ws = new WebSocket('ws://localhost:8003/ws/1'); // courier_id = 1
+        ws = new WebSocket(__WEB_SOCKET_URL__ + '/ws/1'); // FIX courier_id = 1
 
         ws.onmessage = (event) => {
             const data = JSON.parse(event.data);

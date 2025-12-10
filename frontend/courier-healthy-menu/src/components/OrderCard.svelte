@@ -2,9 +2,10 @@
     import { courierId } from '../stores/courier.js';
 
     export let order;
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8003'; // Значение по умолчанию для dev
 
     const acceptOrder = async () => {
-        const response = await fetch('http://localhost:8003/assign-delivery/', {
+        const response = await fetch(`${API_BASE_URL}/assign-delivery/`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
