@@ -1,0 +1,15 @@
+id,name,short_name,type,unit,code
+1,Витамин A (РЭ),A,vitamin,мкг,vitamin_a
+2,Витамин C (аскорбиновая кислота),C,vitamin,мг,vitamin_c
+3,Витамин D (кальциферол),D,vitamin,мкг,vitamin_d
+4,Витамин E (токоферол),E,vitamin,мг,vitamin_e
+5,Витамин B12 (цианокобаламин),B12,vitamin,мкг,vitamin_b12
+6,Кальций,Ca,mineral,мг,calcium
+7,Железо,Fe,mineral,мг,iron
+8,Магний,Mg,mineral,мг,magnesium
+9,Фосфор,P,mineral,мг,phosphorus
+10,Цинк,Zn,mineral,мг,zinc
+11,Селен,Se,mineral,мкг,selenium
+12,Калий,K,mineral,мг,potassium
+13,Медь,Cu,mineral,мкг,copper
+14,Марганец,Mn,mineral,мг,manganese

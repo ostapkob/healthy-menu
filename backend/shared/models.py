@@ -1,85 +1,368 @@
-from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime, Numeric
+from sqlalchemy import (
+    Column,
+    Integer,
+    String,
+    Float,
+    ForeignKey,
+    DateTime,
+    Numeric,
+    Enum,
+)
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from sqlalchemy.dialects.postgresql import TIMESTAMP
 from shared.database import Base
 
-# === Таблицы для Food Service ===
-# 
-class Vitamin(Base):
-    __tablename__ = "vitamins"
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, unique=True, index=True)
-    short_name = Column(String)
+# === Таблица нутриентов (витамины + микроэлементы) ===
+class Nutrient(Base):
+    """
+    Справочник всех нутриентов: витамины и минералы.
+    Используется для связи с ингредиентами и суточными нормами.
+    """
+    __tablename__ = "nutrients"
+    __table_args__ = {
+        "comment": "Справочник витаминов и минералов (нутриентов), используемых в расчётах."
+    }
 
-    benefits = relationship("VitaminOrganBenefit", back_populates="vitamin")
-    requirements = relationship("DailyVitaminRequirement", back_populates="vitamin")
-    contents = relationship("IngredientVitaminContent", back_populates="vitamin")
+    id = Column(
+        Integer,
+        primary_key=True,
+        index=True,
+        comment="Уникальный идентификатор нутриента.",
+    )
+    name = Column(
+        String,
+        unique=True,
+        index=True,
+        nullable=False,
+        comment="Полное название нутриента (например, 'Витамин A (РЭ)', 'Кальций').",
+    )
+    short_name = Column(
+        String,
+        nullable=False,
+        comment="Краткое обозначение нутриента (A, C, D, Ca, Fe и т.п.).",
+    )
+    type = Column(
+        String,
+        nullable=False,
+        comment="Тип нутриента: 'vitamin' или 'mineral'.",
+    )
+    unit = Column(
+        String,
+        nullable=False,
+        comment="Единица измерения нутриента (мг, мкг, мг и т.п.).",
+    )
 
+    code = Column(
+        String,
+        unique=True,
+        nullable=False,
+        comment="Стойкий код нутриента для API: 'vitamin_a', 'vitamin_c', 'calcium' и т.п.",
+    )
+
+    requirements = relationship(
+        "DailyNutrientRequirement", back_populates="nutrient", cascade="all, delete-orphan"
+    )
+    contents = relationship(
+        "IngredientNutrientContent", back_populates="nutrient", cascade="all, delete-orphan"
+    )
+    organ_benefits = relationship(
+        "NutrientOrganBenefit", back_populates="nutrient", cascade="all, delete-orphan"
+    )
+
+
+# === Таблица органов ===
 class Organ(Base):
+    """
+    Справочник органов/систем организма для описания пользы нутриентов.
+    """
     __tablename__ = "organs"
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, unique=True, index=True)
-    description = Column(String)
+    __table_args__ = {
+        "comment": "Целевые органы и системы организма (печень, сердце, мозг и т.п.)."
+    }
 
-    benefits = relationship("VitaminOrganBenefit", back_populates="organ")
+    id = Column(
+        Integer,
+        primary_key=True,
+        index=True,
+        comment="Уникальный идентификатор органа.",
+    )
+    name = Column(
+        String,
+        unique=True,
+        index=True,
+        nullable=False,
+        comment="Название органа (например, 'Печень', 'Сердце').",
+    )
+    description = Column(
+        String,
+        comment="Краткое описание функции органа.",
+    )
 
-class VitaminOrganBenefit(Base):
-    __tablename__ = "vitamin_organ_benefits"
-    id = Column(Integer, primary_key=True, index=True)
-    vitamin_id = Column(Integer, ForeignKey("vitamins.id"))
-    organ_id = Column(Integer, ForeignKey("organs.id"))
-    benefit_note = Column(String)
+    benefits = relationship(
+        "NutrientOrganBenefit", back_populates="organ", cascade="all, delete-orphan"
+    )
 
-    vitamin = relationship("Vitamin", back_populates="benefits")
+
+# === Связь: нутриент -> орган (польза) ===
+class NutrientOrganBenefit(Base):
+    """
+    Описывает, как конкретный нутриент влияет на конкретный орган.
+    """
+    __tablename__ = "nutrient_organ_benefits"
+    __table_args__ = {
+        "comment": "Текстовые описания пользы нутриентов для конкретных органов."
+    }
+
+    id = Column(
+        Integer,
+        primary_key=True,
+        index=True,
+        comment="Уникальный идентификатор записи пользы.",
+    )
+    nutrient_id = Column(
+        Integer,
+        ForeignKey("nutrients.id"),
+        nullable=False,
+        comment="FK на нутриент (витамин/минерал), оказывающий эффект.",
+    )
+    organ_id = Column(
+        Integer,
+        ForeignKey("organs.id"),
+        nullable=False,
+        comment="FK на орган, на который влияет нутриент.",
+    )
+    benefit_note = Column(
+        String,
+        nullable=False,
+        comment="Краткое описание пользы нутриента для органа.",
+    )
+
+    nutrient = relationship("Nutrient", back_populates="organ_benefits")
     organ = relationship("Organ", back_populates="benefits")
 
-class DailyVitaminRequirement(Base):
-    __tablename__ = "daily_vitamin_requirements"
-    id = Column(Integer, primary_key=True, index=True)
-    vitamin_id = Column(Integer, ForeignKey("vitamins.id"))
-    amount = Column(Float)
-    unit = Column(String)
-    age_group = Column(String)
 
-    vitamin = relationship("Vitamin", back_populates="requirements")
+# === Суточные нормы нутриентов ===
+class DailyNutrientRequirement(Base):
+    """
+    Суточные рекомендуемые нормы потребления нутриентов для разных возрастных групп.
+    """
+    __tablename__ = "daily_nutrient_requirements"
+    __table_args__ = {
+        "comment": "Суточные рекомендуемые нормы нутриентов по возрастным группам."
+    }
 
+    id = Column(
+        Integer,
+        primary_key=True,
+        index=True,
+        comment="Уникальный идентификатор записи нормы.",
+    )
+    nutrient_id = Column(
+        Integer,
+        ForeignKey("nutrients.id"),
+        nullable=False,
+        comment="FK на нутриент, для которого задаётся норма.",
+    )
+    amount = Column(
+        Float,
+        nullable=False,
+        comment="Рекомендуемое количество нутриента в сутки.",
+    )
+    age_group = Column(
+        String,
+        nullable=False,
+        comment="Возрастная группа (например, 'взрослый').",
+    )
+
+    nutrient = relationship("Nutrient", back_populates="requirements")
+
+
+# === Таблица блюд ===
 class Dish(Base):
     __tablename__ = "dishes"
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, unique=True, index=True)
-    price = Column(Numeric)
+    __table_args__ = {"comment": "Блюда, доступные пользователю."}
 
+    id = Column(
+        Integer,
+        primary_key=True,
+        index=True,
+        comment="ID блюда."
+    )
+    name = Column(
+        String,
+        unique=True,
+        index=True,
+        nullable=False,
+        comment="Название блюда."
+    )
+    price = Column(
+        Numeric,
+        nullable=False,
+        comment="Цена блюда."
+    )
+    description = Column(
+        String,
+        nullable=True,
+        comment="Краткое описание блюда (ингредиенты, способ приготовления).",
+    )
     ingredients = relationship("DishIngredient", back_populates="dish")
 
+
+# === Таблица ингредиентов ===
 class Ingredient(Base):
     __tablename__ = "ingredients"
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, unique=True, index=True)
+    __table_args__ = {"comment": "Ингредиенты, используемые в блюдах."}
+
+    id = Column(
+        Integer,
+        primary_key=True,
+        index=True,
+        comment="ID ингредиента."
+    )
+    name = Column(
+        String,
+        unique=True,
+        index=True,
+        nullable=False,
+        comment="Название ингредиента."
+    )
+    category = Column(
+        String,
+        nullable=True,
+        comment="Категория ингредиента (овощи, белки, орехи, масла и т.п.).",
+    )
 
     dishes = relationship("DishIngredient", back_populates="ingredient")
-    vitamin_contents = relationship("IngredientVitaminContent", back_populates="ingredient")
+    nutrient_contents = relationship("IngredientNutrientContent", back_populates="ingredient")
 
+
+# === Связующая таблица: блюдо -> ингредиенты ===
 class DishIngredient(Base):
+    """
+    Состав блюда: какие ингредиенты и в каком количестве (в граммах) используются.
+    """
     __tablename__ = "dish_ingredients"
-    id = Column(Integer, primary_key=True, index=True)
-    dish_id = Column(Integer, ForeignKey("dishes.id"))
-    ingredient_id = Column(Integer, ForeignKey("ingredients.id"))
-    amount_grams = Column(Float)
+    __table_args__ = {
+        "comment": "Связь блюд с ингредиентами и их массой в рецепте."
+    }
+
+    id = Column(
+        Integer,
+        primary_key=True,
+        index=True,
+        comment="Уникальный идентификатор записи состава блюда.",
+    )
+    dish_id = Column(
+        Integer,
+        ForeignKey("dishes.id"),
+        nullable=False,
+        comment="FK на блюдо.",
+    )
+    ingredient_id = Column(
+        Integer,
+        ForeignKey("ingredients.id"),
+        nullable=False,
+        comment="FK на ингредиент.",
+    )
+    amount_grams = Column(
+        Float,
+        nullable=False,
+        comment="Масса ингредиента в блюде (граммы).",
+    )
 
     dish = relationship("Dish", back_populates="ingredients")
     ingredient = relationship("Ingredient", back_populates="dishes")
 
-class IngredientVitaminContent(Base):
-    __tablename__ = "ingredient_vitamin_contents"
-    id = Column(Integer, primary_key=True, index=True)
-    ingredient_id = Column(Integer, ForeignKey("ingredients.id"))
-    vitamin_id = Column(Integer, ForeignKey("vitamins.id"))
-    content_per_100g = Column(Float)
-    unit = Column(String)
 
-    ingredient = relationship("Ingredient", back_populates="vitamin_contents")
-    vitamin = relationship("Vitamin", back_populates="contents")
+# === Нутриенты в ингредиентах (витамины + минералы) ===
+class IngredientNutrientContent(Base):
+    """
+    Содержание нутриентов (витаминов и минералов) в каждом ингредиенте на 100 г.
+    Используется для расчёта профиля блюд.
+    """
+    __tablename__ = "ingredient_nutrient_contents"
+    __table_args__ = {
+        "comment": "Таблица содержания нутриентов в ингредиентах на 100 грамм."
+    }
+
+    id = Column(
+        Integer,
+        primary_key=True,
+        index=True,
+        comment="Уникальный идентификатор записи содержания нутриента.",
+    )
+    ingredient_id = Column(
+        Integer,
+        ForeignKey("ingredients.id"),
+        nullable=False,
+        comment="FK на ингредиент.",
+    )
+    nutrient_id = Column(
+        Integer,
+        ForeignKey("nutrients.id"),
+        nullable=False,
+        comment="FK на нутриент (витамин или минерал).",
+    )
+    content_per_100g = Column(
+        Float,
+        nullable=False,
+        comment="Кол-во нутриента на 100 г ингредиента (в единицах из nutrients.unit).",
+    )
+
+    ingredient = relationship("Ingredient", back_populates="nutrient_contents")
+    nutrient = relationship("Nutrient", back_populates="contents")
+
+
+class IngredientCalories(Base):
+    """
+    Калорийность и макронутриенты ингредиента на 100 г.
+    Используется для расчёта БЖУ блюд.
+    """
+    __tablename__ = "ingredient_calories"
+    __table_args__ = {
+        "comment": "Калории и макронутриенты ингредиентов на 100 г."
+    }
+
+    id = Column(
+        Integer,
+        primary_key=True,
+        index=True,
+        comment="Уникальный идентификатор записи калорийности.",
+    )
+    ingredient_id = Column(
+        Integer,
+        ForeignKey("ingredients.id"),
+        nullable=False,
+        unique=True,
+        comment="FK на ингредиент (одна запись калорийности на ингредиент).",
+    )
+    calories_per_100g = Column(
+        Float,
+        nullable=False,
+        comment="Энергетическая ценность на 100 г ингредиента (ккал).",
+    )
+    protein_g = Column(
+        Float,
+        nullable=False,
+        comment="Белки на 100 г (г).",
+    )
+    fat_g = Column(
+        Float,
+        nullable=False,
+        comment="Жиры на 100 г (г).",
+    )
+    carbs_g = Column(
+        Float,
+        nullable=False,
+        comment="Углеводы на 100 г (г).",
+    )
+
+    ingredient = relationship(
+        "Ingredient",
+        backref="calories",
+        uselist=False,
+    )
 
 
 # === Таблицы для Order Service ===

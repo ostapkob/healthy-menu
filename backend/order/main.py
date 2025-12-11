@@ -1,13 +1,24 @@
 from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional, Dict
 from pydantic import BaseModel
 from kafka import KafkaProducer
 import json
 import threading
 from fastapi.middleware.cors import CORSMiddleware
 from shared.database import get_db
-from shared.models import Dish as DishModel, Order as OrderModel, OrderItem as OrderItemModel
+from shared.database import SessionLocal
+from shared.models import (
+    Dish as DishModel,
+    DishIngredient as DishIngredientModel,
+    Ingredient as IngredientModel,
+    Nutrient as NutrientModel,
+    DailyNutrientRequirement as DailyNutrientRequirementModel,
+    IngredientNutrientContent as IngredientNutrientContentModel,
+    IngredientCalories as IngredientCaloriesModel,
+)
+
+
 import os
 
 app = FastAPI(title="Order Service")
@@ -42,14 +53,40 @@ def get_kafka_producer():
 
 # === Pydantic Models ===
 
+class MenuMicronutrient(BaseModel):
+    name: str
+    unit: str
+    value: float
+    coverage_percent: float
+
+
+class MenuMacros(BaseModel):
+    calories: float
+    protein: float
+    fat: float
+    carbs: float
+
+
+class MenuDish(BaseModel):
+    id: int
+    name: str
+    price: float
+    description: Optional[str] = None
+    macros: MenuMacros
+    micronutrients: Dict[str, MenuMicronutrient]
+    recommendations: List[str]
+    score: Optional[int] = None
+
 class DishResponse(BaseModel):
     id: int
     name: str
     price: float
 
+
 class OrderItemCreate(BaseModel):
     dish_id: int
     quantity: int
+
 
 class OrderItemResponse(BaseModel):
     id: int
@@ -57,9 +94,11 @@ class OrderItemResponse(BaseModel):
     quantity: int
     price: float
 
+
 class OrderCreate(BaseModel):
     user_id: int
     items: List[OrderItemCreate]
+
 
 class OrderResponse(BaseModel):
     id: int
@@ -71,10 +110,125 @@ class OrderResponse(BaseModel):
 
 # === API Endpoints ===
 
-@app.get("/menu/", response_model=List[DishResponse])
+@app.get("/menu/", response_model=List[MenuDish])
 def get_menu(db: Session = Depends(get_db)):
     dishes = db.query(DishModel).all()
-    return dishes
+
+    daily_req_rows = (
+        db.query(DailyNutrientRequirementModel)
+        .filter(DailyNutrientRequirementModel.age_group == "взрослый")
+        .all()
+    )
+    daily_req = {r.nutrient_id: r for r in daily_req_rows}
+
+    menu: List[MenuDish] = []
+
+    for dish in dishes:
+        di_rows = (
+            db.query(DishIngredientModel)
+            .filter(DishIngredientModel.dish_id == dish.id)
+            .all()
+        )
+
+        total_calories = 0.0
+        total_protein = 0.0
+        total_fat = 0.0
+        total_carbs = 0.0
+        nutrient_totals: Dict[int, float] = {}
+
+        for di in di_rows:
+            ingredient = db.query(IngredientModel).filter(
+                IngredientModel.id == di.ingredient_id
+            ).first()
+            if not ingredient:
+                continue
+
+            cal = db.query(IngredientCaloriesModel).filter(
+                IngredientCaloriesModel.ingredient_id == ingredient.id
+            ).first()
+
+            factor = di.amount_grams / 100.0
+
+            if cal:
+                total_calories += (cal.calories_per_100g or 0) * factor
+                total_protein += (cal.protein_g or 0) * factor
+                total_fat += (cal.fat_g or 0) * factor
+                total_carbs += (cal.carbs_g or 0) * factor
+
+            inc_rows = (
+                db.query(IngredientNutrientContentModel)
+                .filter(IngredientNutrientContentModel.ingredient_id == ingredient.id)
+                .all()
+            )
+            for inc in inc_rows:
+                nutrient_totals.setdefault(inc.nutrient_id, 0.0)
+                nutrient_totals[inc.nutrient_id] += (inc.content_per_100g or 0) * factor
+
+
+        # Сформируем словарь микронутриентов в стиле nutrition_api_data.json
+        micronutrients: Dict[str, MenuMicronutrient] = {}
+        recommendations: List[str] = []
+        score = None
+        for nutrient_id, value in nutrient_totals.items():
+            nutrient = db.query(NutrientModel).filter(
+                NutrientModel.id == nutrient_id
+            ).first()
+            if not nutrient:
+                continue
+
+            dr = daily_req.get(nutrient_id)
+            coverage = 0.0
+            if dr and dr.amount and dr.amount > 0:
+                coverage = (value / dr.amount) * 100.0
+
+            # Используем стойкий код из таблицы nutrients
+            key = nutrient.code  # например 'vitamin_a', 'selenium', 'calcium'
+
+            micronutrients[key] = MenuMicronutrient(
+                name=nutrient.name,
+                unit=nutrient.unit,
+                value=round(value, 1),
+                coverage_percent=round(coverage, 1),
+            )
+
+        
+        # Простая эвристика для рекомендаций/score
+        if total_protein > 60:
+            recommendations.append("Высокобелковое блюдо")
+        if "vitamin_c" in micronutrients and micronutrients["vitamin_c"].coverage_percent >= 100:
+            recommendations.append("Поддержка иммунитета (высокий витамин C)")
+        if "selenium" in micronutrients and micronutrients["selenium"].coverage_percent >= 150:
+            recommendations.append("Поддержка щитовидной железы (селен)")
+
+        # score как суммарная оценка (очень грубо)
+        score = min(
+            10,
+            int(
+                (total_protein / 10)
+                + (micronutrients.get("vitamin_c", MenuMicronutrient(name="", unit="", value=0, coverage_percent=0)).coverage_percent / 100)
+            ),
+        )
+
+        menu.append(
+            MenuDish(
+                id=dish.id,
+                name=dish.name,
+                price=float(dish.price),
+                description=getattr(dish, "description", None),
+                macros=MenuMacros(
+                    calories=round(total_calories, 1),
+                    protein=round(total_protein, 1),
+                    fat=round(total_fat, 1),
+                    carbs=round(total_carbs, 1),
+                ),
+                micronutrients=micronutrients,
+                recommendations=recommendations,
+                score=score,
+            )
+        )
+
+    return menu
+
 
 @app.post("/orders/", response_model=OrderResponse)
 def create_order(order_data: OrderCreate, db: Session = Depends(get_db)):
@@ -167,5 +321,4 @@ def get_user_orders(user_id: int, db: Session = Depends(get_db)):
 def health_check():
     return {"status": "ok"}
 
-from fastapi.middleware.cors import CORSMiddleware
 

@@ -3,6 +3,8 @@
   import { base } from '$app/paths';
   import { theme, setTheme } from '$lib/theme.js';
   import { onMount } from 'svelte';
+	import '../app.css'; 
+
 
   let mounted = false;
   // Для плавного появления после гидратации

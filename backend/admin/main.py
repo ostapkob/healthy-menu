@@ -16,6 +16,26 @@ from shared.models import (
     IngredientVitaminContent as IngredientVitaminContentModel,
 )
 
+# --- MinIO клиент ---
+import boto3
+from botocore.config import Config
+from botocore.exceptions import ClientError
+
+MINIO_ENDPOINT = "http://s3.healthy.local"  # ← для Minikube
+MINIO_ACCESS_KEY = "minioadmin" # FIX 
+MINIO_SECRET_KEY = "minioadmin"
+MINIO_BUCKET = "healthy-menu-dishes"
+
+s3_client = boto3.client(
+    's3',
+    endpoint_url=MINIO_ENDPOINT,
+    aws_access_key_id=MINIO_ACCESS_KEY,
+    aws_secret_access_key=MINIO_SECRET_KEY,
+    config=Config(signature_version='s3v4'),
+    region_name='us-east-1'
+)
+
+# --- Fast Api ---
 app = FastAPI(title="Admin Service")
 
 app.add_middleware(
@@ -35,46 +55,63 @@ app.add_middleware(
 )
 
 # === Pydantic Models ===
-
 class DishIngredientCreate(BaseModel):
     dish_id: int
     ingredient_id: int
     amount_grams: float
 
+
 class DishIngredientResponse(DishIngredientCreate):
     id: int
+
 
 class DishIngredientUpdate(BaseModel):
     dish_id: Optional[int] = None
     ingredient_id: Optional[int] = None
     amount_grams: Optional[float] = None
 
+
 class DishResponse(BaseModel):
     id: int
     name: str
     price: float
 
+
 class IngredientResponse(BaseModel):
     id: int
     name: str
 
-class VitaminResponse(BaseModel):
+
+class NutrientResponse(BaseModel):
+    """Нутриент: витамин или минерал."""
     id: int
     name: str
     short_name: str
+    type: str
+    unit: str
+
 
 class OrganResponse(BaseModel):
     id: int
     name: str
     description: str
 
+
 class CoverageResponse(BaseModel):
+    """Покрытие суточной нормы нутриентов по органам для блюда."""
     dish_name: str
     organ_name: str
-    vitamin_name: str
-    daily_requirement_mcg: float
-    vitamin_in_dish_mcg: float
+    nutrient_name: str
+    daily_requirement_amount: float
+    daily_requirement_unit: str
+    nutrient_in_dish_amount: float
+    nutrient_in_dish_unit: str
     coverage_percentage: float
+
+class PresignRequest(BaseModel):
+    dish_id: int
+    filename: str  
+
 
 # === DishIngredient CRUD ===
 
@@ -125,23 +162,23 @@ def delete_dish_ingredient(item_id: int, db: Session = Depends(get_db)):
 
 @app.get("/dishes/", response_model=List[DishResponse])
 def get_dishes(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    dishes = db.query(DishModel).offset(skip).limit(limit).all()
-    return dishes
+    return db.query(DishModel).offset(skip).limit(limit).all()
+
 
 @app.get("/ingredients/", response_model=List[IngredientResponse])
 def get_ingredients(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    ingredients = db.query(IngredientModel).offset(skip).limit(limit).all()
-    return ingredients
+    return db.query(IngredientModel).offset(skip).limit(limit).all()
 
-@app.get("/vitamins/", response_model=List[VitaminResponse])
-def get_vitamins(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    vitamins = db.query(VitaminModel).offset(skip).limit(limit).all()
-    return vitamins
+
+@app.get("/nutrients/", response_model=List[NutrientResponse])
+def get_nutrients(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+    nutrients = db.query(NutrientModel).offset(skip).limit(limit).all()
+    return nutrients
+
 
 @app.get("/organs/", response_model=List[OrganResponse])
 def get_organs(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    organs = db.query(OrganModel).offset(skip).limit(limit).all()
-    return organs
+    return db.query(OrganModel).offset(skip).limit(limit).all()
 
 # === Coverage Report API ===
 
@@ -151,59 +188,96 @@ from sqlalchemy import text
 def get_coverage_report(
     dish_id: Optional[int] = None,
     organ_id: Optional[int] = None,
-    vitamin_id: Optional[int] = None,
+    nutrient_id: Optional[int] = None,
     db: Session = Depends(get_db)
 ):
-    # Начальный запрос
-    query = text("""
+    base_sql = """
         SELECT
             d.name AS dish_name,
             o.name AS organ_name,
-            v.name AS vitamin_name,
-            dvr.amount AS daily_requirement_mcg,
-            COALESCE(SUM(di.amount_grams / 100 * ivc.content_per_100g), 0) AS vitamin_in_dish_mcg,
+            n.name AS nutrient_name,
+            dnr.amount AS daily_requirement_amount,
+            n.unit AS daily_requirement_unit,
+            COALESCE(SUM(di.amount_grams / 100 * inc.content_per_100g), 0) AS nutrient_in_dish_amount,
+            n.unit AS nutrient_in_dish_unit,
             CASE
-                WHEN dvr.amount > 0 THEN (SUM(di.amount_grams / 100 * ivc.content_per_100g) / dvr.amount) * 100
+                WHEN dnr.amount > 0 THEN (SUM(di.amount_grams / 100 * inc.content_per_100g) / dnr.amount) * 100
                 ELSE 0
             END AS coverage_percentage
         FROM dishes d
         JOIN dish_ingredients di ON d.id = di.dish_id
         JOIN ingredients ing ON di.ingredient_id = ing.id
-        JOIN ingredient_vitamin_contents ivc ON ing.id = ivc.ingredient_id
-        JOIN vitamins v ON ivc.vitamin_id = v.id
-        JOIN vitamin_organ_benefits vob ON v.id = vob.vitamin_id
-        JOIN organs o ON vob.organ_id = o.id
-        JOIN daily_vitamin_requirements dvr ON v.id = dvr.vitamin_id AND dvr.age_group = 'взрослый'
+        JOIN ingredient_nutrient_contents inc ON ing.id = inc.ingredient_id
+        JOIN nutrients n ON inc.nutrient_id = n.id
+        JOIN nutrient_organ_benefits nob ON n.id = nob.nutrient_id
+        JOIN organs o ON nob.organ_id = o.id
+        JOIN daily_nutrient_requirements dnr
+             ON n.id = dnr.nutrient_id AND dnr.age_group = 'взрослый'
         WHERE 1=1
-    """)
+    """
 
     params = {}
-
     if dish_id:
-        query = text(str(query) + " AND d.id = :dish_id")
+        base_sql += " AND d.id = :dish_id"
         params["dish_id"] = dish_id
     if organ_id:
-        query = text(str(query) + " AND o.id = :organ_id")
+        base_sql += " AND o.id = :organ_id"
         params["organ_id"] = organ_id
-    if vitamin_id:
-        query = text(str(query) + " AND v.id = :vitamin_id")
-        params["vitamin_id"] = vitamin_id
+    if nutrient_id:
+        base_sql += " AND n.id = :nutrient_id"
+        params["nutrient_id"] = nutrient_id
 
-    query = text(str(query) + " GROUP BY d.id, d.name, o.id, o.name, v.id, v.name, dvr.amount ORDER BY coverage_percentage DESC;")
-    result = db.execute(query, params).fetchall()
+    base_sql += """
+        GROUP BY d.id, d.name, o.id, o.name, n.id, n.name, dnr.amount, n.unit
+        ORDER BY coverage_percentage DESC;
+    """
+
+    result = db.execute(text(base_sql), params).fetchall()
 
     return [
         CoverageResponse(
             dish_name=row.dish_name,
             organ_name=row.organ_name,
-            vitamin_name=row.vitamin_name,
-            daily_requirement_mcg=row.daily_requirement_mcg,
-            vitamin_in_dish_mcg=row.vitamin_in_dish_mcg,
-            coverage_percentage=row.coverage_percentage
-        ) for row in result
+            nutrient_name=row.nutrient_name,
+            daily_requirement_amount=row.daily_requirement_amount,
+            daily_requirement_unit=row.daily_requirement_unit,
+            nutrient_in_dish_amount=row.nutrient_in_dish_amount,
+            nutrient_in_dish_unit=row.nutrient_in_dish_unit,
+            coverage_percentage=row.coverage_percentage,
+        )
+        for row in result
     ]
 
 
+@app.post("/presign-upload/")
+async def presign_upload(req: PresignRequest):
+    """Генерирует временный URL для загрузки изображения"""
+    try:
+        # Формат ключа: dishes/{dish_id}/original.jpg
+        key = f"dishes/{req.dish_id}/original.{req.filename.split('.')[-1].lower()}"
+
+        # Генерируем presigned URL (действителен 15 минут)
+        url = s3_client.generate_presigned_url(
+            'put_object',
+            Params={
+                'Bucket': MINIO_BUCKET,
+                'Key': key,
+                'ContentType': 'image/jpeg',  # можно уточнить по расширению
+            },
+            ExpiresIn=900,  # 15 минут
+            HttpMethod='PUT'
+        )
+
+        # Публичный URL для отображения
+        public_url = f"{MINIO_ENDPOINT}/{MINIO_BUCKET}/{key}"
+
+        return {
+            "upload_url": url,
+            "public_url": public_url,
+            "key": key
+        }
+    except ClientError as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 # === Health Check ===
 
