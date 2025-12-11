@@ -72,10 +72,8 @@ declare module '$env/static/private' {
 	export const wg_date: string;
 	export const _: string;
 	export const XAUTHORITY: string;
-	export const DESKTOP_STARTUP_ID: string;
 	export const KITTY_PUBLIC_KEY: string;
 	export const color_window_off_indicator: string;
-	export const GJS_DEBUG_TOPICS: string;
 	export const ZSH_TMUX_CONFIG: string;
 	export const CDPATH: string;
 	export const color_black: string;
@@ -89,7 +87,6 @@ declare module '$env/static/private' {
 	export const XDG_CURRENT_DESKTOP: string;
 	export const npm_package_version: string;
 	export const _ZSH_TMUX_FIXED_CONFIG: string;
-	export const VIRTUAL_ENV: string;
 	export const MEMORY_PRESSURE_WATCH: string;
 	export const WAYLAND_DISPLAY: string;
 	export const color_red: string;
@@ -104,7 +101,6 @@ declare module '$env/static/private' {
 	export const INIT_CWD: string;
 	export const separator_powerline_right: string;
 	export const npm_lifecycle_script: string;
-	export const GJS_DEBUG_OUTPUT: string;
 	export const NVM_DIR: string;
 	export const MOZ_GMP_PATH: string;
 	export const GNOME_SETUP_DISPLAY: string;
@@ -133,7 +129,6 @@ declare module '$env/static/private' {
 	export const QT_IM_MODULE: string;
 	export const _P9K_SSH_TTY: string;
 	export const SDKMAN_CANDIDATES_API: string;
-	export const VIRTUAL_ENV_PROMPT: string;
 	export const ATUIN_SESSION: string;
 	export const npm_config_user_agent: string;
 	export const wg_session: string;
@@ -170,7 +165,6 @@ declare module '$env/static/private' {
 	export const GIO_LAUNCHED_DESKTOP_FILE_PID: string;
 	export const npm_node_execpath: string;
 	export const npm_config_engine_strict: string;
-	export const GIO_LAUNCHED_DESKTOP_FILE: string;
 	export const color_window_off_status_bg: string;
 	export const OLDPWD: string;
 	export const color_orange: string;
@@ -251,10 +245,8 @@ declare module '$env/dynamic/private' {
 		wg_date: string;
 		_: string;
 		XAUTHORITY: string;
-		DESKTOP_STARTUP_ID: string;
 		KITTY_PUBLIC_KEY: string;
 		color_window_off_indicator: string;
-		GJS_DEBUG_TOPICS: string;
 		ZSH_TMUX_CONFIG: string;
 		CDPATH: string;
 		color_black: string;
@@ -268,7 +260,6 @@ declare module '$env/dynamic/private' {
 		XDG_CURRENT_DESKTOP: string;
 		npm_package_version: string;
 		_ZSH_TMUX_FIXED_CONFIG: string;
-		VIRTUAL_ENV: string;
 		MEMORY_PRESSURE_WATCH: string;
 		WAYLAND_DISPLAY: string;
 		color_red: string;
@@ -283,7 +274,6 @@ declare module '$env/dynamic/private' {
 		INIT_CWD: string;
 		separator_powerline_right: string;
 		npm_lifecycle_script: string;
-		GJS_DEBUG_OUTPUT: string;
 		NVM_DIR: string;
 		MOZ_GMP_PATH: string;
 		GNOME_SETUP_DISPLAY: string;
@@ -312,7 +302,6 @@ declare module '$env/dynamic/private' {
 		QT_IM_MODULE: string;
 		_P9K_SSH_TTY: string;
 		SDKMAN_CANDIDATES_API: string;
-		VIRTUAL_ENV_PROMPT: string;
 		ATUIN_SESSION: string;
 		npm_config_user_agent: string;
 		wg_session: string;
@@ -349,7 +338,6 @@ declare module '$env/dynamic/private' {
 		GIO_LAUNCHED_DESKTOP_FILE_PID: string;
 		npm_node_execpath: string;
 		npm_config_engine_strict: string;
-		GIO_LAUNCHED_DESKTOP_FILE: string;
 		color_window_off_status_bg: string;
 		OLDPWD: string;
 		color_orange: string;
