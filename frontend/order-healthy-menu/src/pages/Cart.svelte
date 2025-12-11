@@ -1,43 +1,82 @@
+<!-- src/pages/Cart.svelte -->
 <script>
-    import { cart, clearCart } from '../stores/cart.js';
-    import CartItem from '../components/CartItem.svelte';
-    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8002'; // Значение по умолчанию для dev
+  import { cart, clearCart } from '../stores/cart.js';
+  import CartItem from '../components/CartItem.svelte';
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8002';
+  let submitting = false;
 
-    let total = 0;
+  $: total = $cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
-    $: total = $cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-
-    const placeOrder = async () => {
-        const order = {
-            user_id: 1, // можно заменить на логин
-            items: $cart.map(item => ({
-                dish_id: item.id,
-                quantity: item.quantity
-            }))
-        };
-
-        const response = await fetch(`${API_BASE_URL}/orders/`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(order)
-        });
-
-        if (response.ok) {
-            alert('Заказ оформлен!');
-            clearCart();
-        } else {
-            alert('Ошибка при оформлении заказа');
-        }
-    };
+  const placeOrder = async () => {
+    if ($cart.length === 0) return;
+    submitting = true;
+    try {
+      const order = {
+        user_id: 1,
+        items: $cart.map(item => ({
+          dish_id: item.id,
+          quantity: item.quantity
+        }))
+      };
+      const res = await fetch(`${API_BASE_URL}/orders/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(order)
+      });
+      if (res.ok) {
+        alert('✅ Заказ успешно оформлен!');
+        clearCart();
+      } else {
+        alert('❌ Ошибка: не удалось отправить заказ');
+      }
+    } catch (e) {
+      alert('⚠️ Произошла ошибка при подключении к серверу');
+    } finally {
+      submitting = false;
+    }
+  };
 </script>
 
-<h1>Корзина</h1>
-{#if $cart.length === 0}
-    <p>Корзина пуста</p>
-{:else}
-    {#each $cart as item}
+<div class="py-2">
+  <h1 class="text-3xl font-bold text-center mb-6">🛒 Корзина</h1>
+
+  {#if $cart.length === 0}
+    <div class="text-center py-12">
+      <p class="text-xl text-base-content/70 mb-4">Ваша корзина пуста</p>
+      <a href="/" class="btn btn-outline btn-primary">Выбрать блюда</a>
+    </div>
+  {:else}
+    <div class="space-y-4 mb-6">
+      {#each $cart as item}
         <CartItem {item} />
-    {/each}
-    <h3>Итого: {total.toFixed(2)} ₽</h3>
-    <button on:click={placeOrder}>Оформить заказ</button>
-{/if}
+      {/each}
+    </div>
+
+    <div class="card bg-base-200 rounded-box p-4 mb-6">
+      <div class="flex justify-between text-lg font-semibold">
+        <span>Итого:</span>
+        <span>{total.toFixed(2)} ₽</span>
+      </div>
+    </div>
+
+    <div class="flex flex-col sm:flex-row gap-3 justify-center">
+      <button
+        class="btn btn-outline btn-error"
+        on:click={clearCart}
+        disabled={$cart.length === 0}
+      >
+        Очистить корзину
+      </button>
+      <button
+        class="btn btn-primary flex items-center gap-2"
+        class:btn-disabled={submitting}
+        on:click={placeOrder}
+      >
+        {#if submitting}
+          <span class="loading loading-spinner loading-xs"></span>
+        {/if}
+        Оформить заказ ({total.toFixed(2)} ₽)
+      </button>
+    </div>
+  {/if}
+</div>

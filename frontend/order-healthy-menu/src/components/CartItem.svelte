@@ -1,23 +1,26 @@
 <script>
-    import { removeFromCart } from '../stores/cart.js';
+  import { removeFromCart } from '../stores/cart.js';
+  export let item;
 
-    export let item;
-
-    const handleRemove = () => {
-        removeFromCart(item.id);
-    };
+  const handleRemove = () => {
+    removeFromCart(item.id);
+  };
 </script>
 
-<div class="cart-item">
-    <span>{item.name} x {item.quantity} = {(item.price * item.quantity).toFixed(2)} ₽</span>
-    <button on:click={handleRemove}>Удалить</button>
+<div class="flex items-center justify-between p-3 bg-base-200 rounded-lg mb-2">
+  <div>
+    <span class="font-medium">{item.name}</span>
+    <div class="text-sm text-base-content/70">
+      x{item.quantity} • {(item.price * item.quantity).toFixed(2)} ₽
+    </div>
+  </div>
+  <button
+    class="btn btn-ghost btn-sm text-error"
+    on:click={handleRemove}
+    aria-label="Удалить из корзины"
+  >
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+    </svg>
+  </button>
 </div>
-
-<style>
-    .cart-item {
-        display: flex;
-        justify-content: space-between;
-        padding: 0.5rem;
-        border-bottom: 1px solid #eee;
-    }
-</style>
