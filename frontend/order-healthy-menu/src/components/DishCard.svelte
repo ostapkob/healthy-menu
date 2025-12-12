@@ -24,21 +24,22 @@
   };
 </script>
 
+<!-- src/components/DishCard.svelte -->
 <div
-  class="card bg-base-100 shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer overflow-hidden"
+  class="card bg-base-100 shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer overflow-hidden h-[400px] flex flex-col"
   on:click={handleOpenModal}
 >
-  <!-- Изображение (пока заглушка) -->
-  <div class="bg-gray-200 border-b aspect-video flex items-center justify-center">
+  <!-- Изображение: фиксированный размер 4:3 -->
+  <div class="relative bg-gray-200 border-b aspect-[4/3] w-full flex items-center justify-center">
     {#if dish.image_url}
       <img
-        stroke-linecap="round" stroke-linejoin="round"
         src={dish.image_url}
         alt={dish.name}
         class="w-full h-full object-cover"
         loading="lazy"
-        on:error={(e) => e.target.src = placeholder
-        }
+        on:error={(e) => {
+          e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGRkIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPk5vIEltYWdlPC90ZXh0Pjwvc3ZnPg==';
+        }}
       />
     {:else}
       <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -47,12 +48,15 @@
     {/if}
   </div>
 
-  <div class="card-body p-4">
-    <h3 class="card-title text-lg font-semibold line-clamp-1">{dish.name}</h3>
-    <p class="text-info font-medium">₽{dish.price.toLocaleString()}</p>
-    {#if dish.description}
-      <p class="text-sm text-base-content/70 line-clamp-2 mt-1">{dish.description}</p>
-    {/if}
+  <!-- Текстовая часть: занимает оставшееся пространство -->
+  <div class="card-body p-4 flex-1 flex flex-col justify-between">
+    <div>
+      <h3 class="card-title text-lg font-semibold line-clamp-1">{dish.name}</h3>
+      <p class="text-info font-medium">₽{dish.price.toLocaleString()}</p>
+      {#if dish.description}
+        <p class="text-sm text-base-content/70 line-clamp-2 mt-1 overflow-hidden">{dish.description}</p>
+      {/if}
+    </div>
 
     <!-- Кнопка "Быстрое добавление" -->
     <div class="card-actions justify-end mt-3">
@@ -69,6 +73,7 @@
     </div>
   </div>
 </div>
+
 
 <DishModal
   {dish}

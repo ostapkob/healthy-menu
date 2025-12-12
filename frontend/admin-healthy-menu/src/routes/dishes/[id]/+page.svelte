@@ -12,6 +12,7 @@
     description: '',
     image_url: null
   };
+
   let loading = true;
   let saving = false;
 
@@ -61,10 +62,12 @@
   };
 
   const handleImageUploaded = (url) => {
-  console.log('🖼 handleImageUploaded called with:', url);
-  console.log(type(url))  
-  dish = { ...dish, image_url: url };
-  console.log('Dish updated:', dish.id, dish.image_url);
+  console.log('--')
+  console.log(url.detail.detail);
+  console.log('---')
+  console.log('----')
+  dish = { ...dish, image_url: url.detail.detail };
+  // console.log('------')
 };
 </script>
 
@@ -89,6 +92,7 @@
           dishId={dish.id}
           currentImageUrl={dish.image_url}
           on:image-uploaded={handleImageUploaded}
+          
         />
       </div>
 

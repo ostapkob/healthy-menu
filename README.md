@@ -31,3 +31,7 @@ docker rm -vf $(docker ps -aq)
 
 # Собрать на Docker
 docker compose up -d --build
+
+# MiniO
+./mc alias set minio http://s3.healthy.local minioadmin minioadmin
+./mc anonymous set public minio/healthy-menu-dishes
