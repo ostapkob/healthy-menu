@@ -1,28 +1,40 @@
 <script>
-    export let report = [];
+  export let items = [];
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8001';
+
+  const deleteItem = async (id) => {
+    if (!confirm('Удалить запись?')) return;
+    await fetch(`${API_BASE_URL}/dish-ingredients/${id}`, { method: 'DELETE' });
+    window.location.reload(); // или обнови через store
+  };
 </script>
 
-<table class="min-w-full border">
+<div class="overflow-x-auto">
+  <table class="table table-zebra w-full">
     <thead>
-        <tr>
-            <th class="border px-4 py-2">Блюдо</th>
-            <th class="border px-4 py-2">Орган</th>
-            <th class="border px-4 py-2">Витамин</th>
-            <th class="border px-4 py-2">Норма (мкг)</th>
-            <th class="border px-4 py-2">В блюде (мкг)</th>
-            <th class="border px-4 py-2">Покрытие (%)</th>
-        </tr>
+      <tr>
+        <th>Блюдо</th>
+        <th>Ингредиент</th>
+        <th>Граммы</th>
+        <th class="w-24">Действия</th>
+      </tr>
     </thead>
     <tbody>
-        {#each report as item}
+      {#each items as item}
         <tr>
-            <td class="border px-4 py-2">{item.dish_name}</td>
-            <td class="border px-4 py-2">{item.organ_name}</td>
-            <td class="border px-4 py-2">{item.vitamin_name}</td>
-            <td class="border px-4 py-2">{item.daily_requirement_mcg}</td>
-            <td class="border px-4 py-2">{item.vitamin_in_dish_mcg}</td>
-            <td class="border px-4 py-2">{item.coverage_percentage.toFixed(2)}%</td>
+          <td>{item.dish?.name || item.dish_id}</td>
+          <td>{item.ingredient?.name || item.ingredient_id}</td>
+          <td>{item.amount_grams} г</td>
+          <td>
+            <button
+              class="btn btn-ghost btn-xs text-error"
+              on:click={() => deleteItem(item.id)}
+            >
+              🗑️
+            </button>
+          </td>
         </tr>
-        {/each}
+      {/each}
     </tbody>
-</table>
+  </table>
+</div>

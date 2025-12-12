@@ -187,6 +187,7 @@ class Dish(Base):
         Integer,
         primary_key=True,
         index=True,
+        autoincrement=True,
         comment="ID блюда."
     )
     name = Column(
@@ -205,6 +206,10 @@ class Dish(Base):
         String,
         nullable=True,
         comment="Краткое описание блюда (ингредиенты, способ приготовления).",
+    )
+    image_url = Column(
+       String,
+       nullable=True
     )
     ingredients = relationship("DishIngredient", back_populates="dish")
 

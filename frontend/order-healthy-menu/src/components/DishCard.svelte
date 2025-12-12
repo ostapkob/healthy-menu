@@ -2,7 +2,7 @@
 <script>
   import { addToCart } from '../stores/cart.js';
   import DishModal from './DishModal.svelte';
-
+  import placeholder from '$lib/assets/placeholder-dish.jpg';
   export let dish;
 
   let showModal = false;
@@ -32,11 +32,13 @@
   <div class="bg-gray-200 border-b aspect-video flex items-center justify-center">
     {#if dish.image_url}
       <img
+        stroke-linecap="round" stroke-linejoin="round"
         src={dish.image_url}
         alt={dish.name}
         class="w-full h-full object-cover"
         loading="lazy"
-        on:error={(e) => e.target.src = '/placeholder-dish.jpg'}
+        on:error={(e) => e.target.src = placeholder
+        }
       />
     {:else}
       <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">

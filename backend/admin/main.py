@@ -2,18 +2,14 @@
 from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List, Optional
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from fastapi.middleware.cors import CORSMiddleware
 from shared.database import get_db
 from shared.models import (
     DishIngredient as DishIngredientModel,
     Dish as DishModel,
     Ingredient as IngredientModel,
-    Vitamin as VitaminModel,
     Organ as OrganModel,
-    DailyVitaminRequirement as DailyVitaminRequirementModel,
-    VitaminOrganBenefit as VitaminOrganBenefitModel,
-    IngredientVitaminContent as IngredientVitaminContentModel,
 )
 
 # --- MinIO клиент ---
@@ -112,6 +108,31 @@ class PresignRequest(BaseModel):
     dish_id: int
     filename: str  
 
+class DishCreate(BaseModel):
+    name: str
+    price: float
+    description: Optional[str] = None
+    image_url: Optional[str] = None
+
+
+class DishUpdate(BaseModel):
+    name: Optional[str] = None
+    price: Optional[float] = Field(None, ge=0)  # ≥ 0
+    description: Optional[str] = None
+    image_url: Optional[str] = None
+
+    class Config:
+        # Разрешить входные данные как dict, и конвертировать числа
+        populate_by_name = True
+        extra = "forbid"  # запретить неизвестные поля (защита от id!)
+
+
+class DishFullResponse(BaseModel):
+    id: int
+    name: str
+    price: float
+    description: Optional[str] = None
+    image_url: Optional[str] = None
 
 # === DishIngredient CRUD ===
 
@@ -179,6 +200,52 @@ def get_nutrients(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)
 @app.get("/organs/", response_model=List[OrganResponse])
 def get_organs(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     return db.query(OrganModel).offset(skip).limit(limit).all()
+
+# === Dish CRUD ===
+
+@app.post("/dishes/", response_model=DishFullResponse)
+def create_dish(dish: DishCreate, db: Session = Depends(get_db)):
+    db_dish = DishModel(**dish.dict())
+    db.add(db_dish)
+    db.commit()
+    db.refresh(db_dish)
+    return db_dish
+
+
+@app.get("/dishes/{dish_id}", response_model=DishFullResponse)
+def get_dish(dish_id: int, db: Session = Depends(get_db)):
+    dish = db.query(DishModel).filter(DishModel.id == dish_id).first()
+    if not dish:
+        raise HTTPException(status_code=404, detail="Dish not found")
+    return dish
+
+
+@app.put("/dishes/{dish_id}", response_model=DishFullResponse)
+def update_dish(dish_id: int, dish_update: DishUpdate, db: Session = Depends(get_db)):
+    print("➡️ dish_id:", dish_id)
+    print("➡️ dish_update:", dish_update.dict(exclude_unset=True))
+    print("➡️ raw data:", dish_update)
+    db_dish = db.query(DishModel).filter(DishModel.id == dish_id).first()
+    if not db_dish:
+        raise HTTPException(status_code=404, detail="Dish not found")
+    
+    for key, value in dish_update.dict(exclude_unset=True).items():
+        if value is not None:
+            setattr(db_dish, key, value)
+    
+    db.commit()
+    db.refresh(db_dish)
+    return db_dish
+
+
+@app.delete("/dishes/{dish_id}")
+def delete_dish(dish_id: int, db: Session = Depends(get_db)):
+    db_dish = db.query(DishModel).filter(DishModel.id == dish_id).first()
+    if not db_dish:
+        raise HTTPException(status_code=404, detail="Dish not found")
+    db.delete(db_dish)
+    db.commit()
+    return {"ok": True}
 
 # === Coverage Report API ===
 

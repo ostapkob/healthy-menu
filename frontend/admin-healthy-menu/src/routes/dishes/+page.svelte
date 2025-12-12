@@ -1,33 +1,81 @@
 <script>
-    import { onMount } from 'svelte';
+  import { onMount } from 'svelte';
+  import { base } from '$app/paths';
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8001';
+  let dishes = [];
+  let loading = true;
 
-    let dishes = [];
-    // const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:8001'; // Значение по умолчанию для разработки
-    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8001'; // Значение по умолчанию для dev
+  onMount(async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/dishes/`);
+      dishes = await res.json();
+    } catch (e) {
+      console.error(e);
+    } finally {
+      loading = false;
+    }
+  });
 
-    onMount(async () => {
-        const response = await fetch(`${API_BASE_URL}/dishes/`);
-        dishes = await response.json();
-    });
+  const deleteDish = async (id) => {
+    if (!confirm('Удалить блюдо? Это действие нельзя отменить.')) return;
+    await fetch(`${API_BASE_URL}/dishes/${id}`, { method: 'DELETE' });
+    dishes = dishes.filter(d => d.id !== id);
+  };
 </script>
 
-<h2 class="text-xl font-bold mb-4">Блюда</h2>
+<div>
+  <div class="flex justify-between items-center mb-6">
+    <h2 class="text-2xl font-bold">🍽️ Блюда</h2>
+    <a href="/dishes/new" class="btn btn-primary btn-sm">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+      </svg>
+      Новое блюдо
+    </a>
+  </div>
 
-<table class="min-w-full border">
-    <thead>
-        <tr>
-            <th class="border px-4 py-2">ID</th>
-            <th class="border px-4 py-2">Название</th>
-            <th class="border px-4 py-2">Цена</th>
-        </tr>
-    </thead>
-    <tbody>
-        {#each dishes as dish}
-        <tr>
-            <td class="border px-4 py-2">{dish.id}</td>
-            <td class="border px-4 py-2">{dish.name}</td>
-            <td class="border px-4 py-2">{dish.price}</td>
-        </tr>
-        {/each}
-    </tbody>
-</table>
+  {#if loading}
+    <div class="flex justify-center py-12">
+      <span class="loading loading-spinner loading-lg"></span>
+    </div>
+  {:else if dishes.length === 0}
+    <div class="text-center py-12 text-base-content/70">
+      <p>Нет блюд. Добавьте первое!</p>
+      <a href="/dishes/new" class="btn btn-outline btn-primary mt-4">Создать</a>
+    </div>
+  {:else}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {#each dishes as dish}
+        <div class="card bg-base-100 shadow-md">
+          <div class="bg-gray-200 aspect-video flex items-center justify-center">
+            {#if dish.image_url}
+              <img
+                src={dish.image_url}
+                alt={dish.name}
+                class="w-full h-full object-cover"
+                loading="lazy"
+              />
+            {:else}
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+            {/if}
+          </div>
+          <div class="card-body p-4">
+            <h3 class="font-bold">{dish.name}</h3>
+            <p class="text-info">₽{dish.price.toLocaleString()}</p>
+            <div class="card-actions justify-end mt-3 space-x-2">
+              <a href={`${base}/dishes/${dish.id}`} class="btn btn-ghost btn-xs">✏️ Редактировать</a>
+              <button
+                class="btn btn-ghost btn-xs text-error"
+                on:click={() => deleteDish(dish.id)}
+              >
+                🗑️ Удалить
+              </button>
+            </div>
+          </div>
+        </div>
+      {/each}
+    </div>
+  {/if}
+</div>

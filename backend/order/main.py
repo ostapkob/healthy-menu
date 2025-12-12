@@ -76,6 +76,7 @@ class MenuDish(BaseModel):
     micronutrients: Dict[str, MenuMicronutrient]
     recommendations: List[str]
     score: Optional[int] = None
+    image_url: Optional[str] = None  # может быть Null или строкой
 
 class DishResponse(BaseModel):
     id: int
@@ -224,6 +225,7 @@ def get_menu(db: Session = Depends(get_db)):
                 micronutrients=micronutrients,
                 recommendations=recommendations,
                 score=score,
+                image_url=dish.image_url,
             )
         )
 
@@ -244,7 +246,8 @@ def create_order(order_data: OrderCreate, db: Session = Depends(get_db)):
         order_items.append({
             "dish_id": item.dish_id,
             "quantity": item.quantity,
-            "price": dish.price
+            "price": dish.price,
+            "image_url": dish.image_url
         })
 
     # Создаём заказ
