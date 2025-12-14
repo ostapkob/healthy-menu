@@ -398,10 +398,11 @@ class OrderItem(Base):
 # 
 class Courier(Base):
     __tablename__ = "couriers"
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True)
     name = Column(String)
-    status = Column(String, default="offline")  # offline, available, going_to_pickup, picked_up, delivering
-    current_order_id = Column(Integer, nullable=True)  # если везёт заказ
+    status = Column(String, default="offline")  # online, available, delivering, offline
+    current_order_id = Column(Integer, nullable=True)
+    photo_url = Column(String, nullable=True)  # ← Добавить
 
 class Delivery(Base):
     __tablename__ = "deliveries"

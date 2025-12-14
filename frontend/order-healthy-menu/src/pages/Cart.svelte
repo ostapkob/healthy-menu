@@ -3,6 +3,7 @@
   import { cart, clearCart } from '../stores/cart.js';
   import CartItem from '../components/CartItem.svelte';
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8002';
+  import { base } from '$app/paths';
   let submitting = false;
 
   $: total = $cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
@@ -43,7 +44,7 @@
   {#if $cart.length === 0}
     <div class="text-center py-12">
       <p class="text-xl text-base-content/70 mb-4">Ваша корзина пуста</p>
-      <a href="/" class="btn btn-outline btn-primary">Выбрать блюда</a>
+      <a href="{base}/" class="btn btn-outline btn-primary">Выбрать блюда</a>
     </div>
   {:else}
     <div class="space-y-4 mb-6">

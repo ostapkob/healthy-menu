@@ -8,7 +8,6 @@ from kafka import KafkaConsumer
 import threading
 import time
 from sqlalchemy.sql import func
-from sqlalchemy.sql import func  # <-- добавлен импорт
 import os
 
 from shared.database import get_db
@@ -20,13 +19,14 @@ app = FastAPI(title="Courier Service")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "http://localhost:5173",           # Vite dev server (если используется)
-        "http://localhost:3000",           # Основной порт (если настроен nginx)
-        "http://localhost:3001",           # Admin frontend
-        "http://localhost:3002",           # Order frontend  
-        "http://localhost:3003",           # Courier frontend
-        "http://localhost:80",             # Nginx proxy (если используется)
-        "http://localhost",                # Nginx без порта
+        "http://localhost:5173",          
+        "ws://localhost:5173",            
+        "http://localhost:3000",          
+        "http://localhost:3001",          
+        "http://localhost:3002",          
+        "http://localhost:3003",          
+        "http://localhost:80",            
+        "http://localhost",               
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -37,6 +37,7 @@ app.add_middleware(
 
 class ConnectionManager:
     def __init__(self):
+        # courier_id -> WebSocket
         self.active_connections: Dict[int, WebSocket] = {}
 
     async def connect(self, websocket: WebSocket, courier_id: int):
@@ -53,41 +54,77 @@ class ConnectionManager:
             await websocket.send_text(message)
 
     async def broadcast(self, message: str):
-        for connection in self.active_connections.values():
-            await connection.send_text(message)
+        for connection in list(self.active_connections.values()):
+            try:
+                await connection.send_text(message)
+            except WebSocketDisconnect:
+                # Можно удалить соединение, если нужно
+                pass
+
 
 manager = ConnectionManager()
 
+# === Глобальные объекты для Kafka → asyncio ===
+app.kafka_queue: asyncio.Queue = asyncio.Queue()
+event_loop: asyncio.AbstractEventLoop | None = None
+
+
 # === Kafka Consumer Thread ===
+
 def kafka_listener():
+    global event_loop
+    print("🔧 Запускаем Kafka-листенер...")
+
     while True:
         try:
             consumer = KafkaConsumer(
-                'new_orders',
-                bootstrap_servers=[os.environ.get('KAFKA_BOOTSTRAP_SERVERS', 'kafka:9092')],
-                value_deserializer=lambda m: json.loads(m.decode('utf-8')),
-                auto_offset_reset='earliest',
-                group_id='courier_group'
+                "new_orders",
+                bootstrap_servers=[os.environ.get("KAFKA_BOOTSTRAP_SERVERS", "kafka:9092")],
+                value_deserializer=lambda m: json.loads(m.decode("utf-8")),
+                auto_offset_reset="earliest",  # для дебага; потом можно поменять
+                group_id="courier_group_v2",
+                enable_auto_commit=True,
             )
-            print("Connected to Kafka successfully!")
-            break
+            print("✅ Connected to Kafka successfully!")
+            print("👂 Kafka слушает топик 'new_orders'...")
+
+            for message in consumer:
+                order_data = message.value
+                order_id = order_data["order_id"]
+                print(f"📢 Kafka: received new order {order_id}")
+
+                if event_loop is not None:
+                    # Потокобезопасно кладём сообщение в asyncio.Queue основного цикла
+                    event_loop.call_soon_threadsafe(
+                        app.kafka_queue.put_nowait,
+                        {"type": "new_order", "order_id": order_id},
+                    )
+                else:
+                    print("⚠️ event_loop is None, не могу положить сообщение в очередь")
+
         except Exception as e:
-            print(f"Failed to connect to Kafka: {e}. Retrying in 5 seconds...")
+            print("Ошибка консьюмера", e)
             time.sleep(5)
 
-    for message in consumer:
-        order_data = message.value
-        order_id = order_data['order_id']
 
-        # Отправляем всем доступным курьерам через WebSocket
-        asyncio.run(
-            manager.broadcast(
-                json.dumps({"type": "new_order", "order_id": order_id})
-            )
-        )
+# === Запуск фонового worker'а и сохранение event loop ===
 
-# Запускаем в отдельном потоке
-threading.Thread(target=kafka_listener, daemon=True).start()
+@app.on_event("startup")
+async def start_kafka_worker():
+    global event_loop
+    event_loop = asyncio.get_event_loop()
+
+    async def worker():
+        while True:
+            msg = await app.kafka_queue.get()
+            await manager.broadcast(json.dumps(msg))
+            print(f"📤 WebSocket: broadcasted order {msg['order_id']}")
+
+    asyncio.create_task(worker())
+
+    # Запускаем Kafka-листенер в отдельном потоке
+    threading.Thread(target=kafka_listener, daemon=True).start()
+    print("🧵 Kafka-листенер запущен в потоке")
 
 # === Pydantic Models ===
 
@@ -96,6 +133,7 @@ class CourierResponse(BaseModel):
     name: str
     status: str
     current_order_id: int | None
+    photo_url: str | None
 
 class DeliveryResponse(BaseModel):
     id: int
@@ -115,46 +153,68 @@ class DeliveryResponse(BaseModel):
     picked_up_at: str | None
     delivered_at: str | None
 
+class UpdateCourierStatusRequest(BaseModel):
+    status: str  # "online", "offline"
 
 # === WebSocket Endpoint ===
-
 @app.websocket("/ws/{courier_id}")
 async def websocket_endpoint(websocket: WebSocket, courier_id: int, db: Session = Depends(get_db)):
+    print(f"✅ WebSocket connection attempt for courier_id: {courier_id}")
     await manager.connect(websocket, courier_id)
 
     # Обновляем статус курьера на "available"
     courier = db.query(CourierModel).filter(CourierModel.id == courier_id).first()
     if courier:
+        print(f"🔄 Updating courier {courier_id} status to 'available'")
         courier.status = "available"
         db.commit()
 
     try:
         while True:
             data = await websocket.receive_text()
-            # Курьер может отправить сообщение (например, "I'm ready")
-            # Пока не обрабатываем
+            print(f"💬 Received: {data}")
     except WebSocketDisconnect:
+        print(f"⚠️ WebSocket disconnected for courier_id: {courier_id}")
         manager.disconnect(courier_id)
         # Обновляем статус курьера на "offline"
         courier = db.query(CourierModel).filter(CourierModel.id == courier_id).first()
         if courier:
+            print(f"🔄 Updating courier {courier_id} status to 'offline'")
             courier.status = "offline"
             db.commit()
 
 # === API Endpoints ===
 
-@app.get("/couriers/", response_model=List[CourierResponse])
-def get_couriers(db: Session = Depends(get_db)):
-    couriers = db.query(CourierModel).all()
-    return [
-        CourierResponse(
-            id=c.id,
-            name=c.name,
-            status=c.status,
-            current_order_id=c.current_order_id
-        )
-        for c in couriers
-    ]
+@app.get("/couriers/{courier_id}", response_model=CourierResponse)
+def get_courier(courier_id: int, db: Session = Depends(get_db)):
+    courier = db.query(CourierModel).filter(CourierModel.id == courier_id).first()
+    if not courier:
+        raise HTTPException(status_code=404, detail="Courier not found")
+    return courier
+
+@app.put("/couriers/{courier_id}/status")
+def update_courier_status(
+    courier_id: int,
+    req: UpdateCourierStatusRequest,
+    db: Session = Depends(get_db)
+):
+    courier = db.query(CourierModel).filter(CourierModel.id == courier_id).first()
+    if not courier:
+        raise HTTPException(status_code=404, detail="Courier not found")
+
+    # Проверяем, что статус допустим
+    allowed_statuses = ["online", "offline", "available", "delivering", "going_to_pickup"]
+    if req.status not in allowed_statuses:
+        raise HTTPException(status_code=400, detail="Invalid status")
+
+    courier.status = req.status
+    db.commit()
+
+    # Если offline — отключаем WebSocket (если подключён)
+    if req.status == "offline":
+        manager.disconnect(courier_id)
+
+    return {"ok": True}
 
 @app.get("/available-orders/", response_model=List[dict])
 def get_available_orders(db: Session = Depends(get_db)):
@@ -253,12 +313,21 @@ async def update_delivery_status(
     db.commit()
     return {"ok": True}
 
+
 @app.get("/my-deliveries/{courier_id}", response_model=List[DeliveryResponse])
-def get_my_deliveries(courier_id: int, db: Session = Depends(get_db)):
-    deliveries = db.query(DeliveryModel).filter(
-        DeliveryModel.courier_id == courier_id,
-        DeliveryModel.status != "delivered"  # не показываем завершённые
-    ).all()
+def get_my_deliveries(
+    courier_id: int,
+    history: bool = False,  # ← новый параметр
+    db: Session = Depends(get_db)
+):
+    query = db.query(DeliveryModel).filter(DeliveryModel.courier_id == courier_id)
+
+    if history:
+        # Показываем **все** доставки (включая завершённые)
+        deliveries = query.all()
+    else:
+        # Только **незавершённые**
+        deliveries = query.filter(DeliveryModel.status != "delivered").all()
 
     return [
         DeliveryResponse(
@@ -271,4 +340,3 @@ def get_my_deliveries(courier_id: int, db: Session = Depends(get_db)):
         )
         for d in deliveries
     ]
-

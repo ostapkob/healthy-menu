@@ -15,6 +15,8 @@ from shared.models import (
     Nutrient as NutrientModel,
     DailyNutrientRequirement as DailyNutrientRequirementModel,
     IngredientNutrientContent as IngredientNutrientContentModel,
+    Order as OrderModel,
+    OrderItem as OrderItemModel,
     IngredientCalories as IngredientCaloriesModel,
 )
 
