@@ -11,6 +11,8 @@ from shared.models import (
     Dish as DishModel,
     Ingredient as IngredientModel,
     Organ as OrganModel,
+    Nutrient as NutrientModel,
+    IngredientNutrientContent as INC,
 )
 
 # --- MinIO клиент ---
@@ -87,6 +89,15 @@ class NutrientResponse(BaseModel):
     type: str
     unit: str
 
+class NutrientContentCreate(BaseModel):
+    ingredient_id: int
+    nutrient_id: int
+    content_per_100g: float
+
+class NutrientContentResponse(NutrientContentCreate):
+    id: int
+    ingredient_name: str
+    nutrient_name: str
 
 class OrganResponse(BaseModel):
     id: int
@@ -482,8 +493,136 @@ def update_dish_ingredients_batch(
     db.commit()
     return {"results": results}
 
+# === NutrientContent CRUD ===
+
+@app.get("/nutrient-contents/", response_model=List[NutrientContentResponse])
+def get_contents(db: Session = Depends(get_db)):
+    return db.query(
+            INC.id,
+            INC.ingredient_id,
+            INC.nutrient_id,
+            INC.content_per_100g,
+            IngredientModel.name.label('ingredient_name'),
+            NutrientModel.name.label('nutrient_name')
+        ).join(IngredientModel).join(NutrientModel).all()
+
+@app.post("/nutrient-contents/", response_model=NutrientContentResponse)
+def create_content(body: NutrientContentCreate, db: Session = Depends(get_db)):
+    row = INC(**body.dict())
+    db.add(row); db.commit(); db.refresh(row)
+    return db.query(...).filter(INC.id==row.id).join(...).one() # тот же запрос
 
 
+# ------------------------------------------------------------------
+#  INGREDIENTS  CRUD
+# ------------------------------------------------------------------
+class IngredientCreate(BaseModel):
+    name: str
+
+class IngredientUpdate(BaseModel):
+    name: Optional[str] = None
+
+@app.post("/ingredients/", response_model=IngredientResponse)
+def create_ingredient(body: IngredientCreate, db: Session = Depends(get_db)):
+    row = IngredientModel(**body.dict())
+    db.add(row); db.commit(); db.refresh(row)
+    return row
+
+@app.put("/ingredients/{ing_id}", response_model=IngredientResponse)
+def update_ingredient(ing_id: int, body: IngredientUpdate, db: Session = Depends(get_db)):
+    row = db.query(IngredientModel).filter(IngredientModel.id == ing_id).first()
+    if not row: raise HTTPException(404, "Ingredient not found")
+    if body.name is not None: row.name = body.name
+    db.commit(); db.refresh(row)
+    return row
+
+@app.delete("/ingredients/{ing_id}")
+def delete_ingredient(ing_id: int, db: Session = Depends(get_db)):
+    row = db.query(IngredientModel).filter(IngredientModel.id == ing_id).first()
+    if not row: raise HTTPException(404, "Ingredient not found")
+    db.delete(row); db.commit()
+    return {"ok": True}
+
+
+# ------------------------------------------------------------------
+#  NUTRIENTS  CRUD
+# ------------------------------------------------------------------
+class NutrientCreate(BaseModel):
+    name: str
+    short_name: str
+    type: str
+    unit: str
+
+class NutrientUpdate(BaseModel):
+    name: Optional[str] = None
+    short_name: Optional[str] = None
+    type: Optional[str] = None
+    unit: Optional[str] = None
+
+@app.post("/nutrients/", response_model=NutrientResponse)
+def create_nutrient(body: NutrientCreate, db: Session = Depends(get_db)):
+    row = NutrientModel(**body.dict())
+    db.add(row); db.commit(); db.refresh(row)
+    return row
+
+@app.put("/nutrients/{nut_id}", response_model=NutrientResponse)
+def update_nutrient(nut_id: int, body: NutrientUpdate, db: Session = Depends(get_db)):
+    row = db.query(NutrientModel).filter(NutrientModel.id == nut_id).first()
+    if not row: raise HTTPException(404, "Nutrient not found")
+    for k,v in body.dict(exclude_unset=True).items(): setattr(row,k,v)
+    db.commit(); db.refresh(row)
+    return row
+
+@app.delete("/nutrients/{nut_id}")
+def delete_nutrient(nut_id: int, db: Session = Depends(get_db)):
+    row = db.query(NutrientModel).filter(NutrientModel.id == nut_id).first()
+    if not row: raise HTTPException(404, "Nutrient not found")
+    db.delete(row); db.commit()
+    return {"ok": True}
+
+
+# ------------------------------------------------------------------
+#  INGREDIENT-NUTRIENT-CONTENTS  CRUD
+# ------------------------------------------------------------------
+from shared.models import IngredientNutrientContent as INC   # добавьте в импорт выше
+
+class NutrientContentCreate(BaseModel):
+    ingredient_id: int
+    nutrient_id: int
+    content_per_100g: float
+
+class NutrientContentUpdate(BaseModel):
+    ingredient_id: Optional[int] = None
+    nutrient_id: Optional[int] = None
+    content_per_100g: Optional[float] = None
+
+@app.post("/nutrient-contents/", response_model=NutrientContentResponse)
+def create_nutrient_content(body: NutrientContentCreate, db: Session = Depends(get_db)):
+    row = INC(**body.dict())
+    db.add(row); db.commit(); db.refresh(row)
+    return db.query(
+            INC.id,
+            INC.ingredient_id,
+            INC.nutrient_id,
+            INC.content_per_100g,
+            IngredientModel.name.label('ingredient_name'),
+            NutrientModel.name.label('nutrient_name')
+        ).join(IngredientModel).join(NutrientModel).filter(INC.id == row.id).first()
+
+@app.put("/nutrient-contents/{cid}", response_model=NutrientContentResponse)
+def update_nutrient_content(cid: int, body: NutrientContentUpdate, db: Session = Depends(get_db)):
+    row = db.query(INC).filter(INC.id == cid).first()
+    if not row: raise HTTPException(404, "Content row not found")
+    for k,v in body.dict(exclude_unset=True).items(): setattr(row,k,v)
+    db.commit(); db.refresh(row)
+    return db.query(...).filter(INC.id == cid).join(...).first()   # тот же запрос
+
+@app.delete("/nutrient-contents/{cid}")
+def delete_nutrient_content(cid: int, db: Session = Depends(get_db)):
+    row = db.query(INC).filter(INC.id == cid).first()
+    if not row: raise HTTPException(404, "Content row not found")
+    db.delete(row); db.commit()
+    return {"ok": True}
 
 # === Health Check ===
 

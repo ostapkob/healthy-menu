@@ -1,8 +1,9 @@
 <script>
   import { onMount } from 'svelte';
   import ImageUpload from '$lib/components/ImageUpload.svelte';
+  import DishIngredientsManager from '$lib/components/DishIngredientsManager.svelte';
   import { base } from '$app/paths';
-
+  
   export let params;
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8001';
 
@@ -136,6 +137,8 @@
           bind:value={dish.description}
         />
       </div>
+
+      <DishIngredientsManager dishId={dish.id} />
 
       <!-- Actions -->
       <div class="flex gap-3">

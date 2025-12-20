@@ -6,7 +6,7 @@
 
     const deleteItem = async (id) => {
         if (confirm('Удалить запись?')) {
-            await fetch(`${API_BASE_URL}/dish-ingredients/${id}`, {
+            await fetch(`${API_BASE_URL}/dish-ingredients/enhanced/${id}`, {
                 method: 'DELETE'
             });
             // обновить список

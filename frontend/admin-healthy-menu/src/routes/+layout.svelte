@@ -90,12 +90,17 @@
           </a>
         </li>
         <li>
-          <a 
-            href="{base}/dish-ingredients" 
-            class="flex items-center gap-3 py-3 px-4 rounded-lg hover:bg-base-300 transition-colors {isActive(base + '/dish-ingredients') ? 'bg-base-300 font-semibold' : ''}"
-          >
-            <span class="text-lg">🥬</span>
-            <span class="text-sm font-medium">Ингридиенты</span>
+        <a href="{base}/ingredients" 
+           class="flex items-center gap-3 py-3 px-4 rounded-lg hover:bg-base-300 transition-colors {isActive(base + '/ingredients') ? 'bg-base-300 font-semibold' : ''}">
+           <span class="text-lg">🥬</span>
+           <span class="text-sm font-medium">Ингредиенты</span>
+        </a>
+        </li>
+        <li>
+          <a href="{base}/nutrients" 
+             class="flex items-center gap-3 py-3 px-4 rounded-lg hover:bg-base-300 transition-colors {isActive(base + '/ingredients') ? 'bg-base-300 font-semibold' : ''}">
+             <span class="text-lg">💊</span>
+             <span class="text-sm font-medium">Витамины</span>
           </a>
         </li>
         <li>
