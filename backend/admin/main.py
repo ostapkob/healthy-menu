@@ -5,6 +5,7 @@ from typing import List, Optional
 from pydantic import BaseModel, Field
 from fastapi.middleware.cors import CORSMiddleware
 from shared.database import get_db
+from sqlalchemy.sql import func
 from shared.models import (
     DishIngredient as DishIngredientModel,
     Dish as DishModel,
@@ -133,6 +134,10 @@ class DishFullResponse(BaseModel):
     price: float
     description: Optional[str] = None
     image_url: Optional[str] = None
+
+class DishIngredientBatchUpdate(BaseModel):
+    updates: List[DishIngredientUpdate]
+    deletions: List[int] = []
 
 # === DishIngredient CRUD ===
 
@@ -345,6 +350,140 @@ async def presign_upload(req: PresignRequest):
         }
     except ClientError as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/dish-ingredients/enhanced/")
+def get_dish_ingredients_enhanced(
+    dish_id: Optional[int] = None,
+    db: Session = Depends(get_db)
+):
+    """Возвращает состав блюда с названиями вместо ID"""
+    query = db.query(
+        DishIngredientModel.id,
+        DishIngredientModel.dish_id,
+        DishModel.name.label('dish_name'),
+        DishIngredientModel.ingredient_id,
+        IngredientModel.name.label('ingredient_name'),
+        DishIngredientModel.amount_grams
+    ).join(
+        DishModel, DishIngredientModel.dish_id == DishModel.id
+    ).join(
+        IngredientModel, DishIngredientModel.ingredient_id == IngredientModel.id
+    )
+    
+    if dish_id:
+        query = query.filter(DishIngredientModel.dish_id == dish_id)
+    
+    return [
+        {
+            "id": row.id,
+            "dish_id": row.dish_id,
+            "dish_name": row.dish_name,
+            "ingredient_id": row.ingredient_id,
+            "ingredient_name": row.ingredient_name,
+            "amount_grams": row.amount_grams
+        }
+        for row in query.all()
+    ]
+
+from sqlalchemy import func
+
+@app.get("/dish-ingredients/stats/")
+def get_dish_ingredients_stats(db: Session = Depends(get_db)):
+    """Статистика по составу блюд"""
+    total = db.query(DishIngredientModel).count()
+    dishes_count = db.query(func.count(func.distinct(DishIngredientModel.dish_id))).scalar()
+    ingredients_count = db.query(func.count(func.distinct(DishIngredientModel.ingredient_id))).scalar()
+    
+    # Топ блюд по количеству ингредиентов
+    top_dishes_query = db.query(
+        DishModel.name,
+        func.count(DishIngredientModel.id).label('ingredient_count')
+    ).join(DishIngredientModel, DishModel.id == DishIngredientModel.dish_id)\
+     .group_by(DishModel.id, DishModel.name)\
+     .order_by(func.count(DishIngredientModel.id).desc())\
+     .limit(5).all()
+    
+    top_dishes = [{"name": row[0], "count": row[1]} for row in top_dishes_query]
+    
+    return {
+        "total_entries": total,
+        "unique_dishes": dishes_count,
+        "unique_ingredients": ingredients_count,
+        "top_dishes": top_dishes
+    }
+
+
+@app.get("/dish-ingredients/enhanced/")
+def get_dish_ingredients_enhanced(
+    dish_id: Optional[int] = None,
+    db: Session = Depends(get_db)
+):
+    """Возвращает состав блюда с названиями вместо ID"""
+    from sqlalchemy.orm import joinedload
+    
+    query = db.query(
+        DishIngredientModel.id,
+        DishIngredientModel.dish_id,
+        DishModel.name.label('dish_name'),
+        DishIngredientModel.ingredient_id,
+        IngredientModel.name.label('ingredient_name'),
+        DishIngredientModel.amount_grams
+    ).join(
+        DishModel, DishIngredientModel.dish_id == DishModel.id
+    ).join(
+        IngredientModel, DishIngredientModel.ingredient_id == IngredientModel.id
+    )
+    
+    if dish_id:
+        query = query.filter(DishIngredientModel.dish_id == dish_id)
+    
+    results = query.all()
+    
+    # Преобразуем в словари
+    return [
+        {
+            "id": row.id,
+            "dish_id": row.dish_id,
+            "dish_name": row.dish_name,
+            "ingredient_id": row.ingredient_id,
+            "ingredient_name": row.ingredient_name,
+            "amount_grams": row.amount_grams
+        }
+        for row in results
+    ]
+
+
+@app.put("/dish-ingredients/batch/")
+def update_dish_ingredients_batch(
+    batch: DishIngredientBatchUpdate,
+    db: Session = Depends(get_db)
+):
+    """Обновление нескольких записей состава блюда"""
+    results = []
+    
+    # Обновления
+    for update_data in batch.updates:
+        if update_data.id:
+            item = db.query(DishIngredientModel).filter(DishIngredientModel.id == update_data.id).first()
+            if item:
+                for key, value in update_data.dict(exclude_unset=True, exclude={'id'}).items():
+                    if value is not None:
+                        setattr(item, key, value)
+                results.append({"id": item.id, "action": "updated"})
+    
+    # Удаления
+    for item_id in batch.deletions:
+        item = db.query(DishIngredientModel).filter(DishIngredientModel.id == item_id).first()
+        if item:
+            db.delete(item)
+            results.append({"id": item_id, "action": "deleted"})
+    
+    db.commit()
+    return {"results": results}
+
+
+
 
 # === Health Check ===
 
