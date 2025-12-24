@@ -13,8 +13,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
-from sqlalchemy.dialects.postgresql import TIMESTAMP
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import TIMESTAMP, UUID
 from shared.database import Base
 
 class Food(Base):
@@ -27,11 +26,13 @@ class Food(Base):
     
     fdc_id = Column(Integer, primary_key=True, comment="Уникальный ID продукта в FDC")
     description = Column(String(500), nullable=True, index=True, comment="Название продукта (может содержать коды сэмплов)")
-    food_category_id = Column(String(16), comment="ID категории продукта (Branded, Foundation и т.д.)")
+    food_category_id = Column(Integer, ForeignKey("food_category.id"),  comment="Ссылка на категорию продуктов")
     
     # Связи 1:M
     nutrients = relationship("FoodNutrient", back_populates="food", cascade="all, delete-orphan")
     ru_names = relationship("FoodRu", back_populates="food")
+    category = relationship("FoodCategory", back_populates="foods")  # Новая связь
+
     
     # Индексы для дедупликации и поиска
     __table_args__ = (
@@ -106,23 +107,57 @@ class NutrientRu(Base):
 # === Суточные нормы нутриентов ===
 class DailyNorm(Base):
     """
-    Рекомендуемые суточные нормы потребления для взрослого (средние значения).
-    Источник: Роспотребнадзор MP 2.3.1.0253-21 + WHO. 
-    Для мужчин 30-50 лет, умеренная активность (~2500 ккал).
+    Суточные нормы потребления для взрослого (18-60 лет, умеренная активность).
+    Источник: Роспотребнадзор MP 2.3.1.0253-21 + WHO/ЕС.
+    amount — норма на 100% суточной потребности.
     """
     __tablename__ = "daily_norms"
     
-    nutrient_id = Column(Integer, ForeignKey("nutrient.id"), primary_key=True, comment="Ссылка на nutrient")
-    amount = Column(Numeric(10, 4), nullable=False, comment="Норма на 100% суточной потребности")
-    min_age = Column(Integer, default=18, comment="Минимальный возраст")
-    max_age = Column(Integer, default=60, comment="Максимальный возраст")
-    gender = Column(String(10), default="both", comment="Мужчины/Женщины/both")
-    unit_name = Column(String(50), comment="Единица измерения")
+    nutrient_id = Column(Integer, ForeignKey("nutrient.id"), 
+                        primary_key=True, comment="Ссылка на nutrient.id из nutrient.csv")
+    amount = Column(Numeric(12, 4), nullable=False, 
+                   comment="Норма в сутки (г/мг/мкг)")
+    unit_name = Column(String(50), comment="g/mg/mcg/IU")
+    source = Column(String(50), default="MP_2.3.1.0253-21", comment="Источник нормы")
     
     nutrient = relationship("Nutrient")
     
-    __table_args__ = (Index('idx_daily_norm_nutrient', 'nutrient_id'),)
 
+class FoodCategory(Base):
+    """
+    Категории продуктов USDA FDC.
+    Связь: food.food_category_id → FoodCategory.id
+    """
+    __tablename__ = "food_category"
+    
+    id = Column(Integer, primary_key=True, comment="ID категории (1-28)")
+    code = Column(String(10), nullable=False, unique=True, comment="Код категории (0100, 0200...)")
+    description = Column(String(255), nullable=False, comment="Описание на английском")
+    
+    # Связи 1:M
+    foods = relationship("Food", back_populates="category")
+    ru_names = relationship("FoodCategoryRu", back_populates="category")
+    
+    __table_args__ = (
+        Index('idx_food_category_code', 'code'),
+    )
+
+
+class FoodCategoryRu(Base):
+    """
+    Русская локализация категорий продуктов.
+    """
+    __tablename__ = "food_category_ru"
+    
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    category_id = Column(Integer, ForeignKey("food_category.id"), 
+                        nullable=False, unique=True, index=True)
+    name_ru = Column(String(255), nullable=False, comment="Название категории на русском")
+    description_ru = Column(Text, comment="Описание категории на русском")
+    
+    category = relationship("FoodCategory", back_populates="ru_names")
+
+    
 #----------------------------------------------------------------------
 # === Таблица органов ===
 # class Organ(Base):

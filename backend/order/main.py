@@ -327,37 +327,22 @@ def health_check():
     return {"status": "ok"}
 
 
- # % от суточной нормы по рецепту
-def get_recipe_nutrients_percent(session, recipe_ingredients: list[int], gender: str = 'male'):
-    """Расчёт % от суточной нормы для рецепта (fdc_id продуктов + вес)"""
-    POPULAR_NUTRIENTS = [1003,1004,1005,1079,301,303,304,305,307,308,317,321,323,324,3240,
-                        301,303,304,305,306,307,309,310,311,313]
+ # % от суточной нормы по заказу
+def get_recipe_percent(session, recipe_ingredients, gender='both'):
+    """% от суточной нормы"""
+    total_nutrients = calculate_recipe_totals(session, recipe_ingredients)
     
-    total_nutrients = {}
-    
-    for fdc_id, weight_g in recipe_ingredients:  # [(fdc_id, grams), ...]
-        nutrients = session.query(
-            FoodNutrient.nutrient_id, 
-            func.sum(FoodNutrient.amount * weight_g / 100).label('total_amount')
-        ).filter(
-            FoodNutrient.fdc_id == fdc_id,
-            FoodNutrient.nutrient_id.in_(POPULAR_NUTRIENTS)
-        ).group_by(FoodNutrient.nutrient_id).all()
-        
-        for nut_id, amount in nutrients:
-            total_nutrients[nut_id] = total_nutrients.get(nut_id, 0) + float(amount)
-    
-    # JOIN с нормами и названиями
     result = session.query(
-        NutrientRu.name_ru,
-        func.sum(total_nutrients[Nutrient.id]).label('total'),
-        DailyNorm.amount.label('daily_norm'),
+        NutrientRu.name_ru.label('nutrient'),
+        func.sum(total_nutrients[Nutrient.id]).label('total_g'),
+        DailyNorm.amount.label('norm_g'),
         (func.sum(total_nutrients[Nutrient.id]) / DailyNorm.amount * 100).label('percent')
-    ).join(Nutrient).join(DailyNorm).outerjoin(NutrientRu).filter(
-        Nutrient.id.in_(POPULAR_NUTRIENTS),
+    ).outerjoin(NutrientRu).filter(
+        Nutrient.id.in_(total_nutrients.keys()),
         DailyNorm.gender == gender
-    ).group_by(Nutrient.id, NutrientRu.name_ru, DailyNorm.amount).order_by(
-        (func.sum(total_nutrients[Nutrient.id]) / DailyNorm.amount).desc()
-    ).all()
+    ).group_by(
+        NutrientRu.name_ru, DailyNorm.amount
+    ).order_by(func.desc('percent')).all()
     
-    return result  # [('Белок', 45.2г, 91г, 49.7%), ...]
+    return result
+

@@ -5,25 +5,31 @@ set -o allexport
 source .env
 set +o allexport
 
-echo ${DATABASE_URL}
 
 function execute_copy {
 
     psql "${DATABASE_URL}" -c "\copy $1 FROM '$2' WITH CSV HEADER;"
 }
 
+# Удаление лишних коллонок из оригинального источника
+# csvcut -c id,name,unit_name,nutrient_nbr ./csv_data/FoodData_Central_foundation_food_csv_2025-12-18/nutrient.csv > ./csv_data/nutrient.csv
+# csvcut -c fdc_id,description,food_category_id ./csv_data/FoodData_Central_foundation_food_csv_2025-12-18/food.csv > ./csv_data/food.csv
+# csvcut -c id,fdc_id,nutrient_id,amount ./csv_data/FoodData_Central_foundation_food_csv_2025-12-18/food_nutrient.csv > ./csv_data/food_nutrient.csv
 
 # Nutrients
-csvcut -c id,name,unit_name,nutrient_nbr ./csv_data/FoodData_Central_foundation_food_csv_2025-12-18/nutrient.csv > ./csv_data/nutrient.csv
 execute_copy "nutrient(id,name,unit_name,nutrient_nbr)" "./csv_data/nutrient.csv" 
+ 
+# # Food Category
+execute_copy "food_category(id,code,description)" "./csv_data/food_category.csv"
 
 # # Food
-csvcut -c fdc_id,description,food_category_id ./csv_data/FoodData_Central_foundation_food_csv_2025-12-18/food.csv > ./csv_data/food.csv
 execute_copy "food(fdc_id,description,food_category_id)" "./csv_data/food.csv"
 
 #связь
-csvcut -c id,fdc_id,nutrient_id,amount ./csv_data/FoodData_Central_foundation_food_csv_2025-12-18/food_nutrient.csv > ./csv_data/food_nutrient.csv
 execute_copy "food_nutrient(id,fdc_id,nutrient_id,amount)" "./csv_data/food_nutrient.csv"
+ 
+# Суточные нормы нутриентов
+execute_copy "daily_norms(nutrient_id,amount,unit_name,source)" "./csv_data/daily_norms.csv"
 
 # Русская локализация
 # execute_copy "food_ru(fdc_id,name_ru,description_ru)" "./csv_data/food_ru.csv"
@@ -35,8 +41,6 @@ execute_copy "food_nutrient(id,fdc_id,nutrient_id,amount)" "./csv_data/food_nutr
 # Польза нутриента для органа
 # execute_copy "nutrient_organ_benefits(id, nutrient_id, organ_id, benefit_note)" "./csv_data/vitamin_organ_benefits.csv"
 
-# Суточные нормы нутриентов
-# execute_copy "daily_nutrient_requirements(id, nutrient_id, amount, age_group)" "./csv_data/daily_requirements_extended.csv"
 
 # Блюда (обновлённый список популярных блюд)
 # execute_copy "dishes(id, name, price, description)" "./csv_data/popular_dishes.csv"
