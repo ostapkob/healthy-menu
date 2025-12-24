@@ -5,6 +5,7 @@ uvicorn courier.main:app --reload --port 8003
 
 docker compose up --build
 source venv/bin/activate
+alembic init migrations
 alembic revision --autogenerate -m "create all tables"
 alembic upgrade head
 bash load_data.sh
