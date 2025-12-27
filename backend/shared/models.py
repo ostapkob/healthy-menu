@@ -17,28 +17,18 @@ from sqlalchemy.dialects.postgresql import TIMESTAMP, UUID
 from shared.database import Base
 
 class Food(Base):
-    """
-    Основная таблица продуктов USDA FDC.
-    Содержит описание и метаданные продуктов.
-    Дедупликация: храним только уникальные по description + food_category_id.
-    """
+    """Основная таблица продуктов (упрощенная версия)"""
     __tablename__ = "food"
     
-    fdc_id = Column(Integer, primary_key=True, comment="Уникальный ID продукта в FDC")
-    description = Column(String(500), nullable=True, index=True, comment="Название продукта (может содержать коды сэмплов)")
-    food_category_id = Column(Integer, ForeignKey("food_category.id"),  comment="Ссылка на категорию продуктов")
+    fdc_id = Column(Integer, primary_key=True, comment="Уникальный ID продукта FDC")
+    description = Column(String(500), comment="Название на английском (description)")
+    food_category_id = Column(Integer, ForeignKey("food_category.id"), 
+                             comment="Ссылка на категорию")
     
-    # Связи 1:M
-    nutrients = relationship("FoodNutrient", back_populates="food", cascade="all, delete-orphan")
-    ru_names = relationship("FoodRu", back_populates="food")
-    category = relationship("FoodCategory", back_populates="foods")  # Новая связь
-
-    
-    # Индексы для дедупликации и поиска
-    __table_args__ = (
-        Index('idx_food_category_date', 'food_category_id'),
-        Index('idx_food_normalized_desc', 'description', postgresql_ops={'description': 'varchar_pattern_ops'}),
-    )
+    # Связи
+    nutrients = relationship("FoodNutrient", back_populates="food")
+    ru_names = relationship("FoodRu", back_populates="food", uselist=False)  # 1:1
+    category = relationship("FoodCategory", back_populates="foods")
 
 
 class Nutrient(Base):
@@ -85,11 +75,16 @@ class FoodRu(Base):
     __tablename__ = "food_ru"
     
     id = Column(Integer, primary_key=True, autoincrement=True)
-    fdc_id = Column(Integer, ForeignKey("food.fdc_id"), nullable=False, index=True)
-    name_ru = Column(String(255), nullable=False, comment="Короткое название на русском")
-    description_ru = Column(Text, comment="Полное описание на русском")
+    fdc_id = Column(Integer, ForeignKey("food.fdc_id", ondelete="CASCADE"), 
+                   nullable=False, unique=True, index=True, 
+                   comment="Ссылка на food.fdc_id")
+    name_ru = Column(String(255), nullable=False, comment="Название на русском")
+    food_category_id = Column(Integer, ForeignKey("food_category.id"), 
+                             comment="Ссылка на категорию (дублирует food для индексации)")
     
-    food = relationship("Food")
+    # Связи
+    food = relationship("Food", back_populates="ru_names")
+
 
 
 class NutrientRu(Base):
@@ -157,7 +152,7 @@ class FoodCategoryRu(Base):
     
     category = relationship("FoodCategory", back_populates="ru_names")
 
-    
+
 #----------------------------------------------------------------------
 # === Таблица органов ===
 # class Organ(Base):
