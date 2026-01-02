@@ -1,57 +1,59 @@
 <script>
   import { onMount } from 'svelte';
   import ImageUpload from '$lib/components/ImageUpload.svelte';
-  import DishIngredientsManager from '$lib/components/DishIngredientsManager.svelte';
   import { base } from '$app/paths';
   
   export let params;
-  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8001';
-
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8002';
+  
   let dish = {
+    id: null,
     name: '',
     price: 0,
     description: '',
     image_url: null
   };
-
+  
   let loading = true;
   let saving = false;
-
+  
   onMount(async () => {
-    try {
-      const res = await fetch(`${API_BASE_URL}/dishes/${params.id}`);
-      dish = await res.json();
-    } catch (e) {
-      alert('Ошибка загрузки блюда');
-    } finally {
-      loading = false;
+    if (params.id !== 'new') {
+      try {
+        const res = await fetch(`${API_BASE_URL}/admin/dishes/${params.id}`);
+        if (res.ok) {
+          dish = await res.json();
+        }
+      } catch (e) {
+        alert('Ошибка загрузки блюда');
+      }
     }
+    loading = false;
   });
-
-
+  
   const saveDish = async () => {
+    if (!dish.name || dish.price <= 0) {
+      alert('Заполните название и цену');
+      return;
+    }
+    
     saving = true;
     try {
       const method = dish.id ? 'PUT' : 'POST';
-      const url = dish.id ? `${API_BASE_URL}/dishes/${dish.id}` : `${API_BASE_URL}/dishes/`;
-      const payload = {
-        name: dish.name,
-        price: Number(dish.price), 
-        description: dish.description || null,
-        image_url: dish.image_url?.trim() ? dish.image_url : null
-      };
+      const url = dish.id ? `${API_BASE_URL}/admin/dishes/${dish.id}` : `${API_BASE_URL}/admin/dishes/`;
+      
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        body: JSON.stringify({
+          price: Number(dish.price),
+          description: dish.description || null,
+          image_url: dish.image_url || null
+        })
       });
-
+      
       if (res.ok) {
-        alert('✅ Блюдо сохранено');
-        if (!dish.id) {
-          // Редирект на /dishes после создания
-          window.location.href = '/dishes';
-        }
+        alert('✅ Блюдо обновлено');
       } else {
         throw new Error('Ошибка API');
       }
@@ -61,23 +63,16 @@
       saving = false;
     }
   };
-
-  const handleImageUploaded = (url) => {
-  console.log('--')
-  console.log(url.detail.detail);
-  console.log('---')
-  console.log('----')
-  dish = { ...dish, image_url: url.detail.detail };
-  // console.log('------')
-};
+  
+  const handleImageUploaded = (event) => {
+    dish.image_url = event.detail;
+  };
 </script>
 
 <div>
   <div class="flex justify-between items-center mb-6">
-    <h2 class="text-2xl font-bold">
-      {dish.id ? '✏️ Редактировать' : '🆕 Создать'} блюдо
-    </h2>
-    <a href="{base}/dishes" class="btn btn-ghost">← Назад к списку</a>
+    <h2 class="text-2xl font-bold">🍽️ {dish.id ? 'Редактировать' : 'Новое'} блюдо</h2>
+    <a href="/dishes" class="btn btn-ghost">← К списку</a>
   </div>
 
   {#if loading}
@@ -86,82 +81,64 @@
     </div>
   {:else}
     <form class="space-y-6 max-w-2xl" on:submit|preventDefault={saveDish}>
-      <!-- Image upload -->
+      <!-- Только название для просмотра -->
+      <div class="alert alert-info">
+        <span>📝 Название: <strong>{dish.name}</strong> (задано технологом)</span>
+      </div>
+      
+      <!-- Фото -->
       <div>
-        <h3 class="font-semibold mb-2">Фотография</h3>
+        <h3 class="font-semibold mb-2">📸 Фото</h3>
         <ImageUpload
-          dishId={dish.id}
+          {dishId}={dish.id}
           currentImageUrl={dish.image_url}
           on:image-uploaded={handleImageUploaded}
-          
         />
       </div>
-
-      <!-- Name -->
+      
+      <!-- Цена -->
       <div>
         <label class="label">
-          <span class="label-text">Название *</span>
-        </label>
-        <input
-          type="text"
-          class="input input-bordered w-full"
-          bind:value={dish.name}
-          required
-        />
-      </div>
-
-      <!-- Price -->
-      <div>
-        <label class="label">
-          <span class="label-text">Цена (₽) *</span>
+          <span class="label-text">💰 Цена (₽) *</span>
         </label>
         <input
           type="number"
-          step="1"
+          step="0.01"
           min="0"
           class="input input-bordered w-full"
           bind:value={dish.price}
           required
         />
       </div>
-
-      <!-- Description -->
+      
+      <!-- Описание -->
       <div>
         <label class="label">
-          <span class="label-text">Описание</span>
+          <span class="label-text">📝 Описание</span>
         </label>
         <textarea
           class="textarea textarea-bordered w-full"
-          rows="3"
-          placeholder="Например: Омлет из 2 яиц с помидорами и перцем"
+          rows="4"
+          placeholder="Краткое описание для меню..."
           bind:value={dish.description}
         />
       </div>
-
-      <DishIngredientsManager dishId={dish.id} />
-
-      <!-- Actions -->
+      
+      <!-- Кнопки -->
       <div class="flex gap-3">
         <button
           type="submit"
-          class="btn btn-primary"
-          class:btn-disabled={saving}
+          class="btn btn-primary flex-1"
+          disabled={saving || dish.price <= 0}
         >
           {#if saving}
             <span class="loading loading-spinner loading-xs"></span>
           {/if}
-          {dish.id ? 'Сохранить' : 'Создать'}
+          Сохранить
         </button>
-        {#if dish.id}
-          <button
-            type="button"
-            class="btn btn-ghost"
-            on:click={() => window.location.reload()}
-          >
-            Отменить
-          </button>
-        {/if}
+        <a href="/dishes" class="btn btn-ghost">Отмена</a>
       </div>
     </form>
   {/if}
 </div>
+

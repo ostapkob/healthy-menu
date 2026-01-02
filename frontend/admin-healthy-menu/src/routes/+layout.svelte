@@ -20,7 +20,6 @@
     sidebarOpen = !sidebarOpen;
   };
 
-  // Функция для проверки активного пути
   const isActive = (path) => {
     return $page.url.pathname === path || $page.url.pathname.startsWith(path + '/');
   };
@@ -32,28 +31,24 @@
     <div 
       class="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden" 
       on:click={toggleSidebar}
-      aria-hidden="true"
     ></div>
   {/if}
 
   <!-- Sidebar -->
   <aside 
-    class="fixed lg:static inset-y-0 left-0 z-50 w-64 bg-base-200 flex flex-col border-r border-base-300 transform transition-transform duration-300 ease-in-out lg:transform-none lg:transition-none {sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0"
-    role="navigation"
-    aria-label="Навигация админ-панели"
+    class="fixed lg:static inset-y-0 left-0 z-50 w-64 bg-base-200 flex flex-col border-r border-base-300 transform transition-transform duration-300 ease-in-out lg:transform-none {sidebarOpen ? 'translate-x-0' : '-translate-x-full'}"
   >
     <!-- Mobile Close Button -->
     <button 
       class="lg:hidden absolute top-4 right-4 btn btn-ghost btn-circle btn-sm"
       on:click={toggleSidebar}
-      aria-label="Закрыть меню"
     >
       <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
       </svg>
     </button>
 
-    <!-- Шапка сайдбара -->
+    <!-- Шапка -->
     <div class="p-4 border-b border-base-300">
       <div class="flex items-center gap-3">
         <div class="p-2 bg-primary/10 rounded-lg">
@@ -86,40 +81,26 @@
             class="flex items-center gap-3 py-3 px-4 rounded-lg hover:bg-base-300 transition-colors {isActive(base + '/dishes') ? 'bg-base-300 font-semibold' : ''}"
           >
             <span class="text-lg">🍽️</span>
-            <span class="text-sm font-medium">Блюда</span>
-          </a>
-        </li>
-        <li>
-        <a href="{base}/ingredients" 
-           class="flex items-center gap-3 py-3 px-4 rounded-lg hover:bg-base-300 transition-colors {isActive(base + '/ingredients') ? 'bg-base-300 font-semibold' : ''}">
-           <span class="text-lg">🥬</span>
-           <span class="text-sm font-medium">Ингредиенты</span>
-        </a>
-        </li>
-        <li>
-          <a href="{base}/nutrients" 
-             class="flex items-center gap-3 py-3 px-4 rounded-lg hover:bg-base-300 transition-colors {isActive(base + '/ingredients') ? 'bg-base-300 font-semibold' : ''}">
-             <span class="text-lg">💊</span>
-             <span class="text-sm font-medium">Витамины</span>
+            <span class="text-sm font-medium">Блюда (админ)</span>
           </a>
         </li>
         <li>
           <a 
-            href="{base}/coverage" 
-            class="flex items-center gap-3 py-3 px-4 rounded-lg hover:bg-base-300 transition-colors {isActive(base + '/coverage') ? 'bg-base-300 font-semibold' : ''}"
+            href="{base}/tech" 
+            class="flex items-center gap-3 py-3 px-4 rounded-lg hover:bg-base-300 transition-colors {isActive(base + '/tech') ? 'bg-base-300 font-semibold' : ''}"
           >
-            <span class="text-lg">📊</span>
-            <span class="text-sm font-medium">Покрытие витаминов</span>
+            <span class="text-lg">🔬</span>
+            <span class="text-sm font-medium">Технолог</span>
           </a>
         </li>
       </ul>
     </nav>
 
-    <!-- Футер сайдбара -->
+    <!-- Футер -->
     <div class="p-4 border-t border-base-300">
       <div class="text-xs text-base-content/70">
-        <div>Версия 1.0.0</div>
-        <div class="mt-1">© 2024 HealthyMenu</div>
+        <div>Версия 2.0.0</div>
+        <div class="mt-1">© 2025 HealthyMenu</div>
       </div>
     </div>
   </aside>
@@ -129,19 +110,14 @@
     <!-- Topbar -->
     <header class="navbar bg-base-200 border-b border-base-300 px-4 py-3">
       <div class="flex-1 flex items-center">
-        <!-- Mobile Menu Button -->
         <button 
           class="lg:hidden btn btn-ghost btn-circle mr-2"
           on:click={toggleSidebar}
-          aria-label="Открыть меню"
-          aria-expanded={sidebarOpen}
         >
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
           </svg>
         </button>
-        
-        <!-- Заголовок -->
         <div class="flex items-center gap-3">
           <div class="lg:hidden">
             <div class="p-2 bg-primary/10 rounded-lg">
@@ -150,18 +126,15 @@
               </svg>
             </div>
           </div>
-          
           <h1 class="text-lg md:text-xl font-semibold truncate">Админ-панель</h1>
         </div>
       </div>
       
       <div class="flex-none flex items-center gap-2">
-        <!-- Тема -->
         {#if mounted}
           <button 
             class="btn btn-ghost btn-square btn-sm md:btn-md" 
             on:click={toggleTheme} 
-            aria-label="Переключить тему"
             title="Сменить тему"
           >
             {#if $theme === 'dark'}
@@ -175,10 +148,8 @@
             {/if}
           </button>
         {/if}
-        
-        <!-- Иконка пользователя -->
         <div class="dropdown dropdown-end">
-          <button class="btn btn-ghost btn-circle" aria-label="Профиль администратора">
+          <button class="btn btn-ghost btn-circle">
             <div class="avatar">
               <div class="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -188,7 +159,7 @@
             </div>
           </button>
           <ul class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52 mt-2 z-50">
-            <li><a>Профиль администратора</a></li>
+            <li><a>Профиль</a></li>
             <li><a>Настройки</a></li>
             <li><hr class="my-1"></li>
             <li><a class="text-error">Выйти</a></li>
@@ -197,7 +168,6 @@
       </div>
     </header>
 
-    <!-- Основное содержимое -->
     <main class="flex-1 p-4 md:p-6 overflow-auto bg-base-100/50">
       <div class="max-w-7xl mx-auto">
         <slot />
@@ -206,35 +176,3 @@
   </div>
 </div>
 
-<style>
-  /* Анимация для мобильного меню */
-  aside {
-    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
-  }
-  
-  /* Улучшаем скролл на мобильных */
-  @media (max-width: 1023px) {
-    aside {
-      max-width: 85%;
-    }
-    
-    main {
-      -webkit-overflow-scrolling: touch;
-    }
-  }
-  
-  @media (max-width: 768px) {
-    aside {
-      max-width: 280px;
-    }
-    
-    .navbar h1 {
-      font-size: 1.125rem;
-    }
-  }
-  
-  /* Плавные переходы */
-  * {
-    transition: background-color 0.2s ease, border-color 0.2s ease;
-  }
-</style>

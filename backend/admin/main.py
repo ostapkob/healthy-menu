@@ -2,7 +2,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from .api import dishes, tech
+from .api import dishes, tech, foods
 
 app = FastAPI(title="Admin Service")
 
@@ -24,6 +24,8 @@ app.add_middleware(
 
 app.include_router(tech.router)
 app.include_router(dishes.router)
+app.include_router(foods.router)
+
 
 @app.get("/health")
 def health_check():
