@@ -40,7 +40,9 @@ execute_copy "nutrient_ru(id,nutrient_id,name_ru)" "./csv_data/nutrient_ru.csv"
 execute_copy "food_category_ru(category_id,name_ru,description_ru)" "./csv_data/food_category_ru.csv"
 
 psql "${DATABASE_URL}" -f ./csv_data/food_tmp.sql
-psql "${DATABASE_URL}" -c "\copy food_tmp TO './csv_data/food_tmp.csv' DELIMITER ',' CSV HEADER"
+
+# export
+# psql "${DATABASE_URL}" -c "\copy food_tmp TO './csv_data/food_tmp.csv' DELIMITER ',' CSV HEADER"
 
 
 # Органы и их описание

@@ -1,21 +1,13 @@
 from sqlalchemy import (
-    Column,
-    Date,
-    DateTime,
-    Enum,
-    Float,
-    ForeignKey,
-    Index,
-    Integer,
-    Numeric,
-    String,
-    Text
+    Column, Date, DateTime, Enum, Float, ForeignKey, Index, Integer, 
+    Numeric, String, Text, event
 )
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from sqlalchemy.dialects.postgresql import TIMESTAMP, UUID
 from shared.database import Base
 
+# === Food и связанные ===
 class Food(Base):
     """Основная таблица продуктов (упрощенная версия)"""
     __tablename__ = "food"
@@ -25,43 +17,37 @@ class Food(Base):
     food_category_id = Column(Integer, ForeignKey("food_category.id"), 
                              comment="Ссылка на категорию")
     
-    # Связи
     nutrients = relationship("FoodNutrient", back_populates="food")
-    ru_names = relationship("FoodRu", back_populates="food", uselist=False)  # 1:1
+    ru_names = relationship("FoodRu", back_populates="food", uselist=False)
     category = relationship("FoodCategory", back_populates="foods")
+    dish = relationship("DishFood", back_populates="food")
 
 
 class Nutrient(Base):
-    """
-    Справочник нутриентов. Фильтруем только ~25 популярных (БЖУ, витамины, минералы).
-    """
+    """Справочник нутриентов"""
     __tablename__ = "nutrient"
     
     id = Column(Integer, primary_key=True, comment="Уникальный ID нутриента в FDC")
-    name = Column(String(255), nullable=False, comment="Название нутриента на английском")
+    name = Column(String(255), nullable=False, comment="Название на английском")
     unit_name = Column(String(50), comment="Единица измерения (g, mg, mcg, IU)")
-    nutrient_nbr = Column(Float, comment="Старый номер нутриента из SR Legacy (для совместимости)")
+    nutrient_nbr = Column(Float, comment="Старый номер нутриента из SR Legacy")
     
-    # Связи 1:M
     food_nutrients = relationship("FoodNutrient", back_populates="nutrient")
     ru_names = relationship("NutrientRu", back_populates="nutrient")
 
 
 class FoodNutrient(Base):
-    """
-    Связующая таблица: продукт-нутриент. amount = количество на 100г.
-    """
+    """Продукт-нутриент"""
     __tablename__ = "food_nutrient"
     
     id = Column(Integer, primary_key=True, autoincrement=True)
     fdc_id = Column(Integer, ForeignKey("food.fdc_id", ondelete="CASCADE"), 
-                    nullable=False, index=True, comment="Ссылка на продукт")
+                    nullable=False, index=True)
     nutrient_id = Column(Integer, ForeignKey("nutrient.id", ondelete="CASCADE"), 
-                         nullable=False, index=True, comment="Ссылка на нутриент")
-    amount = Column(Numeric(10, 4), nullable=True, comment="Количество на 100г продукта")
-    data_points = Column(Integer, comment="Количество источников данных (надежность)")
+                         nullable=False, index=True)
+    amount = Column(Numeric(10, 4), nullable=True)
+    data_points = Column(Integer)
     
-    # Связи M:1
     food = relationship("Food", back_populates="nutrients")
     nutrient = relationship("Nutrient", back_populates="food_nutrients")
     
@@ -71,20 +57,16 @@ class FoodNutrient(Base):
 
 
 class FoodRu(Base):
-    """Русская локализация названий продуктов"""
+    """Русская локализация продуктов"""
     __tablename__ = "food_ru"
     
     id = Column(Integer, primary_key=True, autoincrement=True)
     fdc_id = Column(Integer, ForeignKey("food.fdc_id", ondelete="CASCADE"), 
-                   nullable=False, unique=True, index=True, 
-                   comment="Ссылка на food.fdc_id")
-    name_ru = Column(String(255), nullable=False, comment="Название на русском")
-    food_category_id = Column(Integer, ForeignKey("food_category.id"), 
-                             comment="Ссылка на категорию (дублирует food для индексации)")
+                   nullable=False, unique=True, index=True)
+    name_ru = Column(String(255), nullable=False)
+    food_category_id = Column(Integer, ForeignKey("food_category.id"))
     
-    # Связи
     food = relationship("Food", back_populates="ru_names")
-
 
 
 class NutrientRu(Base):
@@ -92,213 +74,89 @@ class NutrientRu(Base):
     __tablename__ = "nutrient_ru"
     
     id = Column(Integer, primary_key=True, autoincrement=True)
-    nutrient_id = Column(Integer, ForeignKey("nutrient.id"), nullable=False, unique=True, index=True)
+    nutrient_id = Column(Integer, ForeignKey("nutrient.id"), 
+                        nullable=False, unique=True, index=True)
     name_ru = Column(String(255), nullable=False)
     
-    nutrient = relationship("Nutrient")
+    nutrient = relationship("Nutrient", back_populates="ru_names")
 
 
-# === Суточные нормы нутриентов ===
 class DailyNorm(Base):
-    """
-    Суточные нормы потребления для взрослого (18-60 лет, умеренная активность).
-    Источник: Роспотребнадзор MP 2.3.1.0253-21 + WHO/ЕС.
-    amount — норма на 100% суточной потребности.
-    """
+    """Суточные нормы"""
     __tablename__ = "daily_norms"
     
-    nutrient_id = Column(Integer, ForeignKey("nutrient.id"), 
-                        primary_key=True, comment="Ссылка на nutrient.id из nutrient.csv")
-    amount = Column(Numeric(12, 4), nullable=False, 
-                   comment="Норма в сутки (г/мг/мкг)")
-    unit_name = Column(String(50), comment="g/mg/mcg/IU")
-    source = Column(String(50), default="MP_2.3.1.0253-21", comment="Источник нормы")
+    nutrient_id = Column(Integer, ForeignKey("nutrient.id"), primary_key=True)
+    amount = Column(Numeric(12, 4), nullable=False)
+    unit_name = Column(String(50))
+    source = Column(String(50), default="MP_2.3.1.0253-21")
     
     nutrient = relationship("Nutrient")
-    
+
 
 class FoodCategory(Base):
-    """
-    Категории продуктов USDA FDC.
-    Связь: food.food_category_id → FoodCategory.id
-    """
+    """Категории продуктов"""
     __tablename__ = "food_category"
     
-    id = Column(Integer, primary_key=True, comment="ID категории (1-28)")
-    code = Column(String(10), nullable=False, unique=True, comment="Код категории (0100, 0200...)")
-    description = Column(String(255), nullable=False, comment="Описание на английском")
+    id = Column(Integer, primary_key=True)
+    code = Column(String(10), nullable=False, unique=True)
+    description = Column(String(255), nullable=False)
     
-    # Связи 1:M
     foods = relationship("Food", back_populates="category")
     ru_names = relationship("FoodCategoryRu", back_populates="category")
     
-    __table_args__ = (
-        Index('idx_food_category_code', 'code'),
-    )
+    __table_args__ = (Index('idx_food_category_code', 'code'),)
 
 
 class FoodCategoryRu(Base):
-    """
-    Русская локализация категорий продуктов.
-    """
+    """Локализация категорий"""
     __tablename__ = "food_category_ru"
     
     id = Column(Integer, primary_key=True, autoincrement=True)
     category_id = Column(Integer, ForeignKey("food_category.id"), 
                         nullable=False, unique=True, index=True)
-    name_ru = Column(String(255), nullable=False, comment="Название категории на русском")
-    description_ru = Column(Text, comment="Описание категории на русском")
+    name_ru = Column(String(255), nullable=False)
+    description_ru = Column(Text)
     
     category = relationship("FoodCategory", back_populates="ru_names")
 
-# === Таблица блюд ===
+
+# === БЛЮДА===
 class Dish(Base):
-    __tablename__ = "dishes"
+    __tablename__ = "dish"
     __table_args__ = {"comment": "Блюда, доступные пользователю."}
 
-    id = Column(
-        Integer,
-        primary_key=True,
-        index=True,
-        autoincrement=True,
-        comment="ID блюда."
-    )
-    name = Column(
-        String,
-        unique=True,
-        index=True,
-        nullable=False,
-        comment="Название блюда."
-    )
-    price = Column(
-        Numeric,
-        nullable=False,
-        comment="Цена блюда."
-    )
-    description = Column(
-        String,
-        nullable=True,
-        comment="Краткое описание блюда (ингредиенты, способ приготовления).",
-    )
-    image_url = Column(
-       String,
-       nullable=True
-    )
-    ingredients = relationship("DishIngredient", back_populates="dish")
-
-
-
-# === Связующая таблица: блюдо -> ингредиенты ===
-class DishIngredient(Base):
-    """
-    Состав блюда: какие ингредиенты и в каком количестве (в граммах) используются.
-    """
-    __tablename__ = "dish_ingredients"
-    __table_args__ = {
-        "comment": "Связь блюд с ингредиентами и их массой в рецепте."
-    }
-
-    id = Column(
-        Integer,
-        primary_key=True,
-        index=True,
-        comment="Уникальный идентификатор записи состава блюда.",
-    )
-    dish_id = Column(
-        Integer,
-        ForeignKey("dishes.id"),
-        nullable=False,
-        comment="FK на блюдо.",
-    )
-    ingredient_id = Column(
-        Integer,
-        ForeignKey("ingredients.id"),
-        nullable=False,
-        comment="FK на ингредиент.",
-    )
-    amount_grams = Column(
-        Float,
-        nullable=False,
-        comment="Масса ингредиента в блюде (граммы).",
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    name = Column(String, unique=True, index=True, nullable=False)
+    price = Column(Numeric, nullable=False)
+    description = Column(String, nullable=True)
+    image_url = Column(String, nullable=True)
+    
+    ingredients = relationship(
+        "DishFood", 
+        back_populates="dish",
+        cascade="all, delete-orphan"
     )
 
+
+class DishFood(Base):
+    """Состав блюда"""
+    __tablename__ = "dish_food"
+    __table_args__ = {"comment": "Связь блюд с ингредиентами"}
+
+    id = Column(Integer, primary_key=True, index=True)
+    dish_id = Column(Integer, ForeignKey("dish.id", ondelete="CASCADE"), 
+                    nullable=False, index=True)
+    food_id = Column(Integer, ForeignKey("food.fdc_id", ondelete="CASCADE"), 
+                    nullable=False, index=True)
+    amount_grams = Column(Float, nullable=False)
+    
     dish = relationship("Dish", back_populates="ingredients")
-    ingredient = relationship("Ingredient", back_populates="dishes")
-
-#----------------------------------------------------------------------
-# === Таблица органов ===
-# class Organ(Base):
-#     """
-#     Справочник органов/систем организма для описания пользы нутриентов.
-#     """
-#     __tablename__ = "organs"
-#     __table_args__ = {
-#         "comment": "Целевые органы и системы организма (печень, сердце, мозг и т.п.)."
-#     }
-
-#     id = Column(
-#         Integer,
-#         primary_key=True,
-#         index=True,
-#         comment="Уникальный идентификатор органа.",
-#     )
-#     name = Column(
-#         String,
-#         unique=True,
-#         index=True,
-#         nullable=False,
-#         comment="Название органа (например, 'Печень', 'Сердце').",
-#     )
-#     description = Column(
-#         String,
-#         comment="Краткое описание функции органа.",
-#     )
-
-#     benefits = relationship(
-#         "NutrientOrganBenefit", back_populates="organ", cascade="all, delete-orphan"
-#     )
+    food = relationship("Food", back_populates="dish")
 
 
-# === Связь: нутриент -> орган (польза) ===
-# class NutrientOrganBenefit(Base):
-#     """
-#     Описывает, как конкретный нутриент влияет на конкретный орган.
-#     """
-#     __tablename__ = "nutrient_organ_benefits"
-#     __table_args__ = {
-#         "comment": "Текстовые описания пользы нутриентов для конкретных органов."
-#     }
-
-#     id = Column(
-#         Integer,
-#         primary_key=True,
-#         index=True,
-#         comment="Уникальный идентификатор записи пользы.",
-#     )
-#     nutrient_id = Column(
-#         Integer,
-#         ForeignKey("nutrients.id"),
-#         nullable=False,
-#         comment="FK на нутриент (витамин/минерал), оказывающий эффект.",
-#     )
-#     organ_id = Column(
-#         Integer,
-#         ForeignKey("organs.id"),
-#         nullable=False,
-#         comment="FK на орган, на который влияет нутриент.",
-#     )
-#     benefit_note = Column(
-#         String,
-#         nullable=False,
-#         comment="Краткое описание пользы нутриента для органа.",
-#     )
-
-#     nutrient = relationship("Nutrient", back_populates="organ_benefits")
-#     organ = relationship("Organ", back_populates="benefits")
-
+# ------------------------------------------------------------------------
 
 # === Таблицы для Order Service ===
-# 
 class Order(Base):
     __tablename__ = "orders"
     id = Column(Integer, primary_key=True, index=True)
@@ -310,19 +168,20 @@ class Order(Base):
 
     items = relationship("OrderItem", back_populates="order")
 
+
 class OrderItem(Base):
     __tablename__ = "order_items"
     id = Column(Integer, primary_key=True, index=True)
     order_id = Column(Integer, ForeignKey("orders.id"))
-    dish_id = Column(Integer, ForeignKey("dishes.id"))
+    dish_id = Column(Integer, ForeignKey("dish.id"))
     quantity = Column(Integer, default=1)
     price = Column(Numeric(precision=10, scale=2))  # цена блюда на момент заказа
 
     order = relationship("Order", back_populates="items")
     dish = relationship("Dish")  # чтобы получить имя/цену блюда
 
+
 # === Таблицы для Courier Service ===
-# 
 class Courier(Base):
     __tablename__ = "couriers"
     id = Column(Integer, primary_key=True)
@@ -330,6 +189,7 @@ class Courier(Base):
     status = Column(String, default="offline")  # online, available, delivering, offline
     current_order_id = Column(Integer, nullable=True)
     photo_url = Column(String, nullable=True)  # ← Добавить
+
 
 class Delivery(Base):
     __tablename__ = "deliveries"

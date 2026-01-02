@@ -1,9 +1,8 @@
-# uvicorn admin.main:app --reload --port 8002
-
+# admin/main.py
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from .api import dishes, dish_ingredients, ingredients, nutrients, reports, storage  # type: ignore[reportAttributeAccessIssue]
+from .api import dishes, tech
 
 app = FastAPI(title="Admin Service")
 
@@ -23,14 +22,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
+app.include_router(tech.router)
 app.include_router(dishes.router)
-app.include_router(dish_ingredients.router)
-app.include_router(ingredients.router)
-app.include_router(nutrients.router)
-app.include_router(reports.router)
-app.include_router(storage.router)
-
 
 @app.get("/health")
 def health_check():
