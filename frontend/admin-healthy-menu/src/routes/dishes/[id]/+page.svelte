@@ -4,7 +4,7 @@
   import { base } from '$app/paths';
   
   export let params;
-  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8002';
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8001';
   
   let dish = {
     id: null,
@@ -20,7 +20,7 @@
   onMount(async () => {
     if (params.id !== 'new') {
       try {
-        const res = await fetch(`${API_BASE_URL}/admin/dishes/${params.id}`);
+        const res = await fetch(`${API_BASE_URL}/dishes/${params.id}`);
         if (res.ok) {
           dish = await res.json();
         }
@@ -40,7 +40,7 @@
     saving = true;
     try {
       const method = dish.id ? 'PUT' : 'POST';
-      const url = dish.id ? `${API_BASE_URL}/admin/dishes/${dish.id}` : `${API_BASE_URL}/admin/dishes/`;
+      const url = dish.id ? `${API_BASE_URL}/dishes/${dish.id}` : `${API_BASE_URL}/admin/dishes/`;
       
       const res = await fetch(url, {
         method,
@@ -90,7 +90,7 @@
       <div>
         <h3 class="font-semibold mb-2">📸 Фото</h3>
         <ImageUpload
-          {dishId}={dish.id}
+          dishId={dish.id}
           currentImageUrl={dish.image_url}
           on:image-uploaded={handleImageUploaded}
         />

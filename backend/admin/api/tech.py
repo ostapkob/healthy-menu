@@ -180,3 +180,9 @@ def delete_dish_tech(dish_id: int, db: Session = Depends(get_db)):
     db.commit()
     return {"ok": True}
 
+
+@router.get("/dishes/", response_model=List[DishTechResponse])
+def list_dishes_tech(db: Session = Depends(get_db)):
+    """Получить список всех технологических карт"""
+    dishes = db.query(Dish).all()
+    return dishes
