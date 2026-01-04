@@ -52,7 +52,7 @@ def list_foods(
             FoodCategoryRu.name_ru.label("category_name_ru"),
             FoodCategory.description.label("category_name_en"),
         )
-        .outerjoin(FoodRu, FoodRu.fdc_id == Food.fdc_id)
+        .join(FoodRu, FoodRu.fdc_id == Food.fdc_id)
         .outerjoin(FoodCategory, FoodCategory.id == Food.food_category_id)
         .outerjoin(FoodCategoryRu, FoodCategoryRu.category_id == FoodCategory.id)
     )
@@ -75,7 +75,7 @@ def list_foods(
     items: List[FoodItem] = []
     for row in rows:
         # выбираем лучшее имя
-        name = row.name_ru or row.description_en or f"Food #{row.fdc_id}"
+        name = row.name_ru #or row.description_en or f"Food #{row.fdc_id}"
         # категория: сначала ru, потом en
         category_name = row.category_name_ru or row.category_name_en
 

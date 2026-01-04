@@ -31,8 +31,6 @@ venv/
 tmp/
 *.egg-info/
 
-# Библиотеки
-lib/
 
 # Конфигурационные файлы среды
 .env
@@ -43,4 +41,4 @@ lib/
 /.temp
 
 **/.svelte-kit/
-
+.svelte-kit/

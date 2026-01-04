@@ -1,1 +1,0 @@
-import{w as e}from"./BTDDw6Y7.js";const n=e([]),s=a=>{n.update(r=>r.find(t=>t.id===a.id)?r.map(t=>t.id===a.id?{...t,quantity:t.quantity+1}:t):[...r,{...a,quantity:1}])},c=a=>{n.update(r=>r.filter(o=>o.id!==a))},d=()=>{n.set([])};export{s as a,d as b,n as c,c as r};
