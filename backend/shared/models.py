@@ -45,7 +45,7 @@ class FoodNutrient(Base):
                     nullable=False, index=True)
     nutrient_id = Column(Integer, ForeignKey("nutrient.id", ondelete="CASCADE"), 
                          nullable=False, index=True)
-    amount = Column(Numeric(10, 4), nullable=True)
+    amount = Column(Numeric(10, 4), nullable=True, comment="Нутриента на 100г продукта")
     data_points = Column(Integer)
     
     food = relationship("Food", back_populates="nutrients")
