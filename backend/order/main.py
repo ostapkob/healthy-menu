@@ -10,7 +10,7 @@ from decimal import Decimal
 from fastapi.middleware.cors import CORSMiddleware
 from shared.database import get_db
 from shared.models import (
-    Dish, DishFood, Food, FoodNutrient, Nutrient, 
+    Dish, DishFood, Food, FoodNutrient, Nutrient, NutrientRu,
     DailyNorm, Order, OrderItem
 )
 
@@ -51,15 +51,15 @@ class NutrientInfo(BaseModel):
     """Информация о нутриенте"""
     name: str
     unit_name: str
-    amount: float
-    daily_percentage: Optional[float] = None  # процент от суточной нормы
+    amount: int  # округленное до целого значение
+    daily_percentage: Optional[int] = None  # процент от суточной нормы
 
 class DishNutrientsResponse(BaseModel):
     """Нутриенты блюда"""
     dish_id: int
     dish_name: str
     total_weight_g: float
-    nutrients: Dict[str, NutrientInfo]  # ключ - nutrient_id или name
+    nutrients: Dict[str, NutrientInfo]  # ключ - nutrient_id
 
 class OrderNutrientsResponse(BaseModel):
     """Нутриенты заказа"""
@@ -74,24 +74,27 @@ class UserNutrientsResponse(BaseModel):
     order_count: int
 
 class MenuMacros(BaseModel):
-    calories: float
-    protein: float
-    fat: float
-    carbs: float
+    """Макронутриенты для меню"""
+    calories: int
+    protein: int
+    fat: int
+    carbs: int
 
 class MenuMicronutrient(BaseModel):
+    """Микронутриент для меню"""
     name: str
     unit: str
-    value: float
-    coverage_percent: float
+    value: int
+    coverage_percent: int
 
 class MenuDish(BaseModel):
+    """Блюдо в меню"""
     id: int
     name: str
     price: float
     description: Optional[str] = None
     macros: MenuMacros
-    micronutrients: Dict[str, MenuMicronutrient]
+    micronutrients: Dict[str, MenuMicronutrient]  # ключ - nutrient_id
     recommendations: List[str]
     score: Optional[int] = None
     image_url: Optional[str] = None
@@ -123,55 +126,81 @@ class OrderResponse(BaseModel):
     created_at: str
     items: List[OrderItemResponse]
 
-# === Вспомогательные функции ===
+# === Функции для работы с нутриентами ===
+
+def get_nutrients_with_translation(db: Session) -> Dict[int, Dict]:
+    """Получить все нутриенты с русским переводом"""
+    nutrients = db.query(Nutrient, NutrientRu).join(
+        NutrientRu, Nutrient.id == NutrientRu.nutrient_id
+    ).all()
+    
+    result = {}
+    for nutrient, nutrient_ru in nutrients:
+        result[nutrient.id] = {
+            'name': nutrient_ru.name_ru,
+            'name_en': nutrient.name,
+            'unit_name': nutrient.unit_name
+        }
+    
+    return result
 
 def get_dish_nutrients(db: Session, dish_id: int) -> Dict[str, NutrientInfo]:
     """
     Получить все нутриенты для блюда с расчетом на 100г
+    Используем только нутриенты из nutrient_ru
     """
+    # Получаем нутриенты с русским переводом
+    nutrients_map = get_nutrients_with_translation(db)
+    
     # Получаем состав блюда
     dish_foods = db.query(DishFood).filter(DishFood.dish_id == dish_id).all()
     
     # Общий вес блюда
-    total_weight = sum(df.amount_grams for df in dish_foods)
+    total_weight = sum(df.amount_grams for df in dish_foods) or 1
     
     # Собираем нутриенты
-    nutrients = {}
+    nutrient_totals = {}
     
     for dish_food in dish_foods:
         # Коэффициент для пересчета на 100г блюда
         factor = dish_food.amount_grams / total_weight
         
         # Получаем нутриенты для этого продукта
-        food_nutrients = db.query(FoodNutrient, Nutrient).join(
-            Nutrient, Nutrient.id == FoodNutrient.nutrient_id
-        ).filter(FoodNutrient.fdc_id == dish_food.food_id).all()
+        food_nutrients = db.query(FoodNutrient).filter(
+            FoodNutrient.fdc_id == dish_food.food_id,
+            FoodNutrient.nutrient_id.in_(nutrients_map.keys())
+        ).all()
         
-        for food_nutrient, nutrient in food_nutrients:
-            key = str(nutrient.id)
-            if key not in nutrients:
-                nutrients[key] = {
-                    'name': nutrient.name,
-                    'unit_name': nutrient.unit_name,
-                    'amount': 0.0
-                }
+        for food_nutrient in food_nutrients:
+            nutrient_id = food_nutrient.nutrient_id
+            if nutrient_id not in nutrient_totals:
+                nutrient_totals[nutrient_id] = 0.0
             
             # Добавляем нутриент с учетом веса ингредиента
-            nutrients[key]['amount'] += float(food_nutrient.amount or 0) * factor
+            nutrient_totals[nutrient_id] += float(food_nutrient.amount or 0) * factor
     
     # Преобразуем в NutrientInfo
     result = {}
-    for key, nutrient_data in nutrients.items():
-        # Рассчитываем процент от суточной нормы
-        daily_norm = db.query(DailyNorm).filter(DailyNorm.nutrient_id == int(key)).first()
-        daily_percentage = None
-        if daily_norm and daily_norm.amount and daily_norm.amount > 0:
-            daily_percentage = (nutrient_data['amount'] / float(daily_norm.amount)) * 100
+    for nutrient_id, amount in nutrient_totals.items():
+        if nutrient_id not in nutrients_map:
+            continue
+            
+        nutrient_info = nutrients_map[nutrient_id]
         
-        result[key] = NutrientInfo(
-            name=nutrient_data['name'],
-            unit_name=nutrient_data['unit_name'],
-            amount=nutrient_data['amount'],
+        # Рассчитываем процент от суточной нормы
+        daily_norm = db.query(DailyNorm).filter(DailyNorm.nutrient_id == nutrient_id).first()
+        daily_percentage = None
+        
+        if daily_norm and daily_norm.amount and daily_norm.amount > 0:
+            daily_percentage = int(round((amount / float(daily_norm.amount)) * 100))
+        
+        # Округляем значение до целого
+        rounded_amount = int(round(amount))
+        
+        result[str(nutrient_id)] = NutrientInfo(
+            name=nutrient_info['name'],
+            unit_name=nutrient_info['unit_name'].lower(),
+            amount=rounded_amount,
             daily_percentage=daily_percentage
         )
     
@@ -204,23 +233,33 @@ def get_order_nutrients(db: Session, order_id: int) -> OrderNutrientsResponse:
                 total_nutrients[key] = NutrientInfo(
                     name=nutrient.name,
                     unit_name=nutrient.unit_name,
-                    amount=0.0
+                    amount=0,
+                    daily_percentage=0
                 )
+            
+            # Обновляем значения
             total_nutrients[key].amount += nutrient.amount * item.quantity
+
         
         # Добавляем информацию о блюде
         dish_responses.append(DishNutrientsResponse(
             dish_id=dish.id,
             dish_name=dish.name,
-            total_weight_g=100.0,  # стандартная порция 100г
+            total_weight_g=100.0,
             nutrients=dish_nutrients
         ))
     
     # Рассчитываем проценты для общих нутриентов
+    nutrients_map = get_nutrients_with_translation(db)
+    
     for key, nutrient in total_nutrients.items():
-        daily_norm = db.query(DailyNorm).filter(DailyNorm.nutrient_id == int(key)).first()
+        nutrient_id = int(key)
+        
+        # Рассчитываем процент от суточной нормы
+        daily_norm = db.query(DailyNorm).filter(DailyNorm.nutrient_id == nutrient_id).first()
         if daily_norm and daily_norm.amount and daily_norm.amount > 0:
-            nutrient.daily_percentage = (nutrient.amount / float(daily_norm.amount)) * 100
+            daily_percentage = int(round((nutrient.amount / float(daily_norm.amount)) * 100))
+            nutrient.daily_percentage = daily_percentage
     
     return OrderNutrientsResponse(
         order_id=order_id,
@@ -237,23 +276,30 @@ def get_user_total_nutrients(db: Session, user_id: int) -> UserNutrientsResponse
     total_nutrients = {}
     
     for order in orders:
-        order_nutrients = get_order_nutrients(db, order.id)
-        
-        # Суммируем нутриенты из этого заказа
-        for key, nutrient in order_nutrients.total_nutrients.items():
-            if key not in total_nutrients:
-                total_nutrients[key] = NutrientInfo(
-                    name=nutrient.name,
-                    unit_name=nutrient.unit_name,
-                    amount=0.0
-                )
-            total_nutrients[key].amount += nutrient.amount
+        try:
+            order_nutrients = get_order_nutrients(db, order.id)
+            
+            # Суммируем нутриенты из этого заказа
+            for key, nutrient in order_nutrients.total_nutrients.items():
+                if key not in total_nutrients:
+                    total_nutrients[key] = NutrientInfo(
+                        name=nutrient.name,
+                        unit_name=nutrient.unit_name,
+                        amount=0,
+                        daily_percentage=0
+                    )
+                total_nutrients[key].amount += nutrient.amount
+        except HTTPException:
+            continue
     
-    # Рассчитываем проценты
+    # Рассчитываем проценты для общих нутриентов
     for key, nutrient in total_nutrients.items():
-        daily_norm = db.query(DailyNorm).filter(DailyNorm.nutrient_id == int(key)).first()
+        nutrient_id = int(key)
+        
+        daily_norm = db.query(DailyNorm).filter(DailyNorm.nutrient_id == nutrient_id).first()
         if daily_norm and daily_norm.amount and daily_norm.amount > 0:
-            nutrient.daily_percentage = (nutrient.amount / float(daily_norm.amount)) * 100
+            daily_percentage = int(round((nutrient.amount / float(daily_norm.amount)) * 100))
+            nutrient.daily_percentage = daily_percentage
     
     return UserNutrientsResponse(
         user_id=user_id,
@@ -305,56 +351,75 @@ def get_user_nutrients_endpoint(user_id: int, db: Session = Depends(get_db)):
 
 @app.get("/menu/", response_model=List[MenuDish])
 def get_menu(db: Session = Depends(get_db)):
+    """Получить меню с нутриентами"""
     dishes = db.query(Dish).all()
     
     menu: List[MenuDish] = []
     
     for dish in dishes:
         # Получаем нутриенты блюда
-        nutrients = get_dish_nutrients(db, dish.id)
+        dish_nutrients = get_dish_nutrients(db, dish.id)
         
-        # Собираем макронутриенты (калории, белки, жиры, углеводы)
-        # Предполагаем, что id макронутриентов известны:
-        # 1008 - Energy (kcal)
-        # 1003 - Protein
-        # 1004 - Total lipid (fat)
-        # 1005 - Carbohydrate, by difference
+        # Извлекаем макронутриенты
+        protein = dish_nutrients.get('1003', NutrientInfo(name='', unit_name='', amount=0)).amount
+        fat = dish_nutrients.get('1004', NutrientInfo(name='', unit_name='', amount=0)).amount
+        carbs = dish_nutrients.get('1005', NutrientInfo(name='', unit_name='', amount=0)).amount
         
+        # Рассчитываем калории: 4*белки + 9*жиры + 4*углеводы
+        calories = protein * 4 + fat * 9 + carbs * 4
+        
+        # Макронутриенты
         macros = MenuMacros(
-            calories=float(nutrients.get('1008', NutrientInfo(name="", unit_name="", amount=0.0)).amount),
-            protein=float(nutrients.get('1003', NutrientInfo(name="", unit_name="", amount=0.0)).amount),
-            fat=float(nutrients.get('1004', NutrientInfo(name="", unit_name="", amount=0.0)).amount),
-            carbs=float(nutrients.get('1005', NutrientInfo(name="", unit_name="", amount=0.0)).amount)
+            calories=calories,
+            protein=protein,
+            fat=fat,
+            carbs=carbs
         )
         
-        # Собираем микронутриенты
+        # Собираем микронутриенты (все кроме макро)
         micronutrients = {}
-        for key, nutrient in nutrients.items():
-            # Пропускаем макронутриенты
-            if key in ['1008', '1003', '1004', '1005']:
-                continue
-                
-            micronutrients[key] = MenuMicronutrient(
-                name=nutrient.name,
-                unit=nutrient.unit_name,
-                value=nutrient.amount,
-                coverage_percent=nutrient.daily_percentage or 0.0
-            )
+        for nutrient_id_str, nutrient in dish_nutrients.items():
+            if nutrient_id_str not in ['1003', '1004', '1005']:
+                micronutrients[nutrient_id_str] = MenuMicronutrient(
+                    name=nutrient.name,
+                    unit=nutrient.unit_name,
+                    value=nutrient.amount,
+                    coverage_percent=nutrient.daily_percentage or 0
+                )
         
-        # Генерируем рекомендации на основе нутриентов
+        # Генерируем рекомендации
         recommendations = []
-        if macros.protein > 20:
-            recommendations.append("Высокобелковое блюдо")
-        if macros.fat < 10:
+        
+        if protein > 15:
+            recommendations.append("Богато белком")
+        if fat < 5:
             recommendations.append("Низкое содержание жиров")
+        if carbs > 30:
+            recommendations.append("Хороший источник энергии")
         
-        # Проверяем микронутриенты
-        for key, micro in micronutrients.items():
-            if micro.coverage_percent > 50:
-                recommendations.append(f"Богат {micro.name}")
+        # Рекомендации по микронутриентам
+        for nutrient_id_str, nutrient in dish_nutrients.items():
+            if nutrient.daily_percentage and nutrient.daily_percentage > 20:
+                recommendations.append(f"Содержит {nutrient.name}")
         
-        # Вычисляем оценку (простая эвристика)
-        score = min(10, len(recommendations) + int(macros.protein / 5))
+        # Убираем дубликаты и ограничиваем количество
+        recommendations = list(dict.fromkeys(recommendations))[:3]
+        
+        # Вычисляем оценку
+        score = 5
+        
+        if protein > 15:
+            score += 1
+        if fat < 10:
+            score += 1
+        
+        nutrient_count = len(micronutrients)
+        if nutrient_count > 5:
+            score += 1
+        if nutrient_count > 10:
+            score += 1
+        
+        score = min(10, max(1, score))
         
         menu.append(
             MenuDish(
@@ -364,7 +429,7 @@ def get_menu(db: Session = Depends(get_db)):
                 description=dish.description,
                 macros=macros,
                 micronutrients=micronutrients,
-                recommendations=recommendations[:3],  # максимум 3 рекомендации
+                recommendations=recommendations,
                 score=score,
                 image_url=dish.image_url,
             )
@@ -399,7 +464,7 @@ def create_order(order_data: OrderCreate, db: Session = Depends(get_db)):
         status="pending"
     )
     db.add(order)
-    db.flush()  # получаем order.id
+    db.flush()
     
     # Создаём OrderItem
     for item in order_items:

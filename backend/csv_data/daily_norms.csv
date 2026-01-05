@@ -22,5 +22,5 @@ nutrient_id,amount,unit_name,source
 1093,2000.0,MG,WHO
 1095,12.0,MG,Rospotrebnadzor
 1098,2.0,MG,Rospotrebnadzor
-1101,5.0,MC,Rospotrebnadzor
+1101,5.0,MCG,Rospotrebnadzor
 1103,70.0,MCG,RospotrebnadzoR
