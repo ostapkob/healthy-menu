@@ -20,6 +20,7 @@ spec:
         ports:
         - containerPort: 8000
         env:
+        # Postgres
         # Загружаем переменные из ConfigMap
         - name: POSTGRES_HOST
           valueFrom:
@@ -50,6 +51,30 @@ spec:
         # Формируем DATABASE_URL через args
         - name: DATABASE_URL
           value: "postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@$(POSTGRES_HOST):$(POSTGRES_PORT)/$(POSTGRES_DB)"
+
+        # MINIO
+        - name: MINIO_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: minio-config
+              key: MINIO_HOST
+        - name: MINIO_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: minio-config
+              key: MINIO_PORT
+        # Загружаем чувствительные переменные из Secret
+        - name: MINIO_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: minio-secret
+              key: MINIO_ACCESS_KEY
+        - name: MINIO_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: minio-secret
+              key: MINIO_SECRET_KEY
+          
 ---
 apiVersion: v1
 kind: Service

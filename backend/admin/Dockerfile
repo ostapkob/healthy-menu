@@ -6,8 +6,8 @@ WORKDIR /app
 # Копируем общие зависимости
 COPY ./shared/requirements.txt .
 
-RUN pip install --upgrade pip
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
 
 # Копируем общие модули
 COPY ./shared/ /app/shared/

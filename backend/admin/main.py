@@ -2,7 +2,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from .api import dishes, tech, foods
+from api import dishes, tech, foods
 
 app = FastAPI(title="Admin Service")
 
