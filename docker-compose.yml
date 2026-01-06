@@ -1,78 +1,89 @@
 # docker compose up -d --build
+# docker compose --profile front_back up -d --build
+# или через переменную окружения:
+# export COMPOSE_PROFILES=front_back
+
 services:
   # Frontend services
-  # admin-frontend:
-  #   build: ./frontend/admin-healthy-menu
-  #   ports:
-  #     - "3001:80"
-  #   networks:
-  #     - healthy-menu-network
+  admin-frontend:
+    profiles: ["front_back"]
+    build: ./frontend/admin-healthy-menu
+    ports:
+      - "3001:80"
+    networks:
+      - healthy-menu-network
 
-  # order-frontend:
-  #   build: ./frontend/order-healthy-menu
-  #   ports:
-  #     - "3002:80"
-  #   networks:
-  #     - healthy-menu-network
+  order-frontend:
+    profiles: ["front_back"]
+    build: ./frontend/order-healthy-menu
+    ports:
+      - "3002:80"
+    networks:
+      - healthy-menu-network
 
-  # courier-frontend:
-  #   build: ./frontend/courier-healthy-menu
-  #   ports:
-  #     - "3003:80"
-  #   networks:
-  #     - healthy-menu-network
+  courier-frontend:
+    profiles: ["front_back"]
+    build: ./frontend/courier-healthy-menu
+    ports:
+      - "3003:80"
+    networks:
+      - healthy-menu-network
 
-  # # Backend services
-  # admin-backend:
-  #   build:
-  #     context: ./backend
-  #     dockerfile: admin/Dockerfile
-  #   ports:
-  #     - "8001:8000"
-  #   env_file:
-  #     - ./backend/.env
-  #   depends_on:
-  #     postgres:
-  #       condition: service_healthy
-  #   networks:
-  #     - healthy-menu-network
+  # Backend services
+  admin-backend:
+    profiles: ["front_back"]
+    build:
+      context: ./backend
+      dockerfile: admin/Dockerfile
+    ports:
+      - "8001:8000"
+    env_file:
+      - ./backend/.env
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - healthy-menu-network
 
-  # order-backend:
-  #   build:
-  #     context: ./backend
-  #     dockerfile: order/Dockerfile
-  #   ports:
-  #     - "8002:8000"
-  #   env_file:
-  #     - ./backend/.env
-  #   environment:
-  #     - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
-  #   depends_on:
-  #     postgres:
-  #       condition: service_healthy
-  #     kafka:
-  #       condition: service_started
-  #   networks:
-  #     - healthy-menu-network
+  order-backend:
+    profiles: ["front_back"]
+    build:
+      context: ./backend
+      dockerfile: order/Dockerfile
+    ports:
+      - "8002:8000"
+    env_file:
+      - ./backend/.env
+    environment:
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+    networks:
+      - healthy-menu-network
 
-  # courier-backend:
-  #   build:
-  #     context: ./backend
-  #     dockerfile: courier/Dockerfile
-  #   ports:
-  #     - "8003:8000"
-  #   env_file:
-  #     - ./backend/.env
-  #   environment:
-  #     - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
-  #     - REDIS_URL=redis://redis:6379
-  #   depends_on:
-  #     postgres:
-  #       condition: service_healthy
-  #     kafka:
-  #       condition: service_started
-  #   networks:
-  #     - healthy-menu-network
+  courier-backend:
+    profiles: ["front_back"]
+    build:
+      context: ./backend
+      dockerfile: courier/Dockerfile
+    ports:
+      - "8003:8000"
+    env_file:
+      - ./backend/.env
+    environment:
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+    networks:
+      - healthy-menu-network
+
 
   # Another services
   postgres:
@@ -96,13 +107,6 @@ services:
     networks:
       - healthy-menu-network
 
-  # redis:
-  #   image: redis:7-alpine
-  #   restart: always
-  #   ports:
-  #     - "6380:6379"
-  #   networks:
-  #     - healthy-menu-network
 
   zookeeper:
     image: confluentinc/cp-zookeeper:latest

@@ -38,21 +38,8 @@
     ></div>
   {/if}
 
-  <!-- Sidebar -->
-  <aside 
-    class="fixed lg:static inset-y-0 left-0 z-50 w-64 bg-base-200 flex flex-col border-r border-base-300 transform transition-transform duration-300 ease-in-out lg:transform-none {sidebarOpen ? 'translate-x-0' : '-translate-x-full'}"
-  >
-    <!-- Mobile Close Button -->
-    <button 
-      class="lg:hidden absolute top-4 right-4 btn btn-ghost btn-circle btn-sm"
-      on:click={toggleSidebar}
-      title="Close"
-    >
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-      </svg>
-    </button>
-
+  <!-- Desktop sidebar (всегда видимый) -->
+  <aside class="hidden lg:flex lg:flex-col lg:w-64 lg:bg-base-200 lg:border-r lg:border-base-300">
     <!-- Шапка -->
     <div class="p-4 border-b border-base-300">
       <div class="flex items-center gap-3">
@@ -62,7 +49,7 @@
           </svg>
         </div>
         <div>
-          <h1 class="text-xl font-bold truncate">HealthyMenu Admin</h1>
+          <h1 class="text-xl font-bold truncate">HealthyMenu</h1>
           <div class="text-xs text-base-content/70 mt-1">Панель управления</div>
         </div>
       </div>
@@ -86,7 +73,7 @@
             class="flex items-center gap-3 py-3 px-4 rounded-lg hover:bg-base-300 transition-colors {isActive(base + '/dishes') ? 'bg-base-300 font-semibold' : ''}"
           >
             <span class="text-lg">🍽️</span>
-            <span class="text-sm font-medium">Блюда (админ)</span>
+            <span class="text-sm font-medium">Блюда</span>
           </a>
         </li>
         <li>
@@ -109,6 +96,84 @@
       </div>
     </div>
   </aside>
+
+  <!-- Mobile sidebar (выезжающее меню) -->
+  {#if sidebarOpen}
+    <aside 
+      class="fixed inset-y-0 left-0 z-50 w-64 bg-base-200 flex flex-col border-r border-base-300
+             transform transition-transform duration-300 ease-in-out translate-x-0 lg:hidden"
+    >
+      <!-- Mobile Close Button -->
+      <button 
+        class="lg:hidden absolute top-4 right-4 btn btn-ghost btn-circle btn-sm"
+        on:click={toggleSidebar}
+        title="Close"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+
+      <!-- Шапка -->
+      <div class="p-4 border-b border-base-300">
+        <div class="flex items-center gap-3">
+          <div class="p-2 bg-primary/10 rounded-lg">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4" />
+            </svg>
+          </div>
+          <div>
+            <h1 class="text-xl font-bold truncate">HealthyMenu</h1>
+            <div class="text-xs text-base-content/70 mt-1">Панель управления</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Меню -->
+      <nav class="flex-1 p-4">
+        <ul class="menu bg-base-200 space-y-2">
+          <li>
+            <a 
+              href="{base}/" 
+              class="flex items-center gap-3 py-3 px-4 rounded-lg hover:bg-base-300 transition-colors {isActive(base + '/') ? 'bg-base-300 font-semibold' : ''}"
+              on:click={toggleSidebar}
+            >
+              <span class="text-lg">🏠</span>
+              <span class="text-sm font-medium">Главная</span>
+            </a>
+          </li>
+          <li>
+            <a 
+              href="{base}/dishes" 
+              class="flex items-center gap-3 py-3 px-4 rounded-lg hover:bg-base-300 transition-colors {isActive(base + '/dishes') ? 'bg-base-300 font-semibold' : ''}"
+              on:click={toggleSidebar}
+            >
+              <span class="text-lg">🍽️</span>
+              <span class="text-sm font-medium">Блюда (админ)</span>
+            </a>
+          </li>
+          <li>
+            <a 
+              href="{base}/tech" 
+              class="flex items-center gap-3 py-3 px-4 rounded-lg hover:bg-base-300 transition-colors {isActive(base + '/tech') ? 'bg-base-300 font-semibold' : ''}"
+              on:click={toggleSidebar}
+            >
+              <span class="text-lg">🔬</span>
+              <span class="text-sm font-medium">Технолог</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+
+      <!-- Футер -->
+      <div class="p-4 border-t border-base-300">
+        <div class="text-xs text-base-content/70">
+          <div>Версия 2.0.0</div>
+          <div class="mt-1">© 2025 HealthyMenu</div>
+        </div>
+      </div>
+    </aside>
+  {/if}
 
   <!-- Main content -->
   <div class="flex-1 flex flex-col min-w-0">
@@ -168,7 +233,7 @@
             <li><a href="localhost">Профиль</a></li>
             <li><a href="localhost">Настройки</a></li>
             <li><hr class="my-1"></li>
-            <li><a  href="localhost" class="text-error">Выйти</a></li>
+            <li><a href="localhost" class="text-error">Выйти</a></li>
           </ul>
         </div>
       </div>
