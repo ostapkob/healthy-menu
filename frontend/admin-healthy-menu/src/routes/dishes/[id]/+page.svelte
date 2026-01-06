@@ -98,13 +98,12 @@
       
       <!-- Цена -->
       <div>
-        <label class="label">
+        <label class="label" for="price-input">
           <span class="label-text">💰 Цена (₽) *</span>
         </label>
-        <input
+        <input 
+          id="price-input"
           type="number"
-          step="0.01"
-          min="0"
           class="input input-bordered w-full"
           bind:value={dish.price}
           required
@@ -113,15 +112,17 @@
       
       <!-- Описание -->
       <div>
-        <label class="label">
+        <label class="label" for="description-textarea">
           <span class="label-text">📝 Описание</span>
         </label>
         <textarea
+          id="description-textarea"
           class="textarea textarea-bordered w-full"
           rows="4"
           placeholder="Краткое описание для меню..."
           bind:value={dish.description}
-        />
+        >
+        </textarea>
       </div>
       
       <!-- Кнопки -->

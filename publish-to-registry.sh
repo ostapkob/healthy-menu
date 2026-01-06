@@ -11,7 +11,7 @@ declare -A BUILD_ARGS=(
     ["admin-backend"]=""
     ["order-backend"]=""
     ["courier-backend"]=""
-    ["nginx-proxy"]=""
+    # ["nginx-proxy"]=""
 )
 
 # Все сервисы с путями
@@ -22,10 +22,10 @@ declare -a SERVICES=(
     "admin-backend    ./backend ./backend/admin/Dockerfile"
     "order-backend    ./backend ./backend/order/Dockerfile"
     "courier-backend  ./backend ./backend/courier/Dockerfile"
-    "nginx-proxy      ./frontend/nginx-proxy"
 )
+    # "nginx-proxy      ./frontend/nginx-proxy"
 
-echo "🚀 Publishing to $REGISTRY"
+echo "🚀 Publishing to $EGISTRY"
 echo "============================="
 
 success=0

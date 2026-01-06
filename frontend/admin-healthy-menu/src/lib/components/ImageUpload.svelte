@@ -101,7 +101,8 @@
       <!-- прогресс -->
       {#if uploadStatus === 'uploading'}
         <div class="mt-2">
-          <progress class="progress progress-primary w-full" />
+          <progress class="progress progress-primary w-full" >
+          </progress>
           <p class="text-sm mt-1">Отправляем на сервер…</p>
         </div>
       {/if}

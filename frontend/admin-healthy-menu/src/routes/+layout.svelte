@@ -28,9 +28,13 @@
 <div class="flex min-h-screen bg-base-100">
   <!-- Mobile Menu Overlay -->
   {#if sidebarOpen}
-    <div 
-      class="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden" 
+    <div
+      class="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+      role="button"
+      tabindex="0"
+      aria-label="Закрыть боковое меню"
       on:click={toggleSidebar}
+      on:keydown={(e) => (e.key === 'Escape' || e.key === 'Enter' || e.key === ' ') && toggleSidebar()}
     ></div>
   {/if}
 
@@ -42,6 +46,7 @@
     <button 
       class="lg:hidden absolute top-4 right-4 btn btn-ghost btn-circle btn-sm"
       on:click={toggleSidebar}
+      title="Close"
     >
       <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -113,6 +118,7 @@
         <button 
           class="lg:hidden btn btn-ghost btn-circle mr-2"
           on:click={toggleSidebar}
+          title="Toggle"
         >
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
@@ -149,7 +155,7 @@
           </button>
         {/if}
         <div class="dropdown dropdown-end">
-          <button class="btn btn-ghost btn-circle">
+          <button class="btn btn-ghost btn-circle" title="Circle">
             <div class="avatar">
               <div class="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -159,10 +165,10 @@
             </div>
           </button>
           <ul class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52 mt-2 z-50">
-            <li><a>Профиль</a></li>
-            <li><a>Настройки</a></li>
+            <li><a href="localhost">Профиль</a></li>
+            <li><a href="localhost">Настройки</a></li>
             <li><hr class="my-1"></li>
-            <li><a class="text-error">Выйти</a></li>
+            <li><a  href="localhost" class="text-error">Выйти</a></li>
           </ul>
         </div>
       </div>

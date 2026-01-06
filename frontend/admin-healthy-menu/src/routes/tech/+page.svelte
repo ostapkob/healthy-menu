@@ -207,10 +207,11 @@
         <div class="space-y-6">
           <!-- Название блюда -->
           <div>
-            <label class="label">
+            <label class="label" for="dish-name-input">
               <span class="label-text font-semibold">Название блюда *</span>
             </label>
             <input
+              id="dish-name-input"
               class="input input-bordered w-full max-w-2xl"
               placeholder="Омлет с овощами, Борщ классический, ..."
               bind:value={form.name}
@@ -226,11 +227,12 @@
               <div class="flex flex-wrap gap-4 items-end">
                 <!-- Поиск -->
                 <div class="flex-1 min-w-[300px]">
-                  <label class="label">
+                  <label class="label" for="dish-find">
                     <span class="label-text">Поиск продукта</span>
                   </label>
                   <div class="join w-full">
                     <input
+                      id="dish-find"
                       type="text"
                       class="input input-bordered join-item flex-1"
                       placeholder="Название продукта..."
@@ -252,10 +254,11 @@
                 
                 <!-- Количество -->
                 <div>
-                  <label class="label">
+                  <label class="label" for="food-amount">
                     <span class="label-text">Количество (г)</span>
                   </label>
                   <input
+                    id="food-amount"
                     type="number"
                     step="0.1"
                     min="0.1"

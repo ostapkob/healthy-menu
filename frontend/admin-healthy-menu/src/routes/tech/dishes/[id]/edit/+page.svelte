@@ -113,7 +113,8 @@
               </thead>
               <tbody>
                 {#each dish.ingredients as ing, i}
-                  {#const food = allFood.find(f => f.fdc_id === ing.food_id)}
+                  <!-- Создаем локальную переменную через обычный JS -->
+                  {@const food = allFood.find(f => f.fdc_id === ing.food_id)}
                   <tr>
                     <td>
                       <div class="font-medium">{food?.name || 'Продукт не найден'}</div>
