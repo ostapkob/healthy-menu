@@ -7,7 +7,7 @@ TAG="latest"
 declare -A BUILD_ARGS=(
     ["admin-frontend"]="--build-arg API_BASE_URL=http://healthy-menu.local/api/admin --build-arg SVELTEKIT_BASEPATH='/admin'"
     ["order-frontend"]="--build-arg API_BASE_URL=http://healthy-menu.local/api/order --build-arg SVELTEKIT_BASEPATH='/order'" 
-    ["courier-frontend"]="--build-arg API_BASE_URL=http://healthy-menu.local/api/courier --build-arg SVELTEKIT_BASEPATH='/courier' --build-arg VITE_WEB_SOCKET_URL=ws://healthy-menu.local/api/courier"
+    ["courier-frontend"]="--build-arg API_BASE_URL=http://healthy-menu.local/api/courier --build-arg SVELTEKIT_BASEPATH='/courier' --build-arg WEB_SOCKET_URL=ws://healthy-menu.local/api/courier"
     ["admin-backend"]=""
     ["order-backend"]=""
     ["courier-backend"]=""
