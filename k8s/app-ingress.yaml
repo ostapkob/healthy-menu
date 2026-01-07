@@ -31,7 +31,6 @@ spec:
             name: admin-frontend
             port:
               number: 80
-      # Повторите для других фронтендов и бэкендов
       - path: /order(/|$)(.*)
         pathType: ImplementationSpecific
         backend:

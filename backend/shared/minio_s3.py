@@ -4,8 +4,8 @@ from botocore.client import Config
 
 MINIO_HOST = os.getenv("MINIO_HOST", "localhost")
 MINIO_PORT = os.getenv("MINIO_PORT", "9000")
-MINIO_ACCESS_KEY = os.getenv("MINIO_ACCESS_KEY", "minioadmin")
-MINIO_SECRET_KEY = os.getenv("MINIO_SECRET_KEY", "minioadmin")
+MINIO_ROOT_USER = os.getenv("MINIO_ROOT_USER", "minioadmin")
+MINIO_ROOT_PASSWORD = os.getenv("MINIO_ROOT_PASSWORD", "minioadmin")
 BUCKET_NAME = "healthy-menu-dishes"
 
 s3 = boto3.client(

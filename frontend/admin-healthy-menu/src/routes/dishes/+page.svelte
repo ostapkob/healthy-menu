@@ -26,12 +26,6 @@
 <div>
   <div class="flex justify-between items-center mb-6">
     <h2 class="text-2xl font-bold">🍽️ Блюда</h2>
-    <a href="/dishes/new" class="btn btn-primary btn-sm">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-      </svg>
-      Новое блюдо
-    </a>
   </div>
 
   {#if loading}
@@ -40,8 +34,7 @@
     </div>
   {:else if dishes.length === 0}
     <div class="text-center py-12 text-base-content/70">
-      <p>Нет блюд. Добавьте первое!</p>
-      <a href="/dishes/new" class="btn btn-outline btn-primary mt-4">Создать</a>
+      <p>Нет блюд. Добавьте первое в технологической карте</p>
     </div>
   {:else}
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
