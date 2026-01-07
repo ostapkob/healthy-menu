@@ -8,7 +8,7 @@ from uuid import uuid4
 
 from shared.database import get_db
 from shared.models import Dish
-from shared.minio_s3 import s3, BUCKET_NAME, MINIO_HOST, MINIO_PORT
+from shared.minio_s3 import s3, MINIO_BUCKET, MINIO_HOST, MINIO_PORT
 
 router = APIRouter(prefix="/dishes", tags=["dishes"])
 
@@ -80,7 +80,7 @@ def upload_dish_image(
     # загружаем
     s3.upload_fileobj(
         Fileobj=file.file,
-        Bucket=BUCKET_NAME,
+        Bucket=MINIO_BUCKET,
         Key=object_name,
         ExtraArgs={
             "ContentType": file.content_type
@@ -88,7 +88,7 @@ def upload_dish_image(
     )
 
     # публичный URL (для public-read bucket)
-    public_url = f"http://{MINIO_HOST}:{MINIO_PORT}/{BUCKET_NAME}/{object_name}"
+    public_url = f"http://{MINIO_HOST}:{MINIO_PORT}/{MINIO_BUCKET}/{object_name}"
     dish.image_url = public_url
     db.commit()
     db.refresh(dish)

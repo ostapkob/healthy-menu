@@ -8,14 +8,16 @@ data:
   # Здесь должны быть base64 закодированные значения
   # Пример: echo -n 'myuser' | base64
   # Подставьте свои значения из .env
-  MINIO_ACCESS_KEY: bWluaW9hZG1pbg==
-  MINIO_SECRET_KEY: bWluaW9hZG1pbg==
+  # MINIO_ACCESS_KEY: bWluaW9hZG1pbg==
+  # MINIO_SECRET_KEY: bWluaW9hZG1pbg==
+  MINIO_ROOT_USER: b3N0YXBrb2I=
+  MINIO_ROOT_PASSWORD: c3VwZXJwYXNzMTIz
 ---
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: minio-config
 data:
-  MINIO_HOST: minio
+  MINIO_HOST: host.minikube.internal
   MINIO_PORT: "9000"
 

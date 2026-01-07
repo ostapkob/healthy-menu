@@ -47,3 +47,9 @@ image: localhost:5000/admin-backend:latest
 # Примените манифесты
 kubectl apply -f k8s/base/namespace.yaml
 kubectl apply -f k8s/base/configmap.yaml
+
+# Test minio
+echo 'host.minikube.internal' > /etc/hosts
+kubectl run -it --rm test --image=alpine -- sh
+apk add --no-cache curl
+curl -v http://host.minikube.internal:9000/healthy-menu-dishes/
