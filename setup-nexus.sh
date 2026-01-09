@@ -46,7 +46,7 @@ curl -u "admin:$ADMIN_PASSWORD" -X POST \
     "docker": {
       "v1Enabled": false,
       "forceBasicAuth": false,
-      "httpPort": '"$NEXUS_PORT"'
+      "httpPort": 5000
     }
   }'
 
@@ -56,7 +56,7 @@ echo "Смена пароля администратора..."
 curl -u "admin:$ADMIN_PASSWORD" -X PUT \
   "$NEXUS_WEB_URL/service/rest/v1/security/users/admin/change-password" \
   -H "Content-Type: text/plain" \
-  -d "$NEXUS_URL"
+  -d "$NEXUS_PASSWORD"
 
 echo "Войдите в web итерфейс, после этого можно будет залогинится коммандой"
 echo "docker login localhost:5000 -u admin"

@@ -17,7 +17,7 @@ echo "Используем тег: $TAG"
 
 # Проверка доступности Nexus
 echo "Проверка доступности Nexus..."
-if ! curl -s --head http://$NEXUS_WEB_URL > /dev/null; then
+if ! curl -s --head $NEXUS_WEB_URL > /dev/null; then
     echo "❌ Nexus не доступен на $NEXUS_WEB_URL"
     echo "Запустите Nexus: docker compose up -d nexus"
     exit 1
@@ -25,13 +25,14 @@ fi
 
 # Проверка доступа к Docker реестру Nexus
 echo "Проверка Docker реестра Nexus..."
-if ! curl -s --head http://$NEXUS_REGISTRY_URL > /dev/null; then
+if ! curl -s --head $NEXUS_REGISTRY_URL > /dev/null; then
     echo "❌ Docker реестр Nexus не доступен на $NEXUS_REGISTRY_URL"
     exit 1
 fi
 
 echo "Логин в Nexus..."
-echo $NEXUS_PASS | docker login -u $NEXUS_USER --password-stdin $NEXUS_REGISTRY_URL
+echo $NEXUS_PASSWORD | docker login -u $NEXUS_USER --password-stdin $NEXUS_REGISTRY_URL
+# echo $NEXUS_PASSWORD  $NEXUS_USER  $NEXUS_REGISTRY_URL
 
 if [ $? -ne 0 ]; then
     echo "❌ Ошибка логина в Nexus"
@@ -44,8 +45,9 @@ fi
 echo "✅ Успешный логин в Nexus"
 
 # Аргументы сборки для каждого сервиса
+# FIX http
 declare -A BUILD_ARGS=(
-    ["admin-frontend"]="--build-arg API_BASE_URL=http://healthy-menu.local/api/admin --build-arg SVELTEKIT_BASEPATH='/admin'"
+    ["admin-frontend"]="--build-arg API_BASE_URL=http://healthy-menu.local/api/admin --build-arg SVELTEKIT_BASEPATH='/admin'" 
     ["order-frontend"]="--build-arg API_BASE_URL=http://healthy-menu.local/api/order --build-arg SVELTEKIT_BASEPATH='/order'" 
     ["courier-frontend"]="--build-arg API_BASE_URL=http://healthy-menu.local/api/courier --build-arg SVELTEKIT_BASEPATH='/courier' --build-arg WEB_SOCKET_URL=ws://healthy-menu.local/api/courier"
     ["admin-backend"]=""
@@ -154,3 +156,8 @@ else
     echo "⚠️  Some images failed to publish"
     exit 1
 fi
+
+
+
+
+
