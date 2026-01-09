@@ -1,7 +1,39 @@
 #!/bin/bash
 
-REGISTRY="192.168.49.2:5000"
+# Настройки
+REGISTRY="localhost:5000"
+# REGISTRY="192.168.49.2:5000"
 TAG="latest"
+NEXUS_USER="admin"
+NEXUS_PASS="superpass123"
+
+# Проверка доступности Nexus
+echo "Проверка доступности Nexus..."
+if ! curl -s --head http://localhost:8081 > /dev/null; then
+    echo "❌ Nexus не доступен на localhost:8081"
+    echo "Запустите Nexus: docker compose up -d nexus"
+    exit 1
+fi
+
+# Проверка доступа к Docker реестру Nexus
+echo "Проверка Docker реестра Nexus..."
+if ! curl -s --head http://$REGISTRY > /dev/null; then
+    echo "❌ Docker реестр Nexus не доступен на $REGISTRY"
+    exit 1
+fi
+
+echo "Логин в Nexus..."
+echo $NEXUS_PASS | docker login -u $NEXUS_USER --password-stdin $REGISTRY
+
+if [ $? -ne 0 ]; then
+    echo "❌ Ошибка логина в Nexus"
+    echo "Проверьте:"
+    echo "1. Правильность пароля"
+    echo "2. Аутентификацию в Nexus (Settings > Security > Anonymous Access)"
+    exit 1
+fi
+
+echo "✅ Успешный логин в Nexus"
 
 # Аргументы сборки для каждого сервиса
 declare -A BUILD_ARGS=(
@@ -11,7 +43,6 @@ declare -A BUILD_ARGS=(
     ["admin-backend"]=""
     ["order-backend"]=""
     ["courier-backend"]=""
-    # ["nginx-proxy"]=""
 )
 
 # Все сервисы с путями
@@ -23,13 +54,21 @@ declare -a SERVICES=(
     "order-backend    ./backend ./backend/order/Dockerfile"
     "courier-backend  ./backend ./backend/courier/Dockerfile"
 )
-    # "nginx-proxy      ./frontend/nginx-proxy"
 
-echo "🚀 Publishing to $EGISTRY"
+echo "🚀 Publishing to $REGISTRY"  # Исправлено: было $EGISTRY
 echo "============================="
 
 success=0
 fail=0
+
+# Функция для очистки при прерывании
+cleanup() {
+    echo ""
+    echo "Прерывание операции..."
+    docker logout $REGISTRY
+    exit 1
+}
+trap cleanup INT TERM
 
 for item in "${SERVICES[@]}"; do
     read -r name context dockerfile <<< "$item"
@@ -62,7 +101,7 @@ for item in "${SERVICES[@]}"; do
     
     echo "\$ $BUILD_CMD"
     # Сборка
-    if eval "$BUILD_CMD" > /dev/null 2>&1; then
+    if eval "$BUILD_CMD"; then  # Убрал > /dev/null 2>&1 для отладки
         echo "  ✅ Built"
     else
         echo "❌ Build failed"
@@ -70,19 +109,32 @@ for item in "${SERVICES[@]}"; do
         continue
     fi
     
+    # Проверяем, что образ создался
+    if ! docker image inspect "$REGISTRY/$name:$TAG" &> /dev/null; then
+        echo "❌ Образ не найден после сборки: $REGISTRY/$name:$TAG"
+        ((fail++))
+        continue
+    fi
+    
     # Публикация
     PUBLISH_CMD="docker push $REGISTRY/$name:$TAG"
-    if eval "$PUBLISH_CMD" > /dev/null 2>&1; then
-        echo "\$ $PUBLISH_CMD"
+    echo "\$ $PUBLISH_CMD"
+    if eval "$PUBLISH_CMD"; then  # Убрал > /dev/null 2>&1 для отладки
         echo "  ✅ Published"
         ((success++))
     else
         echo "❌ Push failed"
+        echo "Возможные причины:"
+        echo "1. Docker не настроен на работу с insecure registry"
+        echo "2. Nexus не разрешает push в репозиторий"
+        echo "3. Проблемы с сетью"
         ((fail++))
     fi
     
     echo ""
 done
+
+docker logout $REGISTRY
 
 echo "======================================="
 echo "📊 Results: $success published, $fail failed"
