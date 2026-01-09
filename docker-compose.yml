@@ -1,9 +1,3 @@
-# docker compose up -d --build
-# docker compose --profile front_back up -d --build
-# docker compose --profile front_back down
-# или через переменную окружения:
-# export COMPOSE_PROFILES=front_back
-
 services:
   # Frontend services
   admin-frontend:
@@ -85,8 +79,7 @@ services:
     networks:
       - healthy-menu-network
 
-
-  # Another services
+  # Infrastructure services
   postgres:
     image: postgres:16
     restart: always
@@ -139,7 +132,6 @@ services:
     networks:
       - healthy-menu-network
 
-
   minio:
     image: quay.io/minio/minio:latest
     env_file:
@@ -161,6 +153,8 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    networks:
+      - healthy-menu-network
 
   createbuckets:
     image: quay.io/minio/mc:latest
@@ -173,12 +167,35 @@ services:
       /usr/bin/mc mb minio/${MINIO_BUCKET};
       /usr/bin/mc anonymous set public minio/${MINIO_BUCKET};
       "
-# /usr/bin/mc anonymous set download minio/${MINIO_BUCKET};
+
+  nexus:
+    image: sonatype/nexus3
+    container_name: nexus
+    ports:
+      - "8081:8081"   # Web UI Nexus
+      - "5000:5000"   # Docker Registry (HTTP)
+    volumes:
+      - nexus-data:/nexus-data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+
+#   # cadvisor:
+#   #  networks:
+#   #    - healthy-menu-network
 
 volumes:
   postgres_data:
   data-minio:
+  nexus-data:
 
 networks:
   healthy-menu-network:
     driver: bridge
+
+
+
+
