@@ -1,29 +1,37 @@
 #!/bin/bash
 
+set -o allexport
+source ./backend/.env
+set +o allexport
+
 # Настройки
-REGISTRY="localhost:5000"
-# REGISTRY="192.168.49.2:5000"
-TAG="latest"
-NEXUS_USER="admin"
-NEXUS_PASS="superpass123"
+# NEXUS_REGISTRY_URL="localhost:5000"
+# NEXUS_REGISTRY_URL="192.168.49.2:5000"
+echo "NEXUS_WEB_URL: $NEXUS_WEB_URL"
+ 
+TAG=${1:-latest}
+# NEXUS_USER="admin"
+# NEXUS_PASS="superpass123"
+
+echo "Используем тег: $TAG"
 
 # Проверка доступности Nexus
 echo "Проверка доступности Nexus..."
-if ! curl -s --head http://localhost:8081 > /dev/null; then
-    echo "❌ Nexus не доступен на localhost:8081"
+if ! curl -s --head http://$NEXUS_WEB_URL > /dev/null; then
+    echo "❌ Nexus не доступен на $NEXUS_WEB_URL"
     echo "Запустите Nexus: docker compose up -d nexus"
     exit 1
 fi
 
 # Проверка доступа к Docker реестру Nexus
 echo "Проверка Docker реестра Nexus..."
-if ! curl -s --head http://$REGISTRY > /dev/null; then
-    echo "❌ Docker реестр Nexus не доступен на $REGISTRY"
+if ! curl -s --head http://$NEXUS_REGISTRY_URL > /dev/null; then
+    echo "❌ Docker реестр Nexus не доступен на $NEXUS_REGISTRY_URL"
     exit 1
 fi
 
 echo "Логин в Nexus..."
-echo $NEXUS_PASS | docker login -u $NEXUS_USER --password-stdin $REGISTRY
+echo $NEXUS_PASS | docker login -u $NEXUS_USER --password-stdin $NEXUS_REGISTRY_URL
 
 if [ $? -ne 0 ]; then
     echo "❌ Ошибка логина в Nexus"
@@ -55,7 +63,7 @@ declare -a SERVICES=(
     "courier-backend  ./backend ./backend/courier/Dockerfile"
 )
 
-echo "🚀 Publishing to $REGISTRY"  # Исправлено: было $EGISTRY
+echo "🚀 Publishing to $NEXUS_REGISTRY_URL"  # Исправлено: было $EGISTRY
 echo "============================="
 
 success=0
@@ -65,7 +73,7 @@ fail=0
 cleanup() {
     echo ""
     echo "Прерывание операции..."
-    docker logout $REGISTRY
+    docker logout $NEXUS_REGISTRY_URL
     exit 1
 }
 trap cleanup INT TERM
@@ -97,7 +105,7 @@ for item in "${SERVICES[@]}"; do
     ARGS="${BUILD_ARGS[$name]}"
     
     # Формируем и выполняем команду сборки
-    BUILD_CMD="docker build $ARGS -t $REGISTRY/$name:$TAG -f $dockerfile $context"
+    BUILD_CMD="docker build $ARGS -t $NEXUS_REGISTRY_URL/$name:$TAG -f $dockerfile $context"
     
     echo "\$ $BUILD_CMD"
     # Сборка
@@ -110,14 +118,14 @@ for item in "${SERVICES[@]}"; do
     fi
     
     # Проверяем, что образ создался
-    if ! docker image inspect "$REGISTRY/$name:$TAG" &> /dev/null; then
-        echo "❌ Образ не найден после сборки: $REGISTRY/$name:$TAG"
+    if ! docker image inspect "$NEXUS_REGISTRY_URL/$name:$TAG" &> /dev/null; then
+        echo "❌ Образ не найден после сборки: $NEXUS_REGISTRY_URL/$name:$TAG"
         ((fail++))
         continue
     fi
     
     # Публикация
-    PUBLISH_CMD="docker push $REGISTRY/$name:$TAG"
+    PUBLISH_CMD="docker push $NEXUS_REGISTRY_URL/$name:$TAG"
     echo "\$ $PUBLISH_CMD"
     if eval "$PUBLISH_CMD"; then  # Убрал > /dev/null 2>&1 для отладки
         echo "  ✅ Published"
@@ -134,7 +142,7 @@ for item in "${SERVICES[@]}"; do
     echo ""
 done
 
-docker logout $REGISTRY
+docker logout $NEXUS_REGISTRY_URL
 
 echo "======================================="
 echo "📊 Results: $success published, $fail failed"

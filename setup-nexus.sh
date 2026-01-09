@@ -1,8 +1,12 @@
 #!/bin/bash
+# 
+set -o allexport
+source ./backend/.env
+set +o allexport
 
 # Получаем пароль администратора
 ADMIN_PASSWORD=$(docker exec nexus cat /nexus-data/admin.password)
-NEXUS_URL="http://localhost:8081"
+# NEXUS_WEB_HOST="http://localhost:8081"
 
 echo "Пароль администратора: $ADMIN_PASSWORD"
 
@@ -12,7 +16,7 @@ echo "Включение Docker Bearer Token Realm..."
 
 # Задаем список активных realms, включая DockerToken
 curl -u "admin:$ADMIN_PASSWORD" -X PUT \
-  "$NEXUS_URL/service/rest/v1/security/realms/active" \
+  "$NEXUS_WEB_URL/service/rest/v1/security/realms/active" \
   -H "Content-Type: application/json" \
   -H 'accept: application/json' \
   -H 'X-Nexus-UI: true' \
@@ -24,12 +28,12 @@ curl -u "admin:$ADMIN_PASSWORD" -X PUT \
 
 # Получаем текущие активные realms
 curl -s -u "admin:$ADMIN_PASSWORD" \
-  "$NEXUS_URL/service/rest/v1/security/realms/active"
+  "$NEXUS_WEB_URL/service/rest/v1/security/realms/active"
   
 
 # Настройка репозитория Docker hosted
 curl -u "admin:$ADMIN_PASSWORD" -X POST \
-  "$NEXUS_URL/service/rest/v1/repositories/docker/hosted" \
+  "$NEXUS_WEB_URL/service/rest/v1/repositories/docker/hosted" \
   -H "Content-Type: application/json" \
   -d '{
     "name": "docker-hosted",
@@ -42,7 +46,7 @@ curl -u "admin:$ADMIN_PASSWORD" -X POST \
     "docker": {
       "v1Enabled": false,
       "forceBasicAuth": false,
-      "httpPort": 5000
+      "httpPort": '"$NEXUS_PORT"'
     }
   }'
 
@@ -50,9 +54,9 @@ curl -u "admin:$ADMIN_PASSWORD" -X POST \
 echo ""
 echo "Смена пароля администратора..."
 curl -u "admin:$ADMIN_PASSWORD" -X PUT \
-  "$NEXUS_URL/service/rest/v1/security/users/admin/change-password" \
+  "$NEXUS_WEB_URL/service/rest/v1/security/users/admin/change-password" \
   -H "Content-Type: text/plain" \
-  -d "superpass123"
+  -d "$NEXUS_URL"
 
 echo "Войдите в web итерфейс, после этого можно будет залогинится коммандой"
 echo "docker login localhost:5000 -u admin"

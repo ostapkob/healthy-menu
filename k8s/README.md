@@ -53,3 +53,8 @@ echo 'host.minikube.internal' > /etc/hosts
 kubectl run -it --rm test --image=alpine -- sh
 apk add --no-cache curl
 curl -v http://host.minikube.internal:9000/healthy-menu-dishes/
+
+# Nexus
+./setup-nexus.sh
+./publish-to-registry.sh
+minikube start --insecure-registry localhost:5000

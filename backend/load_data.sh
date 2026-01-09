@@ -5,6 +5,8 @@ set -o allexport
 source .env
 set +o allexport
 
+echo "$ alembic upgrade head"
+alembic upgrade head
 
 function execute_copy {
 
