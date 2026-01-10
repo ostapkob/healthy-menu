@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: order-frontend
-        image: localhost:5000/order-frontend:latest
+        image: host.minikube.internal:5000/order-frontend:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 80

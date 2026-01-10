@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: admin-frontend
-        image: localhost:5000/admin-frontend:latest
+        image: host.minikube.internal:5000/admin-frontend:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 80

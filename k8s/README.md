@@ -57,4 +57,6 @@ curl -v http://host.minikube.internal:9000/healthy-menu-dishes/
 # Nexus
 ./setup-nexus.sh
 ./publish-to-registry.sh
-minikube start --insecure-registry localhost:5000
+minikube start --insecure-registry="host.minikube.internal:5000" --insecure-registry="localhost:5000"
+curl http://host.minikube.internal:5000/v2/_catalog
+
