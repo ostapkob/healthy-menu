@@ -54,8 +54,6 @@ services:
       - "8002:8000"
     env_file:
       - ./backend/.env
-    environment:
-      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
     depends_on:
       postgres:
         condition: service_healthy
@@ -73,9 +71,6 @@ services:
       - "8003:8000"
     env_file:
       - ./backend/.env
-    environment:
-      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
-      - REDIS_URL=redis://redis:6379
     depends_on:
       postgres:
         condition: service_healthy
@@ -91,16 +86,12 @@ services:
     restart: always
     env_file:
       - ./backend/.env
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -110,9 +101,8 @@ services:
   zookeeper:
     image: confluentinc/cp-zookeeper:latest
     restart: always
-    environment:
-      ZOOKEEPER_CLIENT_PORT: 2181
-      ZOOKEEPER_TICK_TIME: 2000
+    env_file:
+      - ./backend/.env
     ports:
       - "2181:2181"
     networks:
@@ -123,16 +113,8 @@ services:
     restart: always
     depends_on:
       - zookeeper
-    environment:
-      KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://192.168.49.1:9092
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
-      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
-      KAFKA_NUM_PARTITIONS: 1
-      KAFKA_DEFAULT_REPLICATION_FACTOR: 1
+    env_file:
+      - ./backend/.env
     ports:
       - "9092:9092"
     networks:
@@ -145,12 +127,6 @@ services:
     ports:
       - "9000:9000"
       - "9001:9001"
-    environment:
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
-      MINIO_HOST: ${MINIO_HOST}
-      MINIO_PORT: ${MINIO_PORT}
-      MINIO_BUCKET: ${MINIO_BUCKET}
     volumes:
       - data-minio:/data
     command: ["server", "--console-address", ":9001", "/data"]
@@ -165,8 +141,11 @@ services:
     depends_on:
       minio:
         condition: service_healthy
+    env_file:
+      - ./backend/.env
     entrypoint: >
       /bin/sh -c "
+      echo '$ /usr/bin/mc alias set minio http://minio:${MINIO_PORT} ${MINIO_ROOT_USER} ${MINIO_ROOT_PASSWORD}';
       /usr/bin/mc alias set minio http://minio:${MINIO_PORT} ${MINIO_ROOT_USER} ${MINIO_ROOT_PASSWORD};
       /usr/bin/mc mb minio/${MINIO_BUCKET};
       /usr/bin/mc anonymous set public minio/${MINIO_BUCKET};
@@ -175,7 +154,8 @@ services:
   nexus:
     image: sonatype/nexus3
     container_name: nexus
-    env_file: ./backend/.env
+    env_file:
+      - ./backend/.env
     ports:
       - "8081:8081"
       - "5000:5000"

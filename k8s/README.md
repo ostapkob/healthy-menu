@@ -8,8 +8,7 @@ minikube addons enable ingress
 eval $(minikube docker-env)
 docker build -t healthy-menu-admin:latest -f backend/admin/Dockerfile ./backend
 
-
-## Локально (для Minikube)
+## Registry Локально (для Minikube)
 eval $(minikube docker-env) в моем случае не работает
 
 ## поэтому
