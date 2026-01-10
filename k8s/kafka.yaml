@@ -1,0 +1,8 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kafka-config
+data:
+  # Замените HOST_IP на реальный IP вашего хоста или используйте host.minikube.internal
+  KAFKA_BOOTSTRAP_SERVERS: "host.minikube.internal:9092"

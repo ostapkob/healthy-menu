@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: order-backend
-        image: host.minikube.internal:5000/order-backend:latest
+        image: host.minikube.internal:5000/order-backend:1.0.1
         imagePullPolicy: Always
         ports:
         - containerPort: 8000

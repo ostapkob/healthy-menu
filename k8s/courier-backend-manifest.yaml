@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: courier-backend
-        image: host.minikube.internal:5000/courier-backend:latest
+        image: host.minikube.internal:5000/courier-backend:1.0.1
         imagePullPolicy: Always
         ports:
         - containerPort: 8000
