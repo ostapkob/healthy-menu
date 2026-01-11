@@ -80,7 +80,7 @@ services:
       - healthy-menu-network
 
 
-  # Another services
+  # Infrastructures services
   postgres:
     image: postgres:16
     restart: always

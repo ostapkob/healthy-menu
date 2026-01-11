@@ -50,6 +50,26 @@ curl -u "admin:$ADMIN_PASSWORD" -X POST \
     }
   }'
 
+# Настройка репозитория Helm hosted
+curl -u "admin:$ADMIN_PASSWORD" -X POST \
+  "$NEXUS_WEB_URL/service/rest/v1/repositories/helm/hosted" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "helm-hosted",
+    "online": true,
+    "storage": {
+      "blobStoreName": "default",
+      "strictContentTypeValidation": true,
+      "writePolicy": "allow_once"
+    },
+    "helm": {
+      "chartName": "helm-hosted",
+      "versionPolicy": "release",
+      "httpPort": 8080
+    }
+  }'
+
+
 # Смена пароля администратора
 echo ""
 echo "Смена пароля администратора..."
