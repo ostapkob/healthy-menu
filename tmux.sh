@@ -37,12 +37,23 @@ tmux rename-window k8s🧭
 
 tmux new-window -t "$session_name" -n "new"
 tmux send-keys -t "$session_name":new "k9s" C-m
-tmux rename-window k9s
+tmux rename-window k9s🐶
+
+tmux new-window -t "$session_name" -n "new"
+tmux send-keys -t "$session_name":new "helm" C-m
+tmux rename-window helm⚓️ 
 
 tmux new-window -t "$session_name" -n "new"
 tmux send-keys -t "$session_name":new "lzd" C-m
 tmux rename-window lzd🐳
 
+tmux new-window -t "$session_name" -n "new"
+tmux send-keys -t "$session_name":new "kaskade consumer -b kafka:9092 -t new_orders" C-m
+tmux rename-window kafka☕️
+
+
 # Выбираем первое окно и подключаемся
 tmux select-window -t "$session_name":lzg🧩
 tmux attach-session -t "$session_name"
+
+

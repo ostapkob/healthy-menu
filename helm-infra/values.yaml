@@ -1,0 +1,29 @@
+# Реплики
+replicaCount: 1
+
+# Образ
+image:
+  repository: host.minikube.internal:5000
+  tag: "1.0.1"
+  pullPolicy: Always
+
+# Порт приложения
+service:
+  protocol: TCP
+  port: 8000
+  type: ClusterIP
+
+# Конфигурации из ConfigMaps и Secrets
+config:
+  postgres:
+    configMap: postgres-config
+    secret: postgres-secret
+  minio:
+    configMap: minio-config
+    secret: minio-secret
+
+# Переменные окружения (опционально, если хотите переопределить)
+env:
+  # Пример добавления дополнительных переменных:
+  # - name: LOG_LEVEL
+  #   value: "info"
