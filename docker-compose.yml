@@ -82,6 +82,7 @@ services:
 
   # Another services
   postgres:
+    profiles: ["infra"]
     image: postgres:16
     restart: always
     env_file:
@@ -99,6 +100,7 @@ services:
       - healthy-menu-network
 
   zookeeper:
+    profiles: ["infra"]
     image: confluentinc/cp-zookeeper:latest
     restart: always
     env_file:
@@ -109,6 +111,7 @@ services:
       - healthy-menu-network
 
   kafka:
+    profiles: ["infra"]
     image: confluentinc/cp-kafka:7.4.0
     restart: always
     depends_on:
@@ -121,6 +124,7 @@ services:
       - healthy-menu-network
 
   minio:
+    profiles: ["infra"]
     image: quay.io/minio/minio:latest
     env_file:
       - ./backend/.env
@@ -137,6 +141,7 @@ services:
       retries: 5
 
   createbuckets:
+    profiles: ["infra"]
     image: quay.io/minio/mc:latest
     depends_on:
       minio:
@@ -152,13 +157,14 @@ services:
       "
 
   nexus:
+    profiles: ["ci_cd"]
     image: sonatype/nexus3
     container_name: nexus
     env_file:
       - ./backend/.env
     ports:
-      - "8081:8081"
-      - "5000:5000"
+      - "8082:8081"
+      - "5001:5000"
     volumes:
       - nexus-data:/nexus-data
     restart: unless-stopped
@@ -167,27 +173,28 @@ services:
       interval: 10s
       timeout: 10s
       retries: 5
-    networks:
-      - healthy-menu-network
 
   gitlab:
+    profiles: ["ci_cd"]
     image: gitlab/gitlab-ce:latest
     container_name: gitlab
     restart: always
     environment:
       GITLAB_OMNIBUS_CONFIG: |
-        external_url 'http://localhost:8060'
+        external_url 'http://127.0.0.1:8060'
         nginx['listen_port'] = 8060
         nginx['listen_https'] = false
     ports:
-      - "8060:8060"
+      - "8061:8060"
       - "2222:22"
     volumes:
       - gitlab_config:/etc/gitlab
       - gitlab_logs:/var/log/gitlab
-      - gitlab_data:/var/opt/gitla
+      - gitlab_data:/var/opt/gitlab
     shm_size: '256m'
-
+    healthcheck:
+      disable: true
+   
 volumes:
   gitlab_config:
   gitlab_logs:

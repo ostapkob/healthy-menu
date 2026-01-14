@@ -15,11 +15,7 @@ eval $(minikube docker-env) в моем случае не работает
 minikube start --insecure-registry my-private-registry:5000
 echo "$(minikube ip) my-private-registry" | sudo tee -a /etc/hosts
 minikube ssh -- docker run -d -p 5000:5000 --restart=always --name registry registry:2
- в /etc/docker/daemon.json
-{
-  "insecure-registries": ["$(minikube ip):5000", "my-private-registry:5000"]
-}
-sudo systemctl restart docker
+
 
 # Получить IP Minikube
 MINIKUBE_IP=$(minikube ip)
@@ -59,3 +55,9 @@ curl -v http://host.minikube.internal:9000/healthy-menu-dishes/
 minikube start --insecure-registry="host.minikube.internal:5000" --insecure-registry="localhost:5000"
 curl http://host.minikube.internal:5000/v2/_catalog
 
+# Для публиации в nexus
+ в /etc/docker/daemon.json
+{
+  "insecure-registries": ["$(minikube ip):5000", "127.0.0.1:5000"]
+}
+sudo systemctl restart docker

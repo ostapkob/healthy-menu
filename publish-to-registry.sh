@@ -5,13 +5,9 @@ source ./backend/.env
 set +o allexport
 
 # Настройки
-# NEXUS_REGISTRY_URL="localhost:5000"
-# NEXUS_REGISTRY_URL="192.168.49.2:5000"
 echo "NEXUS_WEB_URL: $NEXUS_WEB_URL"
  
 TAG=${1:-latest}
-# NEXUS_USER="admin"
-# NEXUS_PASS="superpass123"
 
 echo "Используем тег: $TAG"
 

@@ -36,3 +36,13 @@ docker compose up -d --build
 # MiniO
 ./mc alias set minio http://s3.healthy.local minioadmin minioadmin
 ./mc anonymous set public minio/healthy-menu-dishes
+
+# GitLab
+
+login: root
+docker exec gitlab cat /etc/gitlab/initial_root_password
+- api
+- write_repository
+- read_repository
+- write_virtual_registry
+- manage_runner

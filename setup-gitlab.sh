@@ -1,7 +1,10 @@
 #!/bin/bash
 
-GITLAB_URL="http://localhost:8060"
+set -o allexport
+source ./backend/.env
+set +o allexport
 
+echo $GITLAB_URL
 echo "🔑 Введите личный токен доступа ostapkob:"
 read -s ACCESS_TOKEN
 echo ""
@@ -11,7 +14,6 @@ if [ -z "$ACCESS_TOKEN" ]; then
   exit 1
 fi
 
-# Проверяем токен
 echo "🔍 Проверяем токен..."
 USER_INFO=$(curl -s "$GITLAB_URL/api/v4/user" \
   -H "PRIVATE-TOKEN: $ACCESS_TOKEN")
