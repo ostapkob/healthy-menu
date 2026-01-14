@@ -1,6 +1,6 @@
-# docker compose up -d --build
-# docker compose --profile front_back up -d --build
-# docker compose --profile front_back down
+# docker-compose up -d --build
+# docker-compose --profile infra up -d --build
+# docker-compose --profile infra down
 # или через переменную окружения:
 # export COMPOSE_PROFILES=front_back
 services:
@@ -150,9 +150,10 @@ services:
       - ./backend/.env
     entrypoint: >
       /bin/sh -c "
+      sleep 3;
       echo '$ /usr/bin/mc alias set minio http://minio:${MINIO_PORT} ${MINIO_ROOT_USER} ${MINIO_ROOT_PASSWORD}';
       /usr/bin/mc alias set minio http://minio:${MINIO_PORT} ${MINIO_ROOT_USER} ${MINIO_ROOT_PASSWORD};
-      /usr/bin/mc mb minio/${MINIO_BUCKET};
+      /usr/bin/mc mb minio/${MINIO_BUCKET} --ignore-existing;
       /usr/bin/mc anonymous set public minio/${MINIO_BUCKET};
       "
 
@@ -181,7 +182,7 @@ services:
     restart: always
     environment:
       GITLAB_OMNIBUS_CONFIG: |
-        external_url 'http://127.0.0.1:8060'
+        external_url 'http://127.0.0.1:8061'
         nginx['listen_port'] = 8060
         nginx['listen_https'] = false
     ports:
@@ -193,7 +194,11 @@ services:
       - gitlab_data:/var/opt/gitlab
     shm_size: '256m'
     healthcheck:
-      disable: true
+      test: ["CMD", "curl", "-f", "http://localhost:8060/-/health"]
+      interval: 1m
+      timeout: 10s
+      retries: 10
+      start_period: 5m  # GitLab долго стартует
    
 volumes:
   gitlab_config:
