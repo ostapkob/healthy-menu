@@ -27,12 +27,12 @@ else
 fi
 
 REPOSITORIES=(
-    "backend-admin"
-    "backend-courier" 
-    "backend-order"
-    "frontend-admin"
-    "frontend-courier"
-    "frontend-order"
+    "admin-backend"
+    "courier-backend" 
+    "order-backend"
+    "admin-frontend"
+    "courier-frontend"
+    "order-frontend"
 )
 
 echo ""

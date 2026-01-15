@@ -1,40 +1,37 @@
 # Первая стадия: сборка зависимостей и общих модулей
-FROM python:3.11-slim AS builder_admin
+FROM python:3.11-slim AS builder_order
 
 WORKDIR /app
 
 # Копируем общие зависимости
-COPY ./shared/requirements.txt .
+COPY requirements.txt .
 
 RUN pip install --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
-# Копируем общие модули
-COPY ./shared/ /app/shared/
-
-# Вторая стадия: финальный образ для запуска
+# Вторая стадия: финальный образ
 FROM python:3.11-slim
 
 # Копируем установленные зависимости из стадии builder
-COPY --from=builder_admin /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
-COPY --from=builder_admin /usr/local/bin /usr/local/bin
-
-# Копируем общие модули
-COPY --from=builder_admin /app/shared /app/shared
+COPY --from=builder_order /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
+COPY --from=builder_order /usr/local/bin /usr/local/bin
 
 # Копируем код приложения
-COPY ./admin /app
+COPY ./order /app
 
 # Настройки Python
 ENV PYTHONPATH=/app \
     PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1
 
+# Создаем пользователя и меняем владельца
 RUN adduser --disabled-password --gecos '' appuser && \
     chown -R appuser:appuser /app
 USER appuser
 
 WORKDIR /app
+
+EXPOSE 8000
 
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
 

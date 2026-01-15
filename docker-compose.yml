@@ -2,39 +2,15 @@
 # docker-compose --profile infra up -d --build
 # docker-compose --profile infra down
 # или через переменную окружения:
-# export COMPOSE_PROFILES=front_back
+# export COMPOSE_PROFILES=back_front
+# 
 services:
-  # Frontend services
-  admin-frontend:
-    profiles: ["front_back"]
-    build: ./frontend/admin-healthy-menu
-    ports:
-      - "3001:80"
-    networks:
-      - healthy-menu-network
-
-  order-frontend:
-    profiles: ["front_back"]
-    build: ./frontend/order-healthy-menu
-    ports:
-      - "3002:80"
-    networks:
-      - healthy-menu-network
-
-  courier-frontend:
-    profiles: ["front_back"]
-    build: ./frontend/courier-healthy-menu
-    ports:
-      - "3003:80"
-    networks:
-      - healthy-menu-network
-
   # Backend services
   admin-backend:
-    profiles: ["front_back"]
+    profiles: ["back_front"]
     build:
-      context: ./backend
-      dockerfile: admin/Dockerfile
+      context: ./admin-backend
+      dockerfile: Dockerfile
     ports:
       - "8001:8000"
     env_file:
@@ -46,10 +22,10 @@ services:
       - healthy-menu-network
 
   order-backend:
-    profiles: ["front_back"]
+    profiles: ["back_front"]
     build:
-      context: ./backend
-      dockerfile: order/Dockerfile
+      context: ./order-backend
+      dockerfile: Dockerfile
     ports:
       - "8002:8000"
     env_file:
@@ -63,10 +39,10 @@ services:
       - healthy-menu-network
 
   courier-backend:
-    profiles: ["front_back"]
+    profiles: ["back_front"]
     build:
-      context: ./backend
-      dockerfile: courier/Dockerfile
+      context: ./courier-backend
+      dockerfile: Dockerfile
     ports:
       - "8003:8000"
     env_file:
@@ -76,6 +52,31 @@ services:
         condition: service_healthy
       kafka:
         condition: service_started
+    networks:
+      - healthy-menu-network
+
+  # Frontend services
+  admin-frontend:
+    profiles: ["back_front"]
+    build: ./frontend/admin-healthy-menu
+    ports:
+      - "3001:80"
+    networks:
+      - healthy-menu-network
+
+  order-frontend:
+    profiles: ["back_front"]
+    build: ./frontend/order-healthy-menu
+    ports:
+      - "3002:80"
+    networks:
+      - healthy-menu-network
+
+  courier-frontend:
+    profiles: ["back_front"]
+    build: ./frontend/courier-healthy-menu
+    ports:
+      - "3003:80"
     networks:
       - healthy-menu-network
 
