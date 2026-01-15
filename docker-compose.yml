@@ -1,9 +1,3 @@
-# docker-compose up -d --build
-# docker-compose --profile infra up -d --build
-# docker-compose --profile infra down
-# или через переменную окружения:
-# export COMPOSE_PROFILES=back_front
-# 
 services:
   # Backend services
   admin-backend:

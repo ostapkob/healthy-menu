@@ -1,14 +1,21 @@
-bash build-services.sh
-uvicorn admin.main:app --reload --port 8001
-uvicorn order.main:app --reload --port 8002
-uvicorn courier.main:app --reload --port 8003
+# python
+cd admin-backend
+uv run uvicorn main:app
 
-docker compose up --build
-source venv/bin/activate
-alembic init migrations
-alembic revision --autogenerate -m "create all tables"
-alembic upgrade head
-bash load_data.sh
+# docker 
+docker build -t admin-backend .
+## Del all 
+docker rmi -f $(docker images -aq)
+docker volume prune
+docker rm -vf $(docker ps -aq)
+
+# docker-compose 
+docker-compose up -d --build
+docker-compose --profile infra up -d --build
+docker-compose --profile infra down
+или через переменную окружения:
+export COMPOSE_PROFILES=back_front
+
 
 # Kafka
 kafka-topics --bootstrap-server localhost:9092 --list
@@ -19,19 +26,13 @@ echo "127.0.0.1       kafka" >>  /etc/hosts
 kcat -b kafka:9092 -t new_orders -C
 
 # SQL
+alembic init migrations
+alembic revision --autogenerate -m "create all tables"
+alembic upgrade head
+bash load_data.sh
 INSERT INTO couriers (id, name, status, current_order_id) VALUES (1, 'Курьер 1', 'available', NULL);
 UPDATE couriers SET status = 'available' WHERE id = 1;
 
-
-
-
-# Del all 
-docker rmi -f $(docker images -aq)
-docker volume prune
-docker rm -vf $(docker ps -aq)
-
-# Собрать на Docker
-docker compose up -d --build
 
 # MiniO
 ./mc alias set minio http://s3.healthy.local minioadmin minioadmin
