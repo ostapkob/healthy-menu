@@ -90,7 +90,7 @@ def kafka_listener():
                 {
                     "bootstrap.servers": bootstrap,
                     "group.id": "courier_group_v2",
-                    "auto.offset.reset": "earliest",  #changed or для дебага earliest
+                    "auto.offset.reset": "earliest",  #changed or earliest # TODO
                     "enable.auto.commit": True,
                 }
             )

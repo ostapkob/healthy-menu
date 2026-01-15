@@ -16,7 +16,6 @@ docker-compose --profile infra down
 или через переменную окружения:
 export COMPOSE_PROFILES=back_front
 
-
 # Kafka
 kafka-topics --bootstrap-server localhost:9092 --list
 kafka-console-producer --bootstrap-server localhost:9092 --topic new_orders
@@ -32,7 +31,6 @@ alembic upgrade head
 bash load_data.sh
 INSERT INTO couriers (id, name, status, current_order_id) VALUES (1, 'Курьер 1', 'available', NULL);
 UPDATE couriers SET status = 'available' WHERE id = 1;
-
 
 # MiniO
 ./mc alias set minio http://s3.healthy.local minioadmin minioadmin

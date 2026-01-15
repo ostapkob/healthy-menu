@@ -1,35 +1,46 @@
-# Первая стадия: сборка зависимостей и общих модулей
-FROM python:3.11-slim AS builder_order
+# Builder стадия: сборка с uv (без dev)
+FROM ghcr.io/astral-sh/uv:python3.13-bookworm-slim AS builder
+
+ENV UV_COMPILE_BYTECODE=1 \
+    UV_LINK_MODE=copy \
+    UV_PYTHON_DOWNLOADS=0 \
+    UV_NO_DEV=1
 
 WORKDIR /app
 
-# Копируем общие зависимости
-COPY requirements.txt .
+# Копируем lock и toml для кэша зависимостей
+COPY pyproject.toml uv.lock ./
 
-RUN pip install --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
+# Устанавливаем зависимости без проекта и dev
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --locked --no-install-project
 
-# Вторая стадия: финальный образ
-FROM python:3.11-slim
+# Копируем код
+COPY . .
 
-# Копируем установленные зависимости из стадии builder
-COPY --from=builder_order /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
-COPY --from=builder_order /usr/local/bin /usr/local/bin
+# Синхронизируем проект (no-dev, no-editable для продакшена)
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --locked
 
-# Копируем код приложения
-COPY ./order /app
+# Runtime стадия: минимальный образ без uv
+FROM python:3.13-slim-bookworm
 
-# Настройки Python
-ENV PYTHONPATH=/app \
+# Создаем пользователя
+RUN adduser --disabled-password --gecos '' appuser && \
+    mkdir -p /app && chown -R appuser:appuser /app
+
+USER appuser
+WORKDIR /app
+
+# Копируем venv (активируем через PATH)
+COPY --from=builder --chown=appuser:appuser /app/.venv /.venv
+COPY --from=builder --chown=appuser:appuser /app /app
+
+ENV PATH="/.venv/bin:$PATH" \
+    PYTHONPATH=/app \
     PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1
 
-# Создаем пользователя и меняем владельца
-RUN adduser --disabled-password --gecos '' appuser && \
-    chown -R appuser:appuser /app
-USER appuser
-
-WORKDIR /app
 
 EXPOSE 8000
 

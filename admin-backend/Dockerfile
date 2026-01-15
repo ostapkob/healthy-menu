@@ -34,13 +34,13 @@ WORKDIR /app
 
 # Копируем venv (активируем через PATH)
 COPY --from=builder --chown=appuser:appuser /app/.venv /.venv
+COPY --from=builder --chown=appuser:appuser /app /app
+
 ENV PATH="/.venv/bin:$PATH" \
     PYTHONPATH=/app \
     PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1
 
-# Копируем код
-COPY --chown=appuser:appuser . .
 
 EXPOSE 8000
 
