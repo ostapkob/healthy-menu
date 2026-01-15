@@ -1,11 +1,12 @@
-from fastapi import FastAPI, Depends, HTTPException
-from sqlalchemy.orm import Session
-from typing import List, Optional, Dict
-from pydantic import BaseModel
-from kafka import KafkaProducer
 import json
 import os
+
+from confluent_kafka import Producer
 from decimal import Decimal
+from fastapi import FastAPI, Depends, HTTPException
+from pydantic import BaseModel
+from sqlalchemy.orm import Session
+from typing import List, Optional, Dict
 
 from fastapi.middleware.cors import CORSMiddleware
 from shared.database import get_db
@@ -34,16 +35,31 @@ app.add_middleware(
 )
 
 # === Kafka Producer ===
-producer = None
+_producer: Producer | None = None
 
-def get_kafka_producer():
-    global producer
-    if not producer:
-        producer = KafkaProducer(
-            bootstrap_servers=[os.environ.get('KAFKA_BOOTSTRAP_SERVERS', 'kafka:9092')],
-            value_serializer=lambda v: json.dumps(v).encode('utf-8')
+
+def _delivery_report(err, msg):
+    if err is not None:
+        # здесь можно заменить на нормальный логгер TODO
+        print(f"Message delivery failed: {err}")
+    # else:
+    #     print(f"Message delivered to {msg.topic()} [{msg.partition()}] @ {msg.offset()}")
+
+
+def get_kafka_producer() -> Producer:
+    global _producer
+    if _producer is None:
+        bootstrap = os.environ.get("KAFKA_BOOTSTRAP_SERVERS", "kafka:9092")
+        _producer = Producer(
+            {
+                "bootstrap.servers": bootstrap,
+                # TODO
+                # "enable.idempotence": True,
+                # "linger.ms": 5,
+                # "batch.num.messages": 10000,
+            }
         )
-    return producer
+    return _producer
 
 # === Pydantic Models ===
 
@@ -481,12 +497,20 @@ def create_order(order_data: OrderCreate, db: Session = Depends(get_db)):
     
     # Отправляем в Kafka
     producer = get_kafka_producer()
-    producer.send('new_orders', {
-        'order_id': order.id,
-        'user_id': order.user_id,
-        'total_price': float(total),
-        'status': 'pending'
-    })
+    payload = {
+        "order_id": order.id,
+        "user_id": order.user_id,
+        "total_price": float(total),
+        "status": "pending",
+    }
+
+    producer.produce(
+        topic="new_orders",
+        value=json.dumps(payload).encode("utf-8"),
+        callback=_delivery_report,
+    )
+    # обработать callbacks (delivery_report)
+    producer.poll(0)
     producer.flush()
     
     # Возвращаем заказ

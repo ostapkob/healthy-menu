@@ -29,6 +29,7 @@ __pycache__/
 env/
 venv/
 tmp/
+uv.lock
 *.egg-info/
 
 

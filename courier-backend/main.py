@@ -1,18 +1,25 @@
-from fastapi import FastAPI, Depends, HTTPException, WebSocket, WebSocketDisconnect
-from sqlalchemy.orm import Session
-from typing import List, Dict
-from pydantic import BaseModel
 import asyncio
 import json
-from kafka import KafkaConsumer
+import os
 import threading
 import time
-from sqlalchemy.sql import func
-import os
 
-from shared.database import get_db
-from shared.models import Courier as CourierModel, Delivery as DeliveryModel, Order as OrderModel
+from confluent_kafka import Consumer
+from fastapi import FastAPI, Depends, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+from shared.database import get_db
+from sqlalchemy.orm import Session
+from sqlalchemy.sql import func
+from typing import List, Dict
+from shared.models import (
+    Courier as CourierModel,
+    Delivery as DeliveryModel,
+    Order as OrderModel
+)
+
+
+topic='new_orders' 
 
 app = FastAPI(title="Courier Service")
 
@@ -75,26 +82,40 @@ def kafka_listener():
     global event_loop
     print("🔧 Запускаем Kafka-листенер...")
 
+    bootstrap = os.environ.get("KAFKA_BOOTSTRAP_SERVERS", "kafka:9092")
+
     while True:
         try:
-            consumer = KafkaConsumer(
-                "new_orders",
-                bootstrap_servers=[os.environ.get("KAFKA_BOOTSTRAP_SERVERS", "kafka:9092")],
-                value_deserializer=lambda m: json.loads(m.decode("utf-8")),
-                auto_offset_reset="earliest",  # для дебага; потом можно поменять
-                group_id="courier_group_v2",
-                enable_auto_commit=True,
+            consumer = Consumer(
+                {
+                    "bootstrap.servers": bootstrap,
+                    "group.id": "courier_group_v2",
+                    "auto.offset.reset": "earliest",  #changed or для дебага earliest
+                    "enable.auto.commit": True,
+                }
             )
+            consumer.subscribe([topic])
             print("✅ Connected to Kafka successfully!")
-            print("👂 Kafka слушает топик 'new_orders'...")
+            print("👂 Kafka слушает топик", topic )
 
-            for message in consumer:
-                order_data = message.value
-                order_id = order_data["order_id"]
+            while True:
+                msg = consumer.poll(1.0)  # timeout в секундах
+                if msg is None:
+                    continue
+                if msg.error():
+                    print(f"⚠️ Kafka consumer error: {msg.error()}")
+                    continue
+
+                try:
+                    order_data = json.loads(msg.value().decode("utf-8"))
+                except Exception as e:
+                    print(f"⚠️ Ошибка декодирования сообщения: {e}")
+                    continue
+
+                order_id = order_data.get("order_id")
                 print(f"📢 Kafka: received new order {order_id}")
 
                 if event_loop is not None:
-                    # Потокобезопасно кладём сообщение в asyncio.Queue основного цикла
                     event_loop.call_soon_threadsafe(
                         app.kafka_queue.put_nowait,
                         {"type": "new_order", "order_id": order_id},
@@ -105,6 +126,11 @@ def kafka_listener():
         except Exception as e:
             print("Ошибка консьюмера", e)
             time.sleep(5)
+        finally:
+            try:
+                consumer.close()
+            except Exception:
+                pass
 
 
 # === Запуск фонового worker'а и сохранение event loop ===
