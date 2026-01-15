@@ -1,3 +1,8 @@
+ln -L env_example .env
+ln -L env_example admin-backend/.env
+ln -L env_example order-backend/.env
+ln -L env_example courier-backend/.env
+
 # python
 cd admin-backend
 uv run uvicorn main:app
@@ -25,9 +30,18 @@ echo "127.0.0.1       kafka" >>  /etc/hosts
 kcat -b kafka:9092 -t new_orders -C
 
 # SQL
-alembic init migrations
-alembic revision --autogenerate -m "create all tables"
-alembic upgrade head
+cd admin-backend
+uv run alembic revision --autogenerate -m "init admin schema"
+uv run alembic upgrade head
+
+cd ../order-backend
+uv run alembic revision --autogenerate -m "init order schema"
+uv run alembic upgrade head
+
+cd ../courier-backend
+uv run alembic revision --autogenerate -m "init courier schema"
+uv run alembic upgrade head
+
 bash load_data.sh
 INSERT INTO couriers (id, name, status, current_order_id) VALUES (1, 'Курьер 1', 'available', NULL);
 UPDATE couriers SET status = 'available' WHERE id = 1;

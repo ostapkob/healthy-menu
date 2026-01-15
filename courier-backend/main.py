@@ -18,9 +18,7 @@ from shared.models import (
     Order as OrderModel
 )
 
-
 topic='new_orders' 
-
 app = FastAPI(title="Courier Service")
 
 app.add_middleware(

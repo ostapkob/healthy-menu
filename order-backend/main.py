@@ -16,6 +16,7 @@ from shared.models import (
 )
 
 app = FastAPI(title="Order Service")
+topic="new_orders"
 
 # CORS настройки
 app.add_middleware(
@@ -505,7 +506,7 @@ def create_order(order_data: OrderCreate, db: Session = Depends(get_db)):
     }
 
     producer.produce(
-        topic="new_orders",
+        topic=topic,
         value=json.dumps(payload).encode("utf-8"),
         callback=_delivery_report,
     )
