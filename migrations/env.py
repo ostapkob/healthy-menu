@@ -38,17 +38,9 @@ if url and 'DATABASE_URL' in url:
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-# импорт всех моделей из объединенной папки
-from models.admin_models import Base as AdminBase
-from models.courier_models import Base as CourierBase
-from models.order_models import Base as OrderBase
+from models import Base  # единый Base из __init__.py
 
-
-target_metadata = [
-    AdminBase.metadata,
-    CourierBase.metadata,
-    OrderBase.metadata
-]
+target_metadata = Base.metadata  # один MetaData со всеми таблицами
 
 def run_migrations_offline() -> None:
     """Run migrations in 'offline' mode."""

@@ -43,3 +43,7 @@ uv.lock
 
 **/.svelte-kit/
 .svelte-kit/
+
+
+migrations/models/
+migrations/versions/

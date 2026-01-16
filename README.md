@@ -2,6 +2,7 @@ ln -L env_example .env
 ln -L env_example admin-backend/.env
 ln -L env_example order-backend/.env
 ln -L env_example courier-backend/.env
+ln -L env_example migrations/.env
 
 # python
 cd admin-backend
