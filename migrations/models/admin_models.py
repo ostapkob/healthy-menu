@@ -6,7 +6,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from sqlalchemy.dialects.postgresql import TIMESTAMP, UUID
-from shared.database import Base
+from .database import Base
 
 
 class Food(Base):

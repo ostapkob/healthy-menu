@@ -15,6 +15,9 @@ from typing import List, Dict
 from shared.models import (
     Courier as CourierModel,
     Delivery as DeliveryModel,
+)
+
+from shared.shared_models import (
     Order as OrderModel
 )
 

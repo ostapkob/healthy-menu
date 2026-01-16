@@ -11,8 +11,12 @@ from typing import List, Optional, Dict
 from fastapi.middleware.cors import CORSMiddleware
 from shared.database import get_db
 from shared.models import (
-    Dish, DishFood, Food, FoodNutrient, Nutrient, NutrientRu,
+    FoodNutrient, Nutrient, NutrientRu,
     DailyNorm, Order, OrderItem
+)
+
+from shared.shared_models import (
+    Dish, DishFood, Food
 )
 
 app = FastAPI(title="Order Service")
