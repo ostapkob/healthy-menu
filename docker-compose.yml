@@ -15,7 +15,7 @@ services:
       minio:
         condition: service_healthy
     networks:
-      - healthy-menu-network
+      - app-network
 
   order-backend:
     profiles: ["back_front"]
@@ -34,7 +34,7 @@ services:
       minio:
         condition: service_healthy
     networks:
-      - healthy-menu-network
+      - app-network
 
   courier-backend:
     profiles: ["back_front"]
@@ -51,35 +51,35 @@ services:
       kafka:
         condition: service_started
     networks:
-      - healthy-menu-network
+      - app-network
 
   # Frontend services
   admin-frontend:
     profiles: ["back_front"]
-    build: ./frontend/admin-healthy-menu
+    build: ./admin-frontend
     ports:
       - "3001:80"
     networks:
-      - healthy-menu-network
+      - app-network
 
   order-frontend:
     profiles: ["back_front"]
-    build: ./frontend/order-healthy-menu
+    build: ./order-frontend
     ports:
       - "3002:80"
     networks:
-      - healthy-menu-network
+      - app-network
 
   courier-frontend:
     profiles: ["back_front"]
-    build: ./frontend/courier-healthy-menu
+    build: ./courier-frontend
     ports:
       - "3003:80"
     networks:
-      - healthy-menu-network
+      - app-network
 
 
-  # Another services
+  # Infra services
   postgres:
     profiles: ["infra"]
     image: postgres:16
@@ -96,7 +96,7 @@ services:
       timeout: 5s
       retries: 10
     networks:
-      - healthy-menu-network
+      - app-network
 
   zookeeper:
     profiles: ["infra"]
@@ -107,7 +107,7 @@ services:
     ports:
       - "2181:2181"
     networks:
-      - healthy-menu-network
+      - app-network
 
   kafka:
     profiles: ["infra"]
@@ -120,7 +120,7 @@ services:
     ports:
       - "9092:9092"
     networks:
-      - healthy-menu-network
+      - app-network
 
   minio:
     profiles: ["infra"]
@@ -139,7 +139,7 @@ services:
       timeout: 5s
       retries: 5
     networks:
-      - healthy-menu-network
+      - app-network
 
   createbuckets:
     profiles: ["infra"]
@@ -158,7 +158,7 @@ services:
       /usr/bin/mc anonymous set public minio/${MINIO_BUCKET};
       "
     networks:
-      - healthy-menu-network
+      - app-network
 
   nexus:
     profiles: ["ci_cd"]
@@ -212,7 +212,7 @@ volumes:
   nexus-data:
 
 networks:
-  healthy-menu-network:
+  app-network:
     driver: bridge
 
 
