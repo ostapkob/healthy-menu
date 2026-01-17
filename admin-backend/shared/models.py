@@ -8,6 +8,10 @@ from sqlalchemy.sql import func
 from sqlalchemy.dialects.postgresql import TIMESTAMP, UUID
 from shared.database import Base
 
+from shared.shared_models import (
+    FoodNutrient
+)
+
 
 class Food(Base):
     """Основная таблица продуктов (упрощенная версия)"""

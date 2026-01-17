@@ -6,7 +6,7 @@ ln -L env_example migrations/.env
 
 # python
 cd admin-backend
-uv run uvicorn main:app
+uv run uvicorn main:app  --port 8002
 
 # docker 
 docker build -t admin-backend .
