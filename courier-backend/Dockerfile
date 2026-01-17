@@ -9,18 +9,18 @@ ENV UV_COMPILE_BYTECODE=1 \
 WORKDIR /app
 
 # Копируем lock и toml для кэша зависимостей
-COPY pyproject.toml uv.lock ./
+COPY pyproject.toml ./
 
 # Устанавливаем зависимости без проекта и dev
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --locked --no-install-project
+    uv sync --no-install-project
 
 # Копируем код
 COPY . .
 
 # Синхронизируем проект (no-dev, no-editable для продакшена)
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --locked
+    uv sync
 
 # Runtime стадия: минимальный образ без uv
 FROM python:3.13-slim-bookworm
