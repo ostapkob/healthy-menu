@@ -138,6 +138,8 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    networks:
+      - healthy-menu-network
 
   createbuckets:
     profiles: ["infra"]
@@ -155,6 +157,8 @@ services:
       /usr/bin/mc mb minio/${MINIO_BUCKET} --ignore-existing;
       /usr/bin/mc anonymous set public minio/${MINIO_BUCKET};
       "
+    networks:
+      - healthy-menu-network
 
   nexus:
     profiles: ["ci_cd"]

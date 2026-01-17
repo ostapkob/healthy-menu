@@ -4,6 +4,10 @@ ln -L env_example order-backend/.env
 ln -L env_example courier-backend/.env
 ln -L env_example migrations/.env
 
+# Для локальной разработки
+в /etc/hosts
+127.0.0.1    kafka postgres minio nexus
+
 # python
 cd admin-backend
 uv run uvicorn main:app  --port 8002
