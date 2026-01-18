@@ -34,6 +34,7 @@ REPOSITORIES=(
     "admin-frontend"
     "courier-frontend"
     "order-frontend"
+    "ci-pipelines"
 )
 
 # Запрашиваем сообщение для коммита

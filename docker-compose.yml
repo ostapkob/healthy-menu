@@ -125,8 +125,12 @@ services:
   minio:
     profiles: ["infra"]
     image: quay.io/minio/minio:latest
+    container_name: minio
     env_file:
       - .env
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
     ports:
       - "9000:9000"
       - "9001:9001"
@@ -197,12 +201,19 @@ services:
       - gitlab_data:/var/opt/gitlab
     shm_size: '256m'
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8060/-/health"]
-      interval: 1m
-      timeout: 10s
-      retries: 10
-      start_period: 5m  # GitLab долго стартует
-   
+      disable: true
+
+  jenkins:
+    image: jenkins/jenkins:lts
+    container_name: jenkins
+    ports:
+      - "8081:8080" 
+      - "50001:50000"  # Порт для запуска билдов
+    volumes:
+      - jenkins_home:/var/jenkins_home  # Постоянное хранилище данных Jenkins
+    environment:
+      JENKINS_OPTS: --httpPort=8080
+    
 volumes:
   gitlab_config:
   gitlab_logs:
@@ -210,6 +221,7 @@ volumes:
   postgres_data:
   data-minio:
   nexus-data:
+  jenkins_home:
 
 networks:
   app-network:

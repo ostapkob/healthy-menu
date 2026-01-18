@@ -66,3 +66,8 @@ create token
 - read_repository
 - write_virtual_registry
 - manage_runner
+
+
+
+# Jenkins
+docker exec jenkins cat /var/jenkins_home/secrets/initialAdminPassword
