@@ -40,3 +40,7 @@ ZOOKEEPER_TICK_TIME=2000
 
 # redis
 REDIS_URL=redis://redis:6379
+
+# gitlab
+GITLAB_URL="http://192.168.1.163:8060/"
+GITLAB_ACCESS_TOKEN="glpat-Dr2kTUovLC6inOFpI4oUam86MQp1OjEH.01.0w1p8xn8d"

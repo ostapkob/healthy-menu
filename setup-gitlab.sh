@@ -1,12 +1,13 @@
 #!/bin/bash
 
 set -o allexport
-source ./backend/.env
+source .env
 set +o allexport
 
 echo $GITLAB_URL
 echo "🔑 Введите личный токен доступа:"
-read -s ACCESS_TOKEN
+# read -s ACCESS_TOKEN
+ACCESS_TOKEN=$GITLAB_ACCESS_TOKEN
 echo ""
 
 if [ -z "$ACCESS_TOKEN" ]; then
@@ -68,6 +69,7 @@ for repo in "${REPOSITORIES[@]}"; do
   fi
 
   # Переходим в папку репозитория
+  cp .gitignore  "./$repo"
   cd "./$repo" || { echo "❌ Не удалось перейти в папку $repo"; continue; }
 
   # Проверяем, инициализирован ли git

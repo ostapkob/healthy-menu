@@ -47,3 +47,10 @@ uv.lock
 
 migrations/models/
 migrations/versions/
+
+admin-backend/.gitignore
+admin-frontend/.gitignore
+courier-backend/.gitignore
+courier-frontend/.gitignore
+order-backend/.gitignore
+order-frontend/.gitignore
