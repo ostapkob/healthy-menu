@@ -1,0 +1,17 @@
+table			root, admin, order, courier
+Courier,           r,     r,     r,  wr
+DailyNorm,        wr,     r,     r,  -
+Delivery,          r,     r,     r,  wr
+Dish,              r,    wr,     r,  -
+DishFood,          r,    wr,     r,  -
+Dish,              r,    wr,     r,  -
+FoodCategory,     wr,     r,     r,  -
+FoodCategoryRu,   wr,     r,     r,  -
+FoodNutrient,     wr,     r,     r,  -
+FoodRu,           wr,     r,     r,  -
+Food,             wr,     r,     r,  - 
+Nutrient,         wr,     r,     r,  -
+NutrientRu,       wr,     r,     r,  -
+Order,             r,     r,    wr,  r
+OrderItem          r,     r,     r,  wr
+
