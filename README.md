@@ -56,11 +56,18 @@ UPDATE couriers SET status = 'available' WHERE id = 1;
 ./mc anonymous set public minio/healthy-menu-dishes
 
 # GitLab
-
 login: root
 docker exec gitlab cat /etc/gitlab/initial_root_password
+change password
+add id_rsa.pub in web-interface
+create token
 - api
 - write_repository
 - read_repository
 - write_virtual_registry
 - manage_runner
+
+
+
+# Jenkins
+docker exec jenkins cat /var/jenkins_home/secrets/initialAdminPassword
