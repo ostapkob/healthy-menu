@@ -29,6 +29,7 @@ __pycache__/
 env/
 venv/
 tmp/
+uv.lock
 *.egg-info/
 
 
@@ -42,3 +43,7 @@ tmp/
 
 **/.svelte-kit/
 .svelte-kit/
+
+
+migrations/models/
+migrations/versions/

@@ -1,0 +1,44 @@
+[project]
+name = "courier-backend"
+version = "0.1.0"
+description = "Courier-Backend"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "annotated-doc==0.0.4",
+    "annotated-types==0.7.0",
+    "anyio==4.12.1",
+    "boto3==1.42.19",
+    "botocore==1.42.19",
+    "click==8.3.1",
+    "confluent-kafka>=2.13.0",
+    "fastapi==0.128.0",
+    "greenlet==3.3.0",
+    "h11==0.16.0",
+    "idna==3.11",
+    "jmespath==1.0.1",
+    "packaging==25.0",
+    "psycopg2-binary==2.9.11",
+    "pydantic==2.12.5",
+    "pydantic-core==2.41.5",
+    "python-dateutil==2.9.0.post0",
+    "python-dotenv==1.2.1",
+    "python-multipart==0.0.21",
+    "s3transfer==0.16.0",
+    "six==1.17.0",
+    "sqlalchemy==2.0.45",
+    "starlette==0.50.0",
+    "typing-extensions==4.15.0",
+    "typing-inspection==0.4.2",
+    "urllib3==2.6.3",
+    "uvicorn[standard]==0.40.0",
+]
+
+[dependency-groups]
+dev = [
+    "iniconfig==2.3.0",
+    "pluggy==1.6.0",
+    "pygments==2.19.2",
+    "pytest==9.0.2",
+]
+
