@@ -1,7 +1,7 @@
 #!/bin/bash
 # 
 set -o allexport
-source ./backend/.env
+source ./.env
 set +o allexport
 
 # Получаем пароль администратора

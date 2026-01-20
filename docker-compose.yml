@@ -171,8 +171,8 @@ services:
     env_file:
       - .env
     ports:
-      - "8082:8081"
-      - "5001:5000"
+      - "8081:8081"
+      - "5000:5000"
     volumes:
       - nexus-data:/nexus-data
     restart: unless-stopped
@@ -189,11 +189,11 @@ services:
     restart: always
     environment:
       GITLAB_OMNIBUS_CONFIG: |
-        external_url 'http://127.0.0.1:8061'
+        external_url 'http://127.0.0.1:8060'
         nginx['listen_port'] = 8060
         nginx['listen_https'] = false
     ports:
-      - "8061:8060"
+      - "8060:8060"
       - "2222:22"
     volumes:
       - gitlab_config:/etc/gitlab
@@ -204,11 +204,12 @@ services:
       disable: true
 
   jenkins:
+    profiles: ["ci_cd"]
     image: jenkins/jenkins:lts
     container_name: jenkins
     ports:
-      - "8081:8080" 
-      - "50001:50000"  # Порт для запуска билдов
+      - "8080:8080" 
+      - "50000:50000"  # Порт для запуска билдов
     volumes:
       - jenkins_home:/var/jenkins_home  # Постоянное хранилище данных Jenkins
     environment:
