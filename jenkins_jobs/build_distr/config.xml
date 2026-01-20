@@ -30,8 +30,7 @@
       <configVersion>2</configVersion>
       <userRemoteConfigs>
         <hudson.plugins.git.UserRemoteConfig>
-          <url>http://127.0.0.1:8060/root/ci-pipelines</url>
-          <credentialsId>cacd36f4-2db4-43e6-a7e4-38b5cbcdc784</credentialsId>
+          <url>http://gitlab:8060/ostapkob/ci-pipelines</url>
         </hudson.plugins.git.UserRemoteConfig>
       </userRemoteConfigs>
       <branches>

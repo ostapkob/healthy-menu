@@ -6,6 +6,9 @@ ln -L env_example migrations/.env
 
 # Для локальной разработки
 echo "127.0.0.1       kafka postgres minio nexus" >>  /etc/hosts
+у меня на другом сервере тогда так  
+192.168.1.163 jenkins gitlab
+
 
 # python
 cd admin-backend
@@ -48,4 +51,7 @@ login: root
 
 # Jenkins
 docker exec jenkins cat /var/jenkins_home/secrets/initialAdminPassword
-install standart plugins (main thing is to install the Pipeline)
+install suggest plugins (main thing is to install the Pipeline)
+docker cp ./jenkins_jobs/*  jenkins:/var/jenkins_home/jobs
+docker-compose restart jenkins
+
