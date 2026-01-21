@@ -13,6 +13,7 @@ echo "127.0.0.1       kafka postgres minio nexus" >>  /etc/hosts
 # python
 cd admin-backend
 uv run uvicorn main:app  --port 8002
+PYTHONPATH=. uv run pytest
 
 # docker 
 docker build -t admin-backend .

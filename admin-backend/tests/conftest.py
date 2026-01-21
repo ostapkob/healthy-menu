@@ -21,8 +21,8 @@ TEST_DATABASE_URL = f"postgresql://{TEST_DB_USER}:{TEST_DB_PASSWORD}@{TEST_DB_HO
 
 # Импортируем все необходимое
 from shared.database import Base, get_db
-from admin.api.dishes import router as dishes_router
-from admin.api.tech import router as tech_router
+from api.dishes import router as dishes_router
+from api.tech import router as tech_router
 
 # Создаем движок для тестовой базы
 engine = create_engine(TEST_DATABASE_URL)

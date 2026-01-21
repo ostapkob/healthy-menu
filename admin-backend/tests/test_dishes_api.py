@@ -6,7 +6,7 @@ from sqlalchemy import text
 from decimal import Decimal
 
 from shared.models import Dish
-from admin.api.dishes import DishAdminListItem, DishAdminDetail, DishAdminUpdate
+from api.dishes import DishAdminListItem, DishAdminDetail, DishAdminUpdate
 
 
 class TestDishAdminSchemas:
