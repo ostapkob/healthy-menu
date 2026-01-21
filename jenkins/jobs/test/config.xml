@@ -5,20 +5,33 @@
     <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction plugin="pipeline-model-definition@2.2277.v00573e73ddf1">
       <jobProperties/>
       <triggers/>
-      <parameters/>
+      <parameters>
+        <string>NAME</string>
+      </parameters>
       <options/>
     </org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction>
   </actions>
   <description></description>
   <keepDependencies>false</keepDependencies>
-  <properties/>
-  <definition class="org.jenkinsci.plugins.workflow.cps.CpsScmFlowDefinition" plugin="workflow-cps@4253.vc894cd5750c6">
+  <properties>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>NAME</name>
+          <description>Input your name</description>
+          <defaultValue>World</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <definition class="org.jenkinsci.plugins.workflow.cps.CpsScmFlowDefinition" plugin="workflow-cps@4252.v465f588eb_52f">
     <scm class="hudson.plugins.git.GitSCM" plugin="git@5.8.1">
       <configVersion>2</configVersion>
       <userRemoteConfigs>
         <hudson.plugins.git.UserRemoteConfig>
           <url>http://gitlab:8060/ostapkob/ci-pipelines</url>
-          <credentialsId>ostapkob</credentialsId>
+          <credentialsId>e06bfde4-97bb-47f3-b325-544777345b9b</credentialsId>
         </hudson.plugins.git.UserRemoteConfig>
       </userRemoteConfigs>
       <branches>

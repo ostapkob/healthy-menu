@@ -53,6 +53,6 @@ login: root
 # Jenkins
 docker exec jenkins cat /var/jenkins_home/secrets/initialAdminPassword
 install suggest plugins (main thing is to install the Pipeline)
-docker cp ./jenkins_jobs/*  jenkins:/var/jenkins_home/jobs
+docker cp ./jenkins/*  jenkins:/var/jenkins_home
 docker-compose restart jenkins
 

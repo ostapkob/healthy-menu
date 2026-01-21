@@ -214,6 +214,21 @@ services:
       - jenkins_home:/var/jenkins_home  # Постоянное хранилище данных Jenkins
     environment:
       JENKINS_OPTS: --httpPort=8080
+
+  jenkins-agent:
+    profiles: ["ci_cd"]
+    image: jenkins/inbound-agent
+    container_name: jenkins-agent
+    environment:
+      - JENKINS_URL=http://jenkins:8080
+      - JENKINS_AGENT_NAME=agent
+      - JENKINS_AGENT_WORKDIR=/home/jenkins/agent
+      - JENKINS_SECRET=b003c989f58f7def19bf4acf7a8eb1df7392c9c4d7ec3799874e27292ba29c8f 
+
+    volumes:
+      - agent_workdir:/home/jenkins/agent
+    depends_on:
+      - jenkins
     
 volumes:
   gitlab_config:
@@ -223,6 +238,8 @@ volumes:
   data-minio:
   nexus-data:
   jenkins_home:
+  agent_workdir:
+
 
 networks:
   app-network:
