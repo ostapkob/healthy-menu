@@ -1,62 +1,64 @@
 pipeline {
     agent { label 'linux' }
 
+    environment {
+        PATH = "${env.PATH}:/home/jenkins/.local/bin"
+    }
 
     stages {
-
         stage('Checkout') {
             steps {
                 git(
                     url: 'http://gitlab:8060/ostapkob/admin-backend',
-                    branch: 'master', // или main, если у тебя так
+                    branch: 'master',
                     credentialsId: 'ostapkob'
-                    // glpat-mRM1-REoQY1cz6w6GPDUsG86MQp1OjMH.01.0w0dmwwlm
                 )
             }
         }
+
         stage('Setup') {
             steps {
-                    // # Установка uv (если не установлен)
-                    sh '''
-                        which uv || curl -LsSf https://astral.sh/uv/install.sh | sh
-                        PATH=$PATH:/home/jenkins/.local/bin
-                    '''
-                }
+                sh '''
+                    which uv || curl -LsSf https://astral.sh/uv/install.sh | sh
+                '''
             }
         }
 
         stage('Test') {
             steps {
-                dir ('admin-backend') {
-                sh '''
-                    # Активация окружения и запуск тестов
-                    uv sync
-                    uv run pytest tests/
-                '''
+                dir('admin-backend') {
+                    sh '''
+                        mkdir -p test-results
+                        uv sync
+                        uv run coverage run --source=. -m pytest tests/ --junitxml=test-results/results.xml
+                        uv run coverage xml --include="*" -o test-results/coverage.xml
+                        ls -la test-results/  # Для отладки
+                    '''
                 }
             }
             post {
                 always {
-                    junit 'test-results/*.xml'
-                    cobertura 'coverage.xml'
+                    dir('admin-backend') {
+                        script {
+                            if (fileExists('test-results/results.xml')) {
+                                junit testResults: 'test-results/results.xml', allowEmptyResults: false
+                            } else {
+                                echo 'JUnit XML file not found, skipping JUnit report'
+                            }
+                        }
+                        recordCoverage tools: [
+                            [parser: 'COBERTURA', pattern: 'test-results/coverage.xml']
+                        ]
+                    }
                 }
             }
         }
-
-
-        
     }
     
     post {
         always {
-            cleanWs()  # Очистка workspace
+            cleanWs()
         }
-    }
-
-
-
-
-    
     }
 }
 
