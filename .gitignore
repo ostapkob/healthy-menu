@@ -31,6 +31,7 @@ venv/
 tmp/
 uv.lock
 *.egg-info/
+admin-backend/uv.lock
 
 
 # Конфигурационные файлы среды

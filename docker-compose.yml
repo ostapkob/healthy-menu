@@ -207,11 +207,14 @@ services:
     profiles: ["ci_cd"]
     image: jenkins/jenkins:lts
     container_name: jenkins
+    user: root                 # чтобы внутри контейнера были права на docker.sock
     ports:
-      - "8080:8080" 
-      - "50000:50000"  # Порт для запуска билдов
+      - "8080:8080"
+      - "50000:50000"
     volumes:
-      - jenkins_home:/var/jenkins_home  # Постоянное хранилище данных Jenkins
+      - jenkins_home:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock   # доступ к docker демону хоста
+      - /usr/bin/docker:/usr/bin/docker             # docker CLI внутрь
     environment:
       JENKINS_OPTS: --httpPort=8080
 
