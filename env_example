@@ -42,10 +42,18 @@ ZOOKEEPER_TICK_TIME=2000
 REDIS_URL=redis://redis:6379
 
 # gitlab
-GITLAB_URL=http://192.168.1.163:8060/
+GITLAB_URL=http://gitlab:8060/
 GITLAB_ACCESS_TOKEN=glpat-Dr2kTUovLC6inOFpI4oUam86MQp1OjEH.01.0w1p8xn8d
 GITLAB_CONTAINER_NAME=gitlab # Имя вашего контейнера
 GITLAB_USER=ostapkob
 GITLAB_PASSWORD=superpass123
 GITLAB_EMAIL=ostapkob@gmail.com
 GITLAB_NAME=ostap_kob
+
+
+#jenkins
+JENKINS_URL=http://jenkins:8080
+JENKINS_AGENT_NAME=agent-1
+JENKINS_AGENT_WORKDIR=/home/jenkins/
+JENKINS_SECRET=3001527dbd2b351f03f6327ca215ac9752816a219b24322dcfbf8d706d3ef25d
+

@@ -207,14 +207,11 @@ services:
     profiles: ["ci_cd"]
     image: jenkins/jenkins:lts
     container_name: jenkins
-    user: root                 # чтобы внутри контейнера были права на docker.sock
     ports:
       - "8080:8080"
       - "50000:50000"
     volumes:
       - jenkins_home:/var/jenkins_home
-      - /var/run/docker.sock:/var/run/docker.sock   # доступ к docker демону хоста
-      - /usr/bin/docker:/usr/bin/docker             # docker CLI внутрь
     environment:
       JENKINS_OPTS: --httpPort=8080
 
@@ -222,14 +219,13 @@ services:
     profiles: ["ci_cd"]
     image: jenkins/inbound-agent
     container_name: jenkins-agent
-    environment:
-      - JENKINS_URL=http://jenkins:8080
-      - JENKINS_AGENT_NAME=agent
-      - JENKINS_AGENT_WORKDIR=/home/jenkins/agent
-      - JENKINS_SECRET=b003c989f58f7def19bf4acf7a8eb1df7392c9c4d7ec3799874e27292ba29c8f 
-
+    user: root                 # чтобы внутри контейнера были права на docker.sock
+    env_file:
+      - .env
     volumes:
       - agent_workdir:/home/jenkins/agent
+      - /var/run/docker.sock:/var/run/docker.sock   # доступ к docker демону хоста
+      - /usr/bin/docker:/usr/bin/docker             # docker CLI внутрь
     depends_on:
       - jenkins
     

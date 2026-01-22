@@ -51,8 +51,15 @@ login: root
 
 
 # Jenkins
+docker-compose up -d --build jenkins
 docker exec jenkins cat /var/jenkins_home/secrets/initialAdminPassword
 install suggest plugins (main thing is to install the Pipeline)
 docker cp ./jenkins/*  jenkins:/var/jenkins_home
 docker-compose restart jenkins
+
+add node (name agent-1, label - docker),
+add secret to .env how JENKINS_SECRET
+
+docker-compose up -d --build jenkins-agent
+
 

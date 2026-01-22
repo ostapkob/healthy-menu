@@ -1,22 +1,24 @@
 pipeline {
-    agent any
-
-    environment {
-        PATH = "${env.PATH}:/home/jenkins/.local/bin"
-    }
-
+    agent { label 'docker' }
     stages {
+  
+        stage('Checkout') {
+            steps {
+                git(
+                    url: 'http://gitlab:8060/ostapkob/admin-backend',
+                    branch: 'master',
+                    credentialsId: 'gitlab-token'
+                )
+            }
+        }
+  
         stage('Test docker') {
             steps {
                 sh '''
-                    docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
-                               docker:27.3-cli-alpine docker version
+                    docker version
                 '''
             }
         }
-
-
     }
-    
 }
 
