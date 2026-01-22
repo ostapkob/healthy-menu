@@ -217,15 +217,17 @@ services:
 
   jenkins-agent:
     profiles: ["ci_cd"]
-    image: jenkins/inbound-agent
     container_name: jenkins-agent
-    user: root                 # чтобы внутри контейнера были права на docker.sock
+    build:
+      context: ./jenkins
+      dockerfile: Dockerfile
     env_file:
       - .env
     volumes:
       - agent_workdir:/home/jenkins/agent
       - /var/run/docker.sock:/var/run/docker.sock   # доступ к docker демону хоста
       - /usr/bin/docker:/usr/bin/docker             # docker CLI внутрь
+      - /etc/hosts:/etc/hosts
     depends_on:
       - jenkins
     

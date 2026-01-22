@@ -63,3 +63,12 @@ add secret to .env how JENKINS_SECRET
 docker-compose up -d --build jenkins-agent
 
 
+
+
+# TODO
+
+- [ ] Change .env -> values
+- [ ] Add Vault | HashiCorp
+- [ ] Add Argo
+
+

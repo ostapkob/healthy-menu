@@ -11,13 +11,31 @@ pipeline {
                 )
             }
         }
-  
         stage('Test docker') {
             steps {
                 sh '''
                     docker version
                 '''
             }
+        }
+        stage('Build test image') {
+            steps {
+                sh '''
+                    docker build -f Dockerfile.test -t admin-backend:test .;
+                '''
+            }
+        }
+        stage('Tests') {
+            steps {
+                sh '''
+                    docker run --rm admin-backend:test;
+                '''
+            }
+        }
+    }
+    post {
+        always {
+            cleanWs()
         }
     }
 }
