@@ -1,8 +1,8 @@
-ln -L env_example .env
-ln -L env_example admin-backend/.env
-ln -L env_example order-backend/.env
-ln -L env_example courier-backend/.env
-ln -L env_example migrations/.env
+ln -Lf env_example .env
+ln -Lf env_example admin-backend/.env
+ln -Lf env_example order-backend/.env
+ln -Lf env_example courier-backend/.env
+ln -Lf env_example migrations/.env
 
 # Для локальной разработки
 echo "127.0.0.1       kafka postgres minio nexus" >>  /etc/hosts
@@ -70,5 +70,6 @@ docker-compose up -d --build jenkins-agent
 - [ ] Change .env -> values
 - [ ] Add Vault | HashiCorp
 - [ ] Add Argo
+- [ ] Add triger 
 
 

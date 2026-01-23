@@ -7,7 +7,7 @@ directory="$HOME/Sync/healthy-menu"
 tmux kill-session -t "$session_name" 2>/dev/null
 
 cd $directory/backend
-source venv/bin/activate
+#source venv/bin/activate
 
 # Создаём сессию с первым окном сразу
 tmux new-session -d -s "$session_name" -n "lzg"

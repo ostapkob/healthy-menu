@@ -10,11 +10,11 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Настройки тестовой базы данных
-TEST_DB_HOST = os.getenv("TEST_DB_HOST", "localhost")
-TEST_DB_PORT = os.getenv("TEST_DB_PORT", "5432")
-TEST_DB_NAME = os.getenv("TEST_DB_NAME", "food_db_tests")
-TEST_DB_USER = os.getenv("TEST_DB_USER", "postgres")
-TEST_DB_PASSWORD = os.getenv("TEST_DB_PASSWORD", "postgres")
+TEST_DB_HOST = os.getenv("POSTGRES_HOST", "localhost")
+TEST_DB_PORT = os.getenv("POSTGRES_PORT", "5432")
+TEST_DB_NAME = os.getenv("POSTGRES_TESTS_DB", "food_db_tests")
+TEST_DB_USER = os.getenv("POSTGRES_USER", "postgres")
+TEST_DB_PASSWORD = os.getenv("POSTGRES_TEST_PASSWORD", "postgres")
 
 # Строка подключения
 TEST_DATABASE_URL = f"postgresql://{TEST_DB_USER}:{TEST_DB_PASSWORD}@{TEST_DB_HOST}:{TEST_DB_PORT}/{TEST_DB_NAME}"
