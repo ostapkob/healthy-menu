@@ -5,10 +5,9 @@ ln -Lf env_example courier-backend/.env
 ln -Lf env_example migrations/.env
 
 # Для локальной разработки
-echo "127.0.0.1       kafka postgres minio nexus" >>  /etc/hosts
+echo "127.0.0.1       kafka postgres minio" >>  /etc/hosts
 у меня на другом сервере тогда так  
-192.168.1.163 jenkins gitlab
-
+192.168.1.163 jenkins gitlab nexus
 
 # python
 cd admin-backend

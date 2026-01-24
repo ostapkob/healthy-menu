@@ -1,10 +1,11 @@
-#!/bin/bash
+#!bash
 # 
 set -o allexport
 source ./.env
 set +o allexport
 
 # Получаем пароль администратора
+echo "url: $NEXUS_WEB_URL"
 ADMIN_PASSWORD=$(docker exec nexus cat /nexus-data/admin.password)
 # NEXUS_WEB_HOST="http://localhost:8081"
 
