@@ -13,7 +13,7 @@ load_dotenv()
 TEST_DB_HOST = os.getenv("POSTGRES_HOST", "localhost")
 TEST_DB_PORT = os.getenv("POSTGRES_PORT", "5432")
 TEST_DB_NAME = os.getenv("POSTGRES_TESTS_DB", "food_db_tests")
-TEST_DB_USER = os.getenv("POSTGRES_USER", "postgres")
+TEST_DB_USER = os.getenv("POSTGRES_TESTS_USER", "postgres")
 TEST_DB_PASSWORD = os.getenv("POSTGRES_TEST_PASSWORD", "postgres")
 
 # Строка подключения
@@ -33,6 +33,35 @@ app = FastAPI()
 app.include_router(dishes_router)
 app.include_router(tech_router)
 
+
+@pytest.fixture(scope="function", autouse=True)
+def clean_database(db_session: Session):
+    """
+    Автоматически очищает все таблицы перед каждым тестом.
+    autouse=True означает, что фикстура запускается для каждого теста автоматически.
+    """
+    # Получаем список всех таблиц
+    tables = db_session.execute(text("""
+        SELECT tablename 
+        FROM pg_tables 
+        WHERE schemaname = 'public'
+          AND tablename NOT LIKE 'pg_%'
+          AND tablename NOT LIKE 'sql_%'
+    """)).fetchall()
+    
+    # Отключаем триггеры (для ускорения и избежания ошибок)
+    db_session.execute(text("SET session_replication_role = 'replica'"))
+    
+    # Очищаем каждую таблицу
+    for table in tables:
+        db_session.execute(text(f'TRUNCATE TABLE "{table[0]}" CASCADE'))
+    
+    # Включаем триггеры обратно
+    db_session.execute(text("SET session_replication_role = 'origin'"))
+    
+    db_session.commit()
+    
+    yield
 
 @pytest.fixture(scope="function")
 def db_session():

@@ -15,6 +15,8 @@ from shared.models import (
     DailyNorm, Order, OrderItem
 )
 
+from pydantic import BaseModel, Field
+
 from shared.shared_models import (
     Dish, DishFood, Food
 )
@@ -96,10 +98,10 @@ class UserNutrientsResponse(BaseModel):
 
 class MenuMacros(BaseModel):
     """Макронутриенты для меню"""
-    calories: int
-    protein: int
-    fat: int
-    carbs: int
+    calories: int = Field(ge=0, description="Калории")
+    protein: int = Field(ge=0, description="Белок")
+    fat: int = Field(ge=0, description="Жиры")
+    carbs: int = Field(ge=0, description="Углеводы")
 
 class MenuMicronutrient(BaseModel):
     """Микронутриент для меню"""
@@ -125,9 +127,10 @@ class DishResponse(BaseModel):
     name: str
     price: float
 
+
 class OrderItemCreate(BaseModel):
     dish_id: int
-    quantity: int
+    quantity: int = Field(gt=0, description="Количество должно быть больше 0")
 
 class OrderItemResponse(BaseModel):
     id: int
