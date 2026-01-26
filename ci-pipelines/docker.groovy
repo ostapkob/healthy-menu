@@ -82,6 +82,7 @@ pipeline {
                     usernameVariable: 'NEXUS_USER',
                     passwordVariable: 'NEXUS_PASS'
                 )]) {
+                    println("NEXUS_REGISTRY_URL: ${NEXUS_REGISTRY_URL}")
                     sh '''
                         echo "$NEXUS_PASS" | docker login ${NEXUS_REGISTRY_URL} \
                           -u "$NEXUS_USER" --password-stdin

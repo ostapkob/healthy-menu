@@ -1,10 +1,11 @@
+# Для локальной разработки
 ln -Lf env_example .env
 ln -Lf env_example admin-backend/.env
 ln -Lf env_example order-backend/.env
 ln -Lf env_example courier-backend/.env
 ln -Lf env_example migrations/.env
+export $(grep -v '^#' .env | xargs)
 
-# Для локальной разработки
 echo "127.0.0.1       kafka postgres minio" >>  /etc/hosts
 у меня на другом сервере тогда так  
 192.168.1.163 jenkins gitlab nexus
@@ -12,7 +13,7 @@ echo "127.0.0.1       kafka postgres minio" >>  /etc/hosts
 # python
 cd admin-backend
 uv run uvicorn main:app  --port 8002
-PYTHONPATH=. uv run pytest
+PYTHONPATH=. uv run pytest tests -v
 
 # docker 
 docker build -t admin-backend .
@@ -61,6 +62,21 @@ add secret to .env how JENKINS_SECRET
 
 docker-compose up -d --build jenkins-agent
 
+
+# Helm
+## Добавить репозиторий в Helm
+helm repo add nexus http://nexus:8081/repository/helm-hosted/
+helm repo update
+
+vim /etc/docker/daemon.json
+{
+    "insecure-registries" : ["nexus:5000"]
+}
+sudo systemctl daemon-reload
+sudo systemctl restart docker
+
+helm uninstall order-backend
+helm install order-backend . --set tag=1.0.1
 
 
 

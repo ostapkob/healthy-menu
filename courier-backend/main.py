@@ -81,9 +81,9 @@ event_loop: asyncio.AbstractEventLoop | None = None
 
 def kafka_listener():
     global event_loop
-    print("🔧 Запускаем Kafka-листенер...")
 
     bootstrap = os.environ.get("KAFKA_BOOTSTRAP_SERVERS", "kafka:9092")
+    print("🔧 Запускаем Kafka-листенер по адресу", bootstrap)
 
     while True:
         try:

@@ -73,3 +73,11 @@ spec:
             secretKeyRef:
               name: {{ .Values.config.minio.secret }}
               key: MINIO_ROOT_PASSWORD
+
+        # KAFKA
+        
+        - name: KAFKA_BOOTSTRAP_SERVERS
+          valueFrom:
+            configMapKeyRef:
+              name: {{ .Values.config.kafka.configMap }}
+              key: KAFKA_BOOTSTRAP_SERVERS
