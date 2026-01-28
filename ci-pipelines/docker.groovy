@@ -1,6 +1,27 @@
 pipeline {
     agent { label 'docker' }
 
+    triggers {
+        GenericTrigger(
+            // JSONPath к нужным полям из GitLab MR payload
+            genericVariables: [
+                [key: 'gitlab_object_kind', value: '$.object_kind'],
+                [key: 'gitlab_mr_action',   value: '$.object_attributes.action'],
+                [key: 'gitlab_source_branch', value: '$.object_attributes.source_branch'],
+                [key: 'gitlab_target_branch', value: '$.object_attributes.target_branch']
+            ],
+            causeString: 'GitLab MR $gitlab_mr_action from $gitlab_source_branch to $gitlab_target_branch',
+            token: 'gitlab-mr-build',              // токен для этой джобы
+            printContributedVariables: true,
+            printPostContent: true,
+
+            // фильтр: запускаем job только на merge request и только при нужном action
+            regexpFilterText: '$gitlab_object_kind:$gitlab_mr_action',
+            // только при "merged"
+            regexpFilterExpression: 'merge_request:merged'
+        )
+    }
+
     parameters {
         choice(
             name: 'SERVICE_NAME',

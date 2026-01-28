@@ -18,12 +18,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
       tee /etc/apt/sources.list.d/docker.list > /dev/null \
     && apt-get update \
     && apt-get install -y --no-install-recommends docker-buildx-plugin \
-    && apt-get install -y curl host\
+    && apt-get install -y curl host vim\
     && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* 
 
 # get gid -> $ ls -ln /var/run/docker.sock
-RUN groupadd -g 131 docker && \
-    usermod -aG docker jenkins
-
-USER jenkins
+# RUN groupadd -g 131 docker && \
+#     usermod -aG docker jenkins
+#
+# USER jenkins

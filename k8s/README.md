@@ -62,7 +62,7 @@ minikube start \
   --insecure-registry="nix:5000" \
   --insecure-registry="192.168.49.0/24"  # Весь диапазон IP minikube
 
-minikube ssh "echo '192.168.1.163 nexus' | sudo tee -a /etc/hosts"
+minikube ssh "echo '192.168.1.163 nexus jenkins gitlab' | sudo tee -a /etc/hosts"
 minikube ssh "echo '192.168.1.171 minio kafka postgres' | sudo tee -a /etc/hosts"
 minikube ssh "curl http://nexus:5000/v2/_catalog"
 

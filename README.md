@@ -51,40 +51,28 @@ login: root
 
 
 # Jenkins
-docker-compose up -d --build jenkins
-docker exec jenkins cat /var/jenkins_home/secrets/initialAdminPassword
-install suggest plugins (main thing is to install the Pipeline)
-docker cp ./jenkins/*  jenkins:/var/jenkins_home
-docker-compose restart jenkins
-
+docker-compose up -d --build jenkins 
+docker exec jenkins cat /var/jenkins_home/secrets/initialAdminPassword 
+install suggest plugins (main thing is to install the Pipeline) 
+docker cp ./jenkins/jenkins_home  jenkins:/var/
+docker-compose restart jenkins 
+ 
 add node (name agent-1, label - docker),
 add secret to .env how JENKINS_SECRET
 
 docker-compose up -d --build jenkins-agent
-
-
-# Helm
-## Добавить репозиторий в Helm
-helm repo add nexus http://nexus:8081/repository/helm-hosted/
-helm repo update
-
-vim /etc/docker/daemon.json
-{
-    "insecure-registries" : ["nexus:5000"]
-}
-sudo systemctl daemon-reload
-sudo systemctl restart docker
-
-helm uninstall order-backend
-helm install order-backend . --set tag=1.0.1
+docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' nexus
 
 
 
 # TODO
 
 - [ ] Change .env -> values
-- [ ] Add Vault | HashiCorp
+- [ ] Add Vault HashiCorp
 - [ ] Add Argo
 - [ ] Add triger 
+- [ ] etc/hosts in Dockerfile
+- [ ] Sonar
+- [ ] Docker in Docker
 
 
