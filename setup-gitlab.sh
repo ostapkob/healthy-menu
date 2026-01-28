@@ -1,4 +1,4 @@
-#!/bin/bash
+# !/bin/bash
 
 # Включаем строгий режим
 set -euo pipefail
@@ -10,7 +10,7 @@ red='\033[0;31m'
 reset='\033[0m'
 
 # Имя файла .env
-ENV=".env"
+ENV="./.env"
 
 # Загружаем .env
 if [ -f "${ENV}" ]; then
@@ -46,17 +46,16 @@ echo -e "${green}✅ Initial root password: ${pink}${INITIAL_ROOT_PASSWORD}${res
 
 # Шаг 2: Меняем пароль root на GITLAB_ROOT_PASSWORD через Rails console
 echo -e "${green}🔄 Меняем пароль root на ${pink}${GITLAB_ROOT_PASSWORD}${reset}...${reset}"
-CHANGE_PASSWORD_OUTPUT=$(docker exec -i "${GITLAB_CONTAINER_NAME}" gitlab-rails runner "
+if ! CHANGE_PASSWORD_OUTPUT=$(docker exec -i "${GITLAB_CONTAINER_NAME}" gitlab-rails runner "
   user = User.find_by_username('root');
   user.password = '${GITLAB_ROOT_PASSWORD}';
   user.password_confirmation = '${GITLAB_ROOT_PASSWORD}';
   user.save!
-" 2>&1)
-if [[ "${CHANGE_PASSWORD_OUTPUT}" == *"true"* ]]; then
-    echo -e "${green}✅ Пароль root успешно изменён!${reset}"
-else
+" 2>&1); then
     echo -e "${red}❌ Ошибка при смене пароля root: ${CHANGE_PASSWORD_OUTPUT}${reset}"
     exit 1
+else
+    echo -e "${green}✅ Пароль root успешно изменён!${reset}"
 fi
 
 # Шаг 3: Создаём Personal Access Token для root
@@ -122,3 +121,4 @@ save_to_env "GITLAB_ACCESS_TOKEN" "${USER_TOKEN}"
 echo -e "${green}🎉 Готово! GitLab доступен по ${pink}${GITLAB_URL}${reset}"
 echo -e "${green}✅ Root token сохранён в .env как GITLAB_ROOT_TOKEN.${reset}"
 echo -e "${green}✅ Пользователь ${GITLAB_USER} готов с токеном в .env как GITLAB_ACCESS_TOKEN.${reset}"
+
