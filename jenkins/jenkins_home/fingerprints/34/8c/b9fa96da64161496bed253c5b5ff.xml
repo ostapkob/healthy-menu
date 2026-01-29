@@ -1,0 +1,19 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<fingerprint>
+  <timestamp>2026-01-22 12:11:30.953 UTC</timestamp>
+  <md5sum>348cb9fa96da64161496bed253c5b5ff</md5sum>
+  <fileName>Credential id=a75142d7-f75a-4283-a072-d863d5c01fe5 name=ostapkob/****** (gitlab-token)</fileName>
+  <usages>
+    <entry>
+      <string>test</string>
+      <ranges>2</ranges>
+    </entry>
+  </usages>
+  <facets>
+    <com.cloudbees.plugins.credentials.fingerprints.ItemCredentialsFingerprintFacet plugin="credentials@1480.v2246fd131e83">
+      <timestamp>1769084051630</timestamp>
+      <itemFullName>test</itemFullName>
+      <timestamp0>1769083890952</timestamp0>
+    </com.cloudbees.plugins.credentials.fingerprints.ItemCredentialsFingerprintFacet>
+  </facets>
+</fingerprint>
