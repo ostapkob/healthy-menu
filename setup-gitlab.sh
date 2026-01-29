@@ -1,7 +1,7 @@
 # !/bin/bash
 
 # Включаем строгий режим
-set -euo pipefail
+# set -euo pipefail
 
 # Цвета для вывода
 pink='\033[1;35m'
@@ -79,8 +79,9 @@ CREATE_USER_RESPONSE=$(curl -s --header "PRIVATE-TOKEN: ${ROOT_TOKEN}" \
     --data "email=${GITLAB_EMAIL}" \
     --data "password=${GITLAB_PASSWORD}" \
     --data "skip_confirmation=true" \
-    --request POST "${GITLAB_URL}api/v4/users")
+    --request POST "${GITLAB_URL}/api/v4/users")
 USER_ID=$(echo "${CREATE_USER_RESPONSE}" | jq -r '.id')
+
 if [ -z "${USER_ID}" ] || [ "${USER_ID}" = "null" ]; then
     echo -e "${red}❌ Ошибка: Не удалось создать пользователя! Ответ: ${CREATE_USER_RESPONSE}${reset}"
     exit 1
@@ -93,7 +94,7 @@ CREATE_TOKEN_RESPONSE=$(curl -s --header "PRIVATE-TOKEN: ${ROOT_TOKEN}" \
     --data "name=${GITLAB_NAME}" \
     --data "scopes[]=api" \
     --data "expires_at=${EXPIRES_AT}" \
-    --request POST "${GITLAB_URL}api/v4/users/${USER_ID}/personal_access_tokens")
+    --request POST "${GITLAB_URL}/api/v4/users/${USER_ID}/personal_access_tokens")
 USER_TOKEN=$(echo "${CREATE_TOKEN_RESPONSE}" | jq -r '.token')
 if [ -z "${USER_TOKEN}" ] || [ "${USER_TOKEN}" = "null" ]; then
     echo -e "${red}❌ Ошибка: Не удалось создать token! Ответ: ${CREATE_TOKEN_RESPONSE}${reset}"
