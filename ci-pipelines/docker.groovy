@@ -3,31 +3,28 @@ pipeline {
 
     triggers {
         GenericTrigger(
-            // JSONPath к нужным полям из GitLab MR payload
             genericVariables: [
-                [key: 'gitlab_object_kind', value: '$.object_kind'],
-                [key: 'gitlab_mr_action',   value: '$.object_attributes.action'],
-                [key: 'gitlab_source_branch', value: '$.object_attributes.source_branch'],
-                [key: 'gitlab_target_branch', value: '$.object_attributes.target_branch']
+                [key: 'webhookObjectKind', value: '$.object_kind'],
+                [key: 'webhookMrState',    value: '$.object_attributes.state'],
+                [key: 'webhookRepoName',   value: '$.repository.name'],
+                [key: 'webhookProjectNs',  value: '$.project.path_with_namespace']
             ],
-            causeString: 'GitLab MR $gitlab_mr_action from $gitlab_source_branch to $gitlab_target_branch',
-            token: 'gitlab-mr-build',              // токен для этой джобы
+            causeString: 'GitLab MR ($webhookMrState) for $webhookProjectNs',
+            token: 'gitlab-mr-build',
             printContributedVariables: true,
             printPostContent: true,
-
-            // фильтр: запускаем job только на merge request и только при нужном action
-            regexpFilterText: '$gitlab_object_kind:$gitlab_mr_action',
-            // только при "merged"
+            regexpFilterText: '$webhookObjectKind:$webhookMrState',
             regexpFilterExpression: 'merge_request:merged'
         )
     }
 
     parameters {
         choice(
-            name: 'SERVICE_NAME',
+            name: 'PARAM_SERVICE',
             choices: [
+                '',
                 'admin-backend',
-                'courier-backend', 
+                'courier-backend',
                 'order-backend',
                 'admin-frontend',
                 'courier-frontend',
@@ -38,19 +35,25 @@ pipeline {
     }
 
     environment {
-        SERVICE_NAME      = "${params.SERVICE_NAME ?: 'admin-backend'}"
-        NEXUS_REGISTRY_URL = "${NEXUS_REGISTRY_URL}"  
-        TEST_IMAGE        = "${SERVICE_NAME}:test"
-        RELEASE_IMAGE     = "${NEXUS_REGISTRY_URL}/${SERVICE_NAME}:${BUILD_NUMBER}"
-        DOCKER_BUILDKIT   = '1'
+        NEXUS_REGISTRY_URL = "${NEXUS_REGISTRY_URL}"
+        DOCKER_BUILDKIT    = '1'
     }
 
     stages {
-        stage('Checkout') {
+        stage('Determine service') {
             steps {
                 script {
-                    // Динамический URL на основе SERVICE_NAME
-                    def repoUrl = "http://gitlab:8060/ostapkob/${SERVICE_NAME}"
+                    def webhookRepoName = (env.webhookRepoName ?: '').trim()
+                    def paramService    = (params.PARAM_SERVICE ?: '').trim()
+                    def finalService = webhookRepoName ? webhookRepoName : paramService
+
+                    if (!finalService) {
+                        error("SERVICE_NAME не задан: ни webhook (repository.name), ни параметр PARAM_SERVICE не переданы.")
+                    }
+
+                    env.SERVICE_NAME = finalService
+                    echo "Using SERVICE_NAME=${env.SERVICE_NAME}"
+                    def repoUrl = "http://gitlab:8060/ostapkob/${env.SERVICE_NAME}"
                     git(
                         url: repoUrl,
                         branch: 'master',
@@ -60,6 +63,18 @@ pipeline {
             }
         }
 
+        stage('Checkout') {
+            steps {
+                script {
+                    def repoUrl = "http://gitlab:8060/ostapkob/${env.SERVICE_NAME}"
+                        git(
+                            url: repoUrl,
+                            branch: 'master',
+                            credentialsId: 'gitlab-token'
+                    )
+                }
+            }
+        }
         stage('Test docker') {
             steps {
                 sh 'docker version'
@@ -67,11 +82,11 @@ pipeline {
         }
 
         stage('Build & Test') {
-            parallel {
-                stage('Build test image') {
-                    steps {
-                        sh "docker buildx build -f Dockerfile.test -t ${TEST_IMAGE} ."
-                    }
+            steps {
+                script {
+                    def testImage    = "${env.SERVICE_NAME}:test"
+                    env.TEST_IMAGE   = testImage
+                    sh "docker buildx build -f Dockerfile.test -t ${testImage} ."
                 }
             }
         }
@@ -92,7 +107,11 @@ pipeline {
 
         stage('Build release image') {
             steps {
-                sh "docker buildx build -f Dockerfile -t ${RELEASE_IMAGE} ."
+                script {
+                    def releaseImage = "${env.NEXUS_REGISTRY_URL}/${env.SERVICE_NAME}:${env.BUILD_NUMBER}"
+                    env.RELEASE_IMAGE = releaseImage
+                    sh "docker buildx build -f Dockerfile -t ${releaseImage} ."
+                }
             }
         }
 
@@ -103,7 +122,7 @@ pipeline {
                     usernameVariable: 'NEXUS_USER',
                     passwordVariable: 'NEXUS_PASS'
                 )]) {
-                    println("NEXUS_REGISTRY_URL: ${NEXUS_REGISTRY_URL}")
+                    println("NEXUS_REGISTRY_URL: ${env.NEXUS_REGISTRY_URL}")
                     sh '''
                         echo "$NEXUS_PASS" | docker login ${NEXUS_REGISTRY_URL} \
                           -u "$NEXUS_USER" --password-stdin

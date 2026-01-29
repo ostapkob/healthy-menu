@@ -1,7 +1,12 @@
-# !/bin/bash
+#!/bin/bash
 
-# Имя файла .env
 ENV="./.env"
+pink='\033[1;35m'
+green='\033[0;32m'
+red='\033[0;31m'
+yellow='\033[1;33m'
+blue='\033[0;34m'
+reset='\033[0m'
 
 # Загружаем .env
 if [ -f "${ENV}" ]; then
@@ -13,35 +18,34 @@ else
     exit 1
 fi
 
-
 # Display GitLab URL for confirmation
-echo "URL: $GITLAB_URL"
+echo -e "${green}URL: $GITLAB_URL${reset}"
 
 # Use token from environment (fallback to input if needed)
 ACCESS_TOKEN="$GITLAB_ACCESS_TOKEN"
 # if [ -z "$ACCESS_TOKEN" ]; then
-#   echo "🔑 Введите личный токен доступа:"
+#   echo -e "${yellow}🔑 Введите личный токен доступа:${reset}"
 #   read -s ACCESS_TOKEN
 # fi
 
 if [ -z "$ACCESS_TOKEN" ]; then
-  echo "❌ Токен не введен"
+  echo -e "${red}❌ Токен не введен${reset}"
   exit 1
 fi
 
 # Validate access token
-echo "🔍 Проверяем токен..."
+echo -e "${blue}🔍 Проверяем токен...${reset}"
 USER_INFO=$(curl -s "$GITLAB_URL/api/v4/user" -H "PRIVATE-TOKEN: $ACCESS_TOKEN")
 
 if echo "$USER_INFO" | grep -q "\"username\""; then
   USERNAME=$(echo "$USER_INFO" | grep -o '"username":"[^"]*"' | cut -d'"' -f4)
-  echo "✅ Токен действителен. Пользователь: $USERNAME"
+  echo -e "${green}✅ Токен действителен. Пользователь: $USERNAME${reset}"
 else
-  echo "❌ Неверный токен"
+  echo -e "${red}❌ Неверный токен${reset}"
   exit 1
 fi
 
-# List of repositories to create and push
+# List of repositories to process
 REPOSITORIES=(
   "admin-backend"
   "courier-backend"
@@ -53,40 +57,47 @@ REPOSITORIES=(
 )
 
 # Prompt for commit message
-echo "📝 Введите сообщение для коммита:"
+echo -e "${yellow}📝 Введите сообщение для коммита:${reset}"
 read -r COMMIT_MESSAGE
 
 if [ -z "$COMMIT_MESSAGE" ]; then
-  echo "❌ Сообщение для коммита не введено"
+  echo -e "${red}❌ Сообщение для коммита не введено${reset}"
   exit 1
 fi
 
 echo ""
-echo "📁 Обработка ${#REPOSITORIES[@]} репозиториев..."
+echo -e "${pink}📁 Обработка ${#REPOSITORIES[@]} репозиториев...${reset}"
 echo "========================================"
 
-# Function to create repository if it doesn't exist
-create_repo() {
-  local repo="$1"
-  existing=$(curl -s "$GITLAB_URL/api/v4/projects?search=$repo" \
-    -H "PRIVATE-TOKEN: $ACCESS_TOKEN" | grep -o "\"path\":\"$repo\"")
+# Webhook configuration
+WEBHOOK_URL="http://jenkins:8080/generic-webhook-trigger/invoke?token=gitlab-mr-build"
+PUSH_EVENTS=true
+MERGE_REQUEST_EVENTS=true
+ENABLE_SSL_VERIFICATION=false
 
-  if [ -n "$existing" ]; then
-    echo "уже существует"
+# Function to add webhook if not exists
+add_webhook() {
+  local project_id="$1"
+ 
+  # Check existing hooks
+  hooks=$(curl -s "$GITLAB_URL/api/v4/projects/$project_id/hooks" -H "PRIVATE-TOKEN: $ACCESS_TOKEN")
+ 
+  if echo "$hooks" | grep -q "\"url\":\"$WEBHOOK_URL\""; then
+    echo -e "${yellow}Webhook уже существует${reset}"
+    return 0
+  fi
+ 
+  response=$(curl -s -X POST "$GITLAB_URL/api/v4/projects/$project_id/hooks" \
+    -H "PRIVATE-TOKEN: $ACCESS_TOKEN" \
+    -H "Content-Type: application/json" \
+    -d "{\"url\":\"$WEBHOOK_URL\", \"push_events\":$PUSH_EVENTS, \"merge_requests_events\":$MERGE_REQUEST_EVENTS, \"enable_ssl_verification\":$ENABLE_SSL_VERIFICATION}")
+ 
+  if echo "$response" | grep -q "\"id\""; then
+    echo -e "${green}Webhook добавлен${reset}"
     return 0
   else
-    response=$(curl -s -X POST "$GITLAB_URL/api/v4/projects" \
-      -H "PRIVATE-TOKEN: $ACCESS_TOKEN" \
-      -H "Content-Type: application/json" \
-      -d "{\"name\":\"$repo\",\"visibility\":\"private\"}")
-
-    if [ $? -eq 0 ] && [ -n "$response" ]; then
-      echo "создан"
-      return 0
-    else
-      echo "ошибка создания: $response"
-      return 1
-    fi
+    echo -e "${red}Ошибка добавления webhook: $response${reset}"
+    return 1
   fi
 }
 
@@ -94,7 +105,7 @@ create_repo() {
 setup_and_push() {
   local repo="$1"
 
-  # Copy .gitignore if it exists
+  # Copy .gitignore if it exists in parent
   if [ -f "../.gitignore" ]; then
     cp "../.gitignore" .
   fi
@@ -102,13 +113,13 @@ setup_and_push() {
   # Initialize git if not already
   if [ ! -d ".git" ]; then
     git init
-    echo "🔄 Инициализирован git в $repo"
+    echo -e "${blue}🔄 Инициализирован git в $repo${reset}"
   fi
 
   # Add changes and commit
   git add .
   if ! git commit -m "$COMMIT_MESSAGE"; then
-    echo "⚠️ Нет изменений для коммита в $repo"
+    echo -e "${yellow}⚠️ Нет изменений для коммита в $repo${reset}"
   fi
 
   # Set remote if not already set
@@ -116,9 +127,9 @@ setup_and_push() {
 
   # Push changes
   if git push -u origin master; then
-    echo "✅ Успешно запушено в $repo"
+    echo -e "${green}✅ Успешно запушено в $repo${reset}"
   else
-    echo "❌ Ошибка пуша в $repo"
+    echo -e "${red}❌ Ошибка пуша в $repo${reset}"
     return 1
   fi
 
@@ -127,16 +138,44 @@ setup_and_push() {
 
 # Process each repository
 for repo in "${REPOSITORIES[@]}"; do
-  echo -n "• $repo: "
+  echo -en "${pink}• $repo:${reset} "
 
-  # Create repo on GitLab
-  if ! create_repo "$repo"; then
+  # Check if repository exists
+  existing=$(curl -s "$GITLAB_URL/api/v4/projects?search=$repo" \
+    -H "PRIVATE-TOKEN: $ACCESS_TOKEN" | grep -o "\"path\":\"$repo\"")
+
+  if [ -n "$existing" ]; then
+    echo -en "${yellow}уже существует. ${reset}"
+    project_id=$(curl -s "$GITLAB_URL/api/v4/projects?search=$repo" \
+      -H "PRIVATE-TOKEN: $ACCESS_TOKEN" | jq -r '.[0].id')
+  else
+    # Create repository
+    response=$(curl -s -X POST "$GITLAB_URL/api/v4/projects" \
+      -H "PRIVATE-TOKEN: $ACCESS_TOKEN" \
+      -H "Content-Type: application/json" \
+      -d "{\"name\":\"$repo\",\"visibility\":\"private\"}")
+
+    if echo "$response" | grep -q "\"id\""; then
+      echo -en "${green}создан. ${reset}"
+      project_id=$(echo "$response" | jq -r '.id')
+    else
+      echo -e "${red}ошибка создания: $response${reset}"
+      continue
+    fi
+  fi
+
+  if [ -z "$project_id" ]; then
+    echo -e "${red}❌ Ошибка получения ID проекта${reset}"
     continue
   fi
 
+  # Add webhook
+  echo -en "${blue}Добавление webhook:${reset} "
+  add_webhook "$project_id"
+
   # Navigate to local repo directory
   if ! cd "./$repo" 2>/dev/null; then
-    echo "❌ Не удалось перейти в папку $repo"
+    echo -e "${red}❌ Не удалось перейти в папку $repo${reset}"
     continue
   fi
 
@@ -148,4 +187,4 @@ for repo in "${REPOSITORIES[@]}"; do
 done
 
 echo ""
-echo "✅ Готово!"
+echo -e "${green}✅ Готово!${reset}"

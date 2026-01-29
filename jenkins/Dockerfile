@@ -23,7 +23,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/* 
 
 # get gid -> $ ls -ln /var/run/docker.sock
-# RUN groupadd -g 131 docker && \
-#     usermod -aG docker jenkins
-#
-# USER jenkins
+RUN groupadd -g 131 docker && \
+    usermod -aG docker jenkins
+
+USER jenkins

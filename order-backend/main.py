@@ -68,8 +68,7 @@ def get_kafka_producer() -> Producer:
         )
     return _producer
 
-# === Pydantic Models ===
-
+# ===  Pydantic Models  ===
 class NutrientInfo(BaseModel):
     """Информация о нутриенте"""
     name: str

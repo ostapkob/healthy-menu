@@ -1,6 +1,5 @@
 # Для локальной разработки
-ln -Lf env_example .env
-ln -Lf env_example admin-backend/.env
+ln -Lf env_example .env ln -Lf env_example admin-backend/.env
 ln -Lf env_example order-backend/.env
 ln -Lf env_example courier-backend/.env
 ln -Lf env_example migrations/.env
@@ -42,13 +41,12 @@ bash load_data.sh
 auto created bucket in docker-compose
 
 # GitLab
-get password:  $ docker exec gitlab cat /etc/gitlab/initial_root_password 
-login: root
-- change password
-- create token (select api) and add to .env how GITLAB_ROOT_TOKEN
+- bash setup-gitlab.sh
 - bash push-to-gitlab.sh (первый раз потребуется ввести логопас)
-- add id_rsa.pub in web-interface
-
+how root:
+- Admin → Settings → Network → Outbound requests
+- ✅ Allow requests to the local network from webhooks and integrations
+- в whitelist добавить http://jenkins:8080 или IP/домен ($ docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' gitlab )
 
 # Jenkins
 docker-compose up -d --build jenkins 
@@ -61,9 +59,28 @@ add node (name agent-1, label - docker),
 add secret to .env how JENKINS_SECRET
 
 docker-compose up -d --build jenkins-agent
-docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' nexus
+add cred gitlab-token: username=ostapkob, token=GITLAB_ACCESS_TOKEN
 
-
+test WebHook:
+```
+curl -v \
+-X POST \
+-H "Content-Type: application/json" \
+-H "X-Gitlab-Event: Merge Request Hook" \
+-d '{
+  "object_kind": "merge_request",
+  "event_type": "merge_request",
+  "project": {
+    "path_with_namespace": "ostapkob/admin-backend"
+  },
+  "object_attributes": {
+    "action": "merged",
+    "source_branch": "feature/some-feature",
+    "target_branch": "master"
+  }
+}' \
+"http://jenkins:8080/generic-webhook-trigger/invoke?token=gitlab-mr-build"
+```
 
 # TODO
 
