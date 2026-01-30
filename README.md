@@ -1,16 +1,18 @@
-ln -L env_example .env
-ln -L env_example admin-backend/.env
-ln -L env_example order-backend/.env
-ln -L env_example courier-backend/.env
-ln -L env_example migrations/.env
-
 # Для локальной разработки
-в /etc/hosts
-127.0.0.1    kafka postgres minio nexus
+ln -Lf env_example .env ln -Lf env_example admin-backend/.env
+ln -Lf env_example order-backend/.env
+ln -Lf env_example courier-backend/.env
+ln -Lf env_example migrations/.env
+export $(grep -v '^#' .env | xargs)
+
+echo "127.0.0.1       kafka postgres minio" >>  /etc/hosts
+у меня на другом сервере тогда так  
+192.168.1.163 jenkins gitlab nexus
 
 # python
 cd admin-backend
 uv run uvicorn main:app  --port 8002
+PYTHONPATH=. uv run pytest tests -v
 
 # docker 
 docker build -t admin-backend .
@@ -23,51 +25,71 @@ docker rm -vf $(docker ps -aq)
 docker-compose up -d --build
 docker-compose --profile infra up -d --build
 docker-compose --profile infra down
-или через переменную окружения:
-export COMPOSE_PROFILES=back_front
 
 # Kafka
 kafka-topics --bootstrap-server localhost:9092 --list
 kafka-console-producer --bootstrap-server localhost:9092 --topic new_orders
 {"order_id": 123, "user_id": 458}
 kafka-console-consumer --bootstrap-server localhost:9092 --topic new_orders --from-beginning
-echo "127.0.0.1       kafka" >>  /etc/hosts
 kcat -b kafka:9092 -t new_orders -C
 
 # SQL
-cd admin-backend
-uv run alembic revision --autogenerate -m "init admin schema"
-uv run alembic upgrade head
-
-cd ../order-backend
-uv run alembic revision --autogenerate -m "init order schema"
-uv run alembic upgrade head
-
-cd ../courier-backend
-uv run alembic revision --autogenerate -m "init courier schema"
-uv run alembic upgrade head
-
+bash setup-models.sh
 bash load_data.sh
-INSERT INTO couriers (id, name, status, current_order_id) VALUES (1, 'Курьер 1', 'available', NULL);
-UPDATE couriers SET status = 'available' WHERE id = 1;
 
 # MiniO
-./mc alias set minio http://s3.healthy.local minioadmin minioadmin
-./mc anonymous set public minio/healthy-menu-dishes
+auto created bucket in docker-compose
 
 # GitLab
-login: root
-docker exec gitlab cat /etc/gitlab/initial_root_password
-change password
-add id_rsa.pub in web-interface
-create token
-- api
-- write_repository
-- read_repository
-- write_virtual_registry
-- manage_runner
-
-
+- bash setup-gitlab.sh
+- bash push-to-gitlab.sh (первый раз потребуется ввести логопас)
+how root:
+- Admin → Settings → Network → Outbound requests
+- ✅ Allow requests to the local network from webhooks and integrations
+- в whitelist добавить http://jenkins:8080 или IP/домен ($ docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' gitlab )
 
 # Jenkins
-docker exec jenkins cat /var/jenkins_home/secrets/initialAdminPassword
+docker-compose up -d --build jenkins 
+docker exec jenkins cat /var/jenkins_home/secrets/initialAdminPassword 
+install suggest plugins (main thing is to install the Pipeline) 
+docker cp ./jenkins/jenkins_home  jenkins:/var/
+docker-compose restart jenkins 
+ 
+add node (name agent-1, label - docker),
+add secret to .env how JENKINS_SECRET
+
+docker-compose up -d --build jenkins-agent
+add cred gitlab-token: username=ostapkob, token=GITLAB_ACCESS_TOKEN
+
+test WebHook:
+```
+curl -v \
+-X POST \
+-H "Content-Type: application/json" \
+-H "X-Gitlab-Event: Merge Request Hook" \
+-d '{
+  "object_kind": "merge_request",
+  "event_type": "merge_request",
+  "project": {
+    "path_with_namespace": "ostapkob/admin-backend"
+  },
+  "object_attributes": {
+    "action": "merged",
+    "source_branch": "feature/some-feature",
+    "target_branch": "master"
+  }
+}' \
+"http://jenkins:8080/generic-webhook-trigger/invoke?token=gitlab-mr-build"
+```
+
+# TODO
+
+- [ ] Change .env -> values
+- [ ] Add Vault HashiCorp
+- [ ] Add Argo
+- [ ] Add triger 
+- [ ] etc/hosts in Dockerfile
+- [ ] Sonar
+- [ ] Docker in Docker
+
+

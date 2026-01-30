@@ -10,19 +10,19 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Настройки тестовой базы данных
-TEST_DB_HOST = os.getenv("TEST_DB_HOST", "localhost")
-TEST_DB_PORT = os.getenv("TEST_DB_PORT", "5432")
-TEST_DB_NAME = os.getenv("TEST_DB_NAME", "food_db_tests")
-TEST_DB_USER = os.getenv("TEST_DB_USER", "postgres")
-TEST_DB_PASSWORD = os.getenv("TEST_DB_PASSWORD", "postgres")
+TEST_DB_HOST = os.getenv("POSTGRES_HOST", "localhost")
+TEST_DB_PORT = os.getenv("POSTGRES_PORT", "5432")
+TEST_DB_NAME = os.getenv("POSTGRES_TESTS_DB", "food_db_tests")
+TEST_DB_USER = os.getenv("POSTGRES_TESTS_USER", "postgres")
+TEST_DB_PASSWORD = os.getenv("POSTGRES_TEST_PASSWORD", "postgres")
 
 # Строка подключения
 TEST_DATABASE_URL = f"postgresql://{TEST_DB_USER}:{TEST_DB_PASSWORD}@{TEST_DB_HOST}:{TEST_DB_PORT}/{TEST_DB_NAME}"
 
 # Импортируем все необходимое
 from shared.database import Base, get_db
-from admin.api.dishes import router as dishes_router
-from admin.api.tech import router as tech_router
+from api.dishes import router as dishes_router
+from api.tech import router as tech_router
 
 # Создаем движок для тестовой базы
 engine = create_engine(TEST_DATABASE_URL)
@@ -33,6 +33,35 @@ app = FastAPI()
 app.include_router(dishes_router)
 app.include_router(tech_router)
 
+
+@pytest.fixture(scope="function", autouse=True)
+def clean_database(db_session: Session):
+    """
+    Автоматически очищает все таблицы перед каждым тестом.
+    autouse=True означает, что фикстура запускается для каждого теста автоматически.
+    """
+    # Получаем список всех таблиц
+    tables = db_session.execute(text("""
+        SELECT tablename 
+        FROM pg_tables 
+        WHERE schemaname = 'public'
+          AND tablename NOT LIKE 'pg_%'
+          AND tablename NOT LIKE 'sql_%'
+    """)).fetchall()
+    
+    # Отключаем триггеры (для ускорения и избежания ошибок)
+    db_session.execute(text("SET session_replication_role = 'replica'"))
+    
+    # Очищаем каждую таблицу
+    for table in tables:
+        db_session.execute(text(f'TRUNCATE TABLE "{table[0]}" CASCADE'))
+    
+    # Включаем триггеры обратно
+    db_session.execute(text("SET session_replication_role = 'origin'"))
+    
+    db_session.commit()
+    
+    yield
 
 @pytest.fixture(scope="function")
 def db_session():

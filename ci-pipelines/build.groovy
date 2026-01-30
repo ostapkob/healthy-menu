@@ -1,37 +1,63 @@
 pipeline {
-    agent any
-    
-    parameters {
-        string(name: 'NAME', defaultValue: 'World', description: 'Input your name')
+    agent { label 'linux' }
+
+    environment {
+        PATH = "${env.PATH}:/home/jenkins/.local/bin"
     }
 
     stages {
-        stage('Preparation') {
+        stage('Checkout') {
             steps {
-                script {
-                    echo "Preparing for build..."
-                    // Здесь можно добавить дополнительные шаги подготовки
-                }
+                git(
+                    url: 'http://gitlab:8060/ostapkob/admin-backend',
+                    branch: 'master',
+                    credentialsId: 'ostapkob'
+                )
             }
         }
 
-        stage('Build') {
+        stage('Setup') {
             steps {
-                script {
-                    echo "Hello, ${params.NAME}!" // Используем введенное имя
-                    echo "-------------------------" // Используем введенное имя
-                    // Здесь может быть код сборки, например, компиляция проекта
-                }
+                sh '''
+                    which uv || curl -LsSf https://astral.sh/uv/install.sh | sh
+                '''
             }
         }
 
-        stage('Post-Build Actions') {
+        stage('Test') {
             steps {
-                script {
-                    echo "Build completed successfully."
-                    // Здесь могут быть действия после сборки, например, уведомления или артефакты
+                dir('admin-backend') {
+                    sh '''
+                        mkdir -p test-results
+                        uv sync
+                        uv run coverage run --source=. -m pytest tests/ --junitxml=test-results/results.xml
+                        uv run coverage xml --include="*" -o test-results/coverage.xml
+                        ls -la test-results/  # Для отладки
+                    '''
                 }
             }
+            post {
+                always {
+                    dir('admin-backend') {
+                        script {
+                            if (fileExists('test-results/results.xml')) {
+                                junit testResults: 'test-results/results.xml', allowEmptyResults: false
+                            } else {
+                                echo 'JUnit XML file not found, skipping JUnit report'
+                            }
+                        }
+                        recordCoverage tools: [
+                            [parser: 'COBERTURA', pattern: 'test-results/coverage.xml']
+                        ]
+                    }
+                }
+            }
+        }
+    }
+    
+    post {
+        always {
+            cleanWs()
         }
     }
 }

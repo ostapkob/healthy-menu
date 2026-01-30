@@ -14,8 +14,8 @@ services:
         condition: service_healthy
       minio:
         condition: service_healthy
-    networks:
-      - app-network
+    # networks:
+    #   - app-network
 
   order-backend:
     profiles: ["back_front"]
@@ -33,8 +33,8 @@ services:
         condition: service_started
       minio:
         condition: service_healthy
-    networks:
-      - app-network
+    # networks:
+    #   - app-network
 
   courier-backend:
     profiles: ["back_front"]
@@ -50,8 +50,8 @@ services:
         condition: service_healthy
       kafka:
         condition: service_started
-    networks:
-      - app-network
+    # networks:
+    #   - app-network
 
   # Frontend services
   admin-frontend:
@@ -59,24 +59,24 @@ services:
     build: ./admin-frontend
     ports:
       - "3001:80"
-    networks:
-      - app-network
+    # networks:
+    #   - app-network
 
   order-frontend:
     profiles: ["back_front"]
     build: ./order-frontend
     ports:
       - "3002:80"
-    networks:
-      - app-network
+    # networks:
+    #   - app-network
 
   courier-frontend:
     profiles: ["back_front"]
     build: ./courier-frontend
     ports:
       - "3003:80"
-    networks:
-      - app-network
+    # networks:
+    #   - app-network
 
 
   # Infra services
@@ -95,8 +95,8 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
-    networks:
-      - app-network
+    # networks:
+    #   - app-network
 
   zookeeper:
     profiles: ["infra"]
@@ -106,8 +106,8 @@ services:
       - .env
     ports:
       - "2181:2181"
-    networks:
-      - app-network
+    # networks:
+    #   - app-network
 
   kafka:
     profiles: ["infra"]
@@ -119,8 +119,8 @@ services:
       - .env
     ports:
       - "9092:9092"
-    networks:
-      - app-network
+    # networks:
+    #   - app-network
 
   minio:
     profiles: ["infra"]
@@ -142,8 +142,8 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
-    networks:
-      - app-network
+    # networks:
+    #   - app-network
 
   createbuckets:
     profiles: ["infra"]
@@ -161,8 +161,8 @@ services:
       /usr/bin/mc mb minio/${MINIO_BUCKET} --ignore-existing;
       /usr/bin/mc anonymous set public minio/${MINIO_BUCKET};
       "
-    networks:
-      - app-network
+    # networks:
+    #   - app-network
 
   nexus:
     profiles: ["ci_cd"]
@@ -171,8 +171,8 @@ services:
     env_file:
       - .env
     ports:
-      - "8082:8081"
-      - "5001:5000"
+      - "8081:8081"
+      - "5000:5000"
     volumes:
       - nexus-data:/nexus-data
     restart: unless-stopped
@@ -181,6 +181,9 @@ services:
       interval: 10s
       timeout: 10s
       retries: 5
+    networks:
+      - ci-cd-network
+
 
   gitlab:
     profiles: ["ci_cd"]
@@ -189,11 +192,13 @@ services:
     restart: always
     environment:
       GITLAB_OMNIBUS_CONFIG: |
-        external_url 'http://127.0.0.1:8061'
+        external_url 'http://127.0.0.1:8060'
         nginx['listen_port'] = 8060
         nginx['listen_https'] = false
+        gitlab_rails['gitlab_shell_ssh_port'] = 2222
+        gitlab_rails['allow_local_requests'] = true 
     ports:
-      - "8061:8060"
+      - "8060:8060"
       - "2222:22"
     volumes:
       - gitlab_config:/etc/gitlab
@@ -202,17 +207,40 @@ services:
     shm_size: '256m'
     healthcheck:
       disable: true
+    networks:
+      - ci-cd-network
 
   jenkins:
+    profiles: ["ci_cd"]
     image: jenkins/jenkins:lts
     container_name: jenkins
     ports:
-      - "8081:8080" 
-      - "50001:50000"  # Порт для запуска билдов
+      - "8080:8080"
+      - "50000:50000"
     volumes:
-      - jenkins_home:/var/jenkins_home  # Постоянное хранилище данных Jenkins
+      - jenkins_home:/var/jenkins_home
     environment:
       JENKINS_OPTS: --httpPort=8080
+    networks:
+      - ci-cd-network
+
+  jenkins-agent:
+    profiles: ["ci_cd"]
+    container_name: jenkins-agent
+    build:
+      context: ./jenkins
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    volumes:
+      - agent_workdir:/home/jenkins/
+      - /var/run/docker.sock:/var/run/docker.sock   # доступ к docker демону хоста
+      - /usr/bin/docker:/usr/bin/docker             # docker CLI внутрь
+      - /etc/hosts:/etc/hosts
+    depends_on:
+      - jenkins
+    networks:
+      - ci-cd-network
     
 volumes:
   gitlab_config:
@@ -222,9 +250,11 @@ volumes:
   data-minio:
   nexus-data:
   jenkins_home:
+  agent_workdir:
+
 
 networks:
-  app-network:
+  ci-cd-network:
     driver: bridge
 
 

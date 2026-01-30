@@ -7,7 +7,7 @@ from decimal import Decimal
 import random
 import string
 
-from admin.api.tech import (
+from api.tech import (
     DishTechCreate, DishTechResponse, IngredientInput,
     DishIngredientsUpdate, IngredientTechResponse
 )

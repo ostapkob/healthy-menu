@@ -3,8 +3,8 @@ replicaCount: 1
 
 # Образ
 image:
-  repository: host.minikube.internal:5000
-  tag: "1.0.1"
+  repository: nexus:5000
+  tag: "latest"
   pullPolicy: Always
 
 # Порт приложения
@@ -21,6 +21,8 @@ config:
   minio:
     configMap: minio-config
     secret: minio-secret
+  kafka:
+    configMap: kafka-config
 
 # Переменные окружения (опционально, если хотите переопределить)
 env:

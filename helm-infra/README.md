@@ -1,5 +1,5 @@
 # Добавить репозиторий в Helm
-helm repo add nexus http://nexus.healthy-menu.local/repository/helm-hosted/
+helm repo add nexus http://nexus:8081/repository/helm-hosted/
 helm repo update
 
 

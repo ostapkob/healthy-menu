@@ -52,8 +52,20 @@ curl -v http://host.minikube.internal:9000/healthy-menu-dishes/
 # Nexus
 ./setup-nexus.sh
 ./publish-to-registry.sh
-minikube start --insecure-registry="host.minikube.internal:5000" --insecure-registry="localhost:5000"
-curl http://host.minikube.internal:5000/v2/_catalog
+
+
+# Minikube
+minikube delete
+
+minikube start \
+  --insecure-registry="nexus:5000" \
+  --insecure-registry="nix:5000" \
+  --insecure-registry="192.168.49.0/24"  # Весь диапазон IP minikube
+
+minikube ssh "echo '192.168.1.163 nexus jenkins gitlab' | sudo tee -a /etc/hosts"
+minikube ssh "echo '192.168.1.171 minio kafka postgres' | sudo tee -a /etc/hosts"
+minikube ssh "curl http://nexus:5000/v2/_catalog"
+
 
 # Для публиации в nexus
  в /etc/docker/daemon.json
