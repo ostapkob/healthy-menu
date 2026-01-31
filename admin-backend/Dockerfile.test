@@ -33,5 +33,4 @@ ENV PATH="/.venv/bin:$PATH" \
     PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1
 
-CMD ["pytest"]
-
+CMD ["pytest", "--cov=.", "--cov-report=xml:coverage.xml"]
