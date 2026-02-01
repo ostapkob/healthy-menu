@@ -24,8 +24,11 @@ pipeline {
             choices: [
                 '',
                 'admin-backend',
-                'courier-backend',
+                'admin-frontend',
+                'courier-backend', 
+                'courier-frontend',
                 'order-backend',
+                'order-frontend'
             ],
             description: 'Выберите сервис для сборки'
         )
@@ -103,16 +106,8 @@ pipeline {
         stage('SonarQube analysis') {
             steps {
                 script {
-                    // окружение SonarQube (URL + токен) из Jenkins → Configure System
                     withSonarQubeEnv('SonarQubeLocal') {
-                        sh """
-                            cd ${env.WORKSPACE}
-                            ${SONAR_SCANNER_HOME}/bin/sonar-scanner \
-                              -Dsonar.projectKey=${env.SERVICE_NAME} \
-                              -Dsonar.projectName=${env.SERVICE_NAME} \
-                              -Dsonar.sources=. \
-                              -Dsonar.python.version=3.13
-                        """
+                        sh "${SONAR_SCANNER_HOME}/bin/sonar-scanner"
                     }
                 }
             }
