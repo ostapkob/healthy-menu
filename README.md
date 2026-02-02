@@ -82,14 +82,25 @@ curl -v \
 "http://jenkins:8080/generic-webhook-trigger/invoke?token=gitlab-mr-build"
 ```
 
+
+
+# SonarQube
+```
+sonar-scanner \
+  -Dsonar.projectKey=healthy-menu \
+  -Dsonar.sources=. \
+  -Dsonar.host.url=http://localhost:9090 \
+  -Dsonar.login=sqp_606dff84ca72fdf4c8aacb85ded76d167376636e
+```
+
 # TODO
 
 - [ ] Change .env -> values
 - [ ] Add Vault HashiCorp
 - [ ] Add Argo
-- [ ] Add triger 
+- [x] Add triger 
 - [ ] etc/hosts in Dockerfile
-- [ ] Sonar
+- [x] Sonar
 - [ ] Docker in Docker
 
 

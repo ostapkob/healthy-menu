@@ -184,7 +184,6 @@ services:
     networks:
       - ci-cd-network
 
-
   gitlab:
     profiles: ["ci_cd"]
     image: gitlab/gitlab-ce:latest
@@ -241,7 +240,45 @@ services:
       - jenkins
     networks:
       - ci-cd-network
-    
+
+  postgres-sonar:
+    profiles: ["ci_cd"]
+    image: postgres:13-alpine
+    container_name: postgres-sonar
+    environment:
+      POSTGRES_USER: ${SONAR_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${SONAR_POSTGRES_PASSWORD}
+      POSTGRES_DB: ${SONAR_POSTGRES_DB}
+    volumes:
+      - postgres-sonar-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${SONAR_POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - ci-cd-network
+
+  sonarqube:
+    profiles: ["ci_cd"]
+    image: sonarqube:lts-community
+    container_name: sonarqube
+    depends_on:
+      postgres-sonar:
+        condition: service_healthy
+    environment:
+      SONAR_JDBC_URL: jdbc:postgresql://postgres-sonar:5432/${SONAR_POSTGRES_DB}
+      SONAR_JDBC_USERNAME: ${SONAR_POSTGRES_USER}
+      SONAR_JDBC_PASSWORD: ${SONAR_POSTGRES_PASSWORD}
+      SONAR_ES_BOOTSTRAP_CHECKS_DISABLE: "true"
+    ports:
+      - "9090:9000"
+    volumes:
+      - sonarqube_data:/opt/sonarqube/data
+    restart: unless-stopped
+    networks:
+      - ci-cd-network
+
 volumes:
   gitlab_config:
   gitlab_logs:
@@ -251,7 +288,8 @@ volumes:
   nexus-data:
   jenkins_home:
   agent_workdir:
-
+  postgres-sonar-data:
+  sonarqube_data:
 
 networks:
   ci-cd-network:

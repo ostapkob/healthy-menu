@@ -35,6 +35,7 @@ admin-backend/uv.lock
 order-backend/uv.lock
 courier-backend/uv.lock
 
+jenkins/jenkins_home/plugins
 
 # Конфигурационные файлы среды
 .env

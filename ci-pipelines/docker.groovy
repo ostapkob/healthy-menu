@@ -24,10 +24,10 @@ pipeline {
             choices: [
                 '',
                 'admin-backend',
-                'courier-backend',
-                'order-backend',
                 'admin-frontend',
+                'courier-backend', 
                 'courier-frontend',
+                'order-backend',
                 'order-frontend'
             ],
             description: 'Выберите сервис для сборки'
@@ -37,6 +37,8 @@ pipeline {
     environment {
         NEXUS_REGISTRY_URL = "${NEXUS_REGISTRY_URL}"
         DOCKER_BUILDKIT    = '1'
+        // имя установки сканера из Global Tool Configuration
+        SONAR_SCANNER_HOME = tool 'SonarScanner'
     }
 
     stages {
@@ -67,23 +69,19 @@ pipeline {
             steps {
                 script {
                     def repoUrl = "http://gitlab:8060/ostapkob/${env.SERVICE_NAME}"
-                        git(
-                            url: repoUrl,
-                            branch: 'master',
-                            credentialsId: 'gitlab-token'
+                    git(
+                        url: repoUrl,
+                        branch: 'master',
+                        credentialsId: 'gitlab-token'
                     )
                 }
-            }
-        }
-        stage('Test docker') {
-            steps {
-                sh 'docker version'
             }
         }
 
         stage('Build & Test') {
             steps {
                 script {
+                    sh 'docker version'
                     def testImage    = "${env.SERVICE_NAME}:test"
                     env.TEST_IMAGE   = testImage
                     sh "docker buildx build -f Dockerfile.test -t ${testImage} ."
@@ -102,6 +100,27 @@ pipeline {
                       --add-host kafka:${FEDORA} \
                       ${TEST_IMAGE}
                 '''
+            }
+        }
+
+        stage('SonarQube analysis') {
+            steps {
+                script {
+                    withSonarQubeEnv('SonarQubeLocal') {
+                        sh "${SONAR_SCANNER_HOME}/bin/sonar-scanner"
+                    }
+                }
+            }
+        }
+
+        stage('Quality Gate') {
+            when {
+                expression { return env.CHANGE_ID == null } // по желанию, например только на merge
+            }
+            steps {
+                timeout(time: 10, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true
+                }
             }
         }
 
