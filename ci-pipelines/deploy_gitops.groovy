@@ -1,8 +1,5 @@
 pipeline {
   agent { label 'docker' }
-  environment {
-      NEXUS_REGISTRY_URL = "${NEXUS_REGISTRY_URL}"
-  }
   stages {
     stage('Select Service') {
       steps {
@@ -29,7 +26,7 @@ pipeline {
         script {
           // Получаем теги и преобразуем в список
           def tagsOutput = sh(
-            script: "curl -s '${NEXUS_REGISTRY_URL}/${SERVICE}/tags/list' | jq -r '.tags[]'",
+            script: "curl -s 'http://nexus:5000/v2/${SERVICE}/tags/list' | jq -r '.tags[]'",
             returnStdout: true
           ).trim()
           
@@ -76,25 +73,14 @@ pipeline {
               """
               
               // Изменяем нужный файл
+
+              println(">>> ${SERVICE}>>> ${TAG} ")
               sh """
-                if [ -f "values-${SERVICE}.yaml" ]; then
-                  sed -i 's|tag:.*|tag: "${TAG}"|' "values-${SERVICE}.yaml"
-                else
-                  echo "ERROR: File values-${SERVICE}.yaml not found!"
-                  exit 1
-                fi
+                sed -i 's|tag: .*|tag: \"${TAG}\"|' "services/${SERVICE}.yaml"
+                git add "services/${SERVICE}.yaml"
+                git commit -m "Deploy ${SERVICE}:${TAG}"
+                git push origin master
               """
-              
-              // Коммитим и пушим
-              sh '''
-                if git diff --quiet; then
-                  echo "No changes to commit"
-                else
-                  git add .
-                  git commit -m "Deploy service with new tag"
-                  git push origin master
-                fi
-              '''
             }
           } finally {
             // Очищаем временную директорию

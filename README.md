@@ -1,5 +1,4 @@
-# Для локальной разработки
-ln -Lf env_example .env ln -Lf env_example admin-backend/.env
+# Для локальной разработки ln -Lf env_example .env ln -Lf env_example admin-backend/.env
 ln -Lf env_example order-backend/.env
 ln -Lf env_example courier-backend/.env
 ln -Lf env_example migrations/.env
@@ -110,10 +109,13 @@ argocd repo add http://gitlab:8060/ostapkob/healthy-menu-gitops.git \
 # TODO
 - [x] Add webhook 
 - [x] SonarQube
-- [ ] Argo
+- [x] Argo
 - [ ] Vault HashiCorp
 - [ ] Istio
+- [ ] Fluenbit
+- [ ] Prometheus
+- [ ] Grafana
 - [ ] Docker in Docker
 - [ ] Change .env -> values
-
+- [ ] rename healthy-menu- 
 
