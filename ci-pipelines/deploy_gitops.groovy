@@ -49,10 +49,7 @@ pipeline {
         script {
           // Получаем URL с credentials
           def repoUrl = 'http://gitlab:8060/ostapkob/healthy-menu-gitops.git'
-      
-          // Альтернатива: использовать SSH URL если доступен
-          // def repoUrl = 'git@gitlab:8060:ostapkob/healthy-menu-gitops.git'
-      
+    
           withCredentials([usernamePassword(
             credentialsId: 'gitlab-token',
             usernameVariable: 'GIT_USERNAME',
@@ -79,6 +76,5 @@ pipeline {
         }
       }
     }
-
   }
 }
