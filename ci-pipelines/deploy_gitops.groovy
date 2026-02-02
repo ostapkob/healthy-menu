@@ -1,5 +1,8 @@
 pipeline {
   agent { label 'docker' }
+  environment {
+      NEXUS_REGISTRY_URL = "${NEXUS_REGISTRY_URL}"
+  }
   stages {
     stage('Select Service') {
       steps {
@@ -26,7 +29,7 @@ pipeline {
         script {
           // Получаем теги и преобразуем в список
           def tagsOutput = sh(
-            script: "curl -s 'http://nexus:5000/v2/${SERVICE}/tags/list' | jq -r '.tags[]'",
+            script: "curl -s '${NEXUS_REGISTRY_URL}/${SERVICE}/tags/list' | jq -r '.tags[]'",
             returnStdout: true
           ).trim()
           
@@ -47,34 +50,63 @@ pipeline {
     stage('Update GitOps') {
       steps {
         script {
-          // Получаем URL с credentials
-          def repoUrl = 'http://gitlab:8060/ostapkob/healthy-menu-gitops.git'
-    
-          withCredentials([usernamePassword(
-            credentialsId: 'gitlab-token',
-            usernameVariable: 'GIT_USERNAME',
-            passwordVariable: 'GIT_PASSWORD'
-          )]) {
-            // Клонируем с авторизацией в URL
-            sh """
-              git clone http://${GIT_USERNAME}:${GIT_PASSWORD}@gitlab:8060/ostapkob/healthy-menu-gitops.git
-              cd healthy-menu-gitops
-              git config user.email "jenkins@ci"
-              git config user.name "Jenkins"
+          // Работаем во временной директории
+          def workspaceDir = pwd()
+          def repoDir = "${workspaceDir}/gitops-repo-${BUILD_NUMBER}"
           
-              sed -i 's/tag:.*/tag: "${TAG}"/' values-${SERVICE}.yaml
-          
-              if git diff --quiet; then
-                echo "No changes"
-              else
-                git add .
-                git commit -m "Deploy ${SERVICE}:${TAG}"
-                git push origin master
-              fi
-            """
+          try {
+            // Клонируем репозиторий
+            withCredentials([usernamePassword(
+              credentialsId: 'gitlab-token',
+              usernameVariable: 'GIT_USER',
+              passwordVariable: 'GIT_PASS'
+            )]) {
+              // Используем переменные окружения для безопасной передачи credentials
+              sh """
+                GIT_URL="http://${GIT_USER}:${GIT_PASS}@gitlab:8060/ostapkob/healthy-menu-gitops.git"
+                git clone "\${GIT_URL}" "${repoDir}"
+              """
+            }
+            
+            dir(repoDir) {
+              // Настраиваем git
+              sh """
+                git config user.email "jenkins@${env.NODE_NAME}"
+                git config user.name "Jenkins CI"
+              """
+              
+              // Изменяем нужный файл
+              sh """
+                if [ -f "values-${SERVICE}.yaml" ]; then
+                  sed -i 's|tag:.*|tag: "${TAG}"|' "values-${SERVICE}.yaml"
+                else
+                  echo "ERROR: File values-${SERVICE}.yaml not found!"
+                  exit 1
+                fi
+              """
+              
+              // Коммитим и пушим
+              sh '''
+                if git diff --quiet; then
+                  echo "No changes to commit"
+                else
+                  git add .
+                  git commit -m "Deploy service with new tag"
+                  git push origin master
+                fi
+              '''
+            }
+          } finally {
+            // Очищаем временную директорию
+            sh "rm -rf ${repoDir} 2>/dev/null || true"
           }
         }
       }
+    }
+  }
+  post {
+    always {
+        cleanWs()
     }
   }
 }
