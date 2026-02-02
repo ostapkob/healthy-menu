@@ -48,12 +48,14 @@ fi
 # List of repositories to process
 REPOSITORIES=(
   "admin-backend"
-  "courier-backend"
-  "order-backend"
   "admin-frontend"
+  "courier-backend"
   "courier-frontend"
+  "order-backend"
   "order-frontend"
   "ci-pipelines"
+  "healthy-menu-gitops"
+  "healthy-menu-infra"
 )
 
 # Prompt for commit message
