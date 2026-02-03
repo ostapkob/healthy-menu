@@ -21,12 +21,7 @@ fi
 # Display GitLab URL for confirmation
 echo -e "${green}URL: $GITLAB_URL${reset}"
 
-# Use token from environment (fallback to input if needed)
 ACCESS_TOKEN="$GITLAB_ACCESS_TOKEN"
-# if [ -z "$ACCESS_TOKEN" ]; then
-#   echo -e "${yellow}🔑 Введите личный токен доступа:${reset}"
-#   read -s ACCESS_TOKEN
-# fi
 
 if [ -z "$ACCESS_TOKEN" ]; then
   echo -e "${red}❌ Токен не введен${reset}"
@@ -45,15 +40,27 @@ else
   exit 1
 fi
 
-# List of repositories to process
+# All repositories (kept for processing/pushing)
 REPOSITORIES=(
   "admin-backend"
-  "courier-backend"
-  "order-backend"
   "admin-frontend"
+  "courier-backend"
   "courier-frontend"
+  "order-backend"
   "order-frontend"
   "ci-pipelines"
+  "healthy-menu-gitops"
+  "healthy-menu-infra"
+)
+
+# Only these repos will receive the webhook
+HOOK_TARGETS=(
+  "admin-backend"
+  "admin-frontend"
+  "courier-backend"
+  "courier-frontend"
+  "order-backend"
+  "order-frontend"
 )
 
 # Prompt for commit message
@@ -75,23 +82,41 @@ PUSH_EVENTS=true
 MERGE_REQUEST_EVENTS=true
 ENABLE_SSL_VERIFICATION=false
 
+# Function to check if repo is in HOOK_TARGETS
+should_add_hook() {
+  local name="$1"
+  for t in "${HOOK_TARGETS[@]}"; do
+    if [ "$t" = "$name" ]; then
+      return 0
+    fi
+  done
+  return 1
+}
+
 # Function to add webhook if not exists
 add_webhook() {
   local project_id="$1"
- 
+  local repo_name="$2"
+
+  # Only add for targets
+  if ! should_add_hook "$repo_name"; then
+    echo -e "${yellow}Пропускаю добавление webhook для $repo_name${reset}"
+    return 0
+  fi
+
   # Check existing hooks
   hooks=$(curl -s "$GITLAB_URL/api/v4/projects/$project_id/hooks" -H "PRIVATE-TOKEN: $ACCESS_TOKEN")
- 
+
   if echo "$hooks" | grep -q "\"url\":\"$WEBHOOK_URL\""; then
     echo -e "${yellow}Webhook уже существует${reset}"
     return 0
   fi
- 
+
   response=$(curl -s -X POST "$GITLAB_URL/api/v4/projects/$project_id/hooks" \
     -H "PRIVATE-TOKEN: $ACCESS_TOKEN" \
     -H "Content-Type: application/json" \
     -d "{\"url\":\"$WEBHOOK_URL\", \"push_events\":$PUSH_EVENTS, \"merge_requests_events\":$MERGE_REQUEST_EVENTS, \"enable_ssl_verification\":$ENABLE_SSL_VERIFICATION}")
- 
+
   if echo "$response" | grep -q "\"id\""; then
     echo -e "${green}Webhook добавлен${reset}"
     return 0
@@ -105,27 +130,22 @@ add_webhook() {
 setup_and_push() {
   local repo="$1"
 
-  # Copy .gitignore if it exists in parent
   if [ -f "../.gitignore" ]; then
     cp "../.gitignore" .
   fi
 
-  # Initialize git if not already
   if [ ! -d ".git" ]; then
     git init
     echo -e "${blue}🔄 Инициализирован git в $repo${reset}"
   fi
 
-  # Add changes and commit
   git add .
   if ! git commit -m "$COMMIT_MESSAGE"; then
     echo -e "${yellow}⚠️ Нет изменений для коммита в $repo${reset}"
   fi
 
-  # Set remote if not already set
   git remote add origin "$GITLAB_URL/$USERNAME/$repo.git" 2>/dev/null
 
-  # Push changes
   if git push -u origin master; then
     echo -e "${green}✅ Успешно запушено в $repo${reset}"
   else
@@ -169,9 +189,9 @@ for repo in "${REPOSITORIES[@]}"; do
     continue
   fi
 
-  # Add webhook
+  # Add webhook (only for HOOK_TARGETS)
   echo -en "${blue}Добавление webhook:${reset} "
-  add_webhook "$project_id"
+  add_webhook "$project_id" "$repo"
 
   # Navigate to local repo directory
   if ! cd "./$repo" 2>/dev/null; then
@@ -188,3 +208,4 @@ done
 
 echo ""
 echo -e "${green}✅ Готово!${reset}"
+

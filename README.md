@@ -1,5 +1,4 @@
-# Для локальной разработки
-ln -Lf env_example .env ln -Lf env_example admin-backend/.env
+# Для локальной разработки ln -Lf env_example .env ln -Lf env_example admin-backend/.env
 ln -Lf env_example order-backend/.env
 ln -Lf env_example courier-backend/.env
 ln -Lf env_example migrations/.env
@@ -83,24 +82,40 @@ curl -v \
 ```
 
 
-
 # SonarQube
-```
-sonar-scanner \
-  -Dsonar.projectKey=healthy-menu \
-  -Dsonar.sources=. \
-  -Dsonar.host.url=http://localhost:9090 \
-  -Dsonar.login=sqp_606dff84ca72fdf4c8aacb85ded76d167376636e
-```
+Создать токен и добавить его в Jenkins 
+
+
+# Argo
+kubectl create namespace argocd
+kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+kubectl port-forward svc/argocd-server -n argocd 8080:443
+
+
+kubectl apply -f dev/admin-backend/app-admin-backend.yaml -n argocd
+
+argocd repo add http://gitlab:8060/ostapkob/healthy-menu-infra.git \
+  --username git \
+  --password $GITLAB_ACCESS_TOKEN \
+  --name healthy-menu-infra
+
+argocd repo add http://gitlab:8060/ostapkob/healthy-menu-gitops.git \
+  --username git \
+  --password $GITLAB_ACCESS_TOKEN \
+  --name healthy-menu-gitops
+
+
 
 # TODO
-
-- [ ] Change .env -> values
-- [ ] Add Vault HashiCorp
-- [ ] Add Argo
-- [x] Add triger 
-- [ ] etc/hosts in Dockerfile
-- [x] Sonar
+- [x] Add webhook 
+- [x] SonarQube
+- [x] Argo
+- [ ] Vault HashiCorp
+- [ ] Istio
+- [ ] Fluenbit
+- [ ] Prometheus
+- [ ] Grafana
 - [ ] Docker in Docker
-
+- [ ] Change .env -> values
+- [ ] rename healthy-menu- 
 

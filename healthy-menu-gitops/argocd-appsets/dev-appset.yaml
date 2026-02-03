@@ -1,0 +1,38 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: healthy-menu-dev
+  namespace: argocd
+spec:
+  generators:
+  - git:
+      repoURL: http://gitlab:8060/ostapkob/healthy-menu-gitops.git
+      revision: master
+      files:
+      - path: "services/*.yaml"  # <-- Все .yaml в services/
+  template:
+    metadata:
+      name: "{{name}}"
+    spec:
+      project: default
+      source:
+        repoURL: http://gitlab:8060/ostapkob/healthy-menu-infra.git
+        targetRevision: master
+        path: .
+        helm:
+          releaseName: "{{name}}"
+          parameters:
+          - name: image.tag
+            value: "{{tag}}"
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: healthy-menu-dev
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+
+
+
+# kubectl delete appset healthy-menu-dev -n argocd
+# kubectl apply -f argocd-appsets/dev-appset.yaml -n argocd
