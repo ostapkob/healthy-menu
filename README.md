@@ -104,12 +104,27 @@ argocd repo add http://gitlab:8060/ostapkob/healthy-menu-gitops.git \
   --password $GITLAB_ACCESS_TOKEN \
   --name healthy-menu-gitops
 
+# Terraform
+```
+# Очищаем данные Nexus (если нужно переконфигурировать)
+
+terraform state rm null_resource.nexus_init
+
+docker stop nexus
+docker rm nexus
+docker volume rm nexus_data
+
+# Применяем заново
+terraform apply -auto-approve
+```
+
 
 
 # TODO
 - [x] Add webhook 
 - [x] SonarQube
 - [x] Argo
+- [ ] Terraform
 - [ ] Vault HashiCorp
 - [ ] Istio
 - [ ] Fluenbit
