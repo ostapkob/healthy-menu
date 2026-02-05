@@ -5,7 +5,6 @@ output "postgres_connection" {
     port     = 5432
     database = var.postgres_db
     user     = var.postgres_user
-    password = var.postgres_password
   }
   sensitive = true
 }
@@ -16,22 +15,8 @@ output "minio_connection" {
     console_url = "http://localhost:9001"
     api_url     = "http://localhost:9000"
     bucket      = var.minio_bucket
-    user        = var.minio_root_user
   }
-  sensitive = true
-}
-
-output "nexus_connection" {
-  description = "Nexus connection details"
-  value = {
-    web_url         = "http://localhost:${var.nexus_host_port}"
-    registry_url    = "localhost:${var.nexus_registry_port}"
-    admin_user      = "admin"
-    admin_password  = var.nexus_admin_password
-    user_name       = var.nexus_user_name
-    user_password   = var.nexus_user_password
-  }
-  sensitive = true
+  sensitive = false
 }
 
 output "kafka_connection" {
@@ -39,34 +24,41 @@ output "kafka_connection" {
   value = {
     bootstrap_server = "localhost:9092"
     zookeeper        = "localhost:2181"
-    topics           = var.kafka_topics
   }
   sensitive = false
 }
 
-output "nexus_status" {
-  description = "Nexus initialization status"
+output "gitlab_connection" {
+  description = "GitLab connection details"
   value = {
-    container_running = docker_container.nexus.id != null
-    init_triggered    = null_resource.nexus_init.id != null
-    admin_password    = fileexists("/tmp/nexus_terraform_status.txt") ? "configured" : "pending"
-    web_url           = "http://localhost:${var.nexus_host_port}"
-    check_command     = "docker exec nexus cat /nexus-data/admin.password 2>/dev/null || echo 'Already configured'"
+    web_url       = "${var.gitlab_external_url}:${var.gitlab_http_port}"
+    ssh_url       = "ssh://git@127.0.0.1:${var.gitlab_ssh_port}"
+    initial_password = "docker exec gitlab cat /etc/gitlab/initial_root_password"
+    logs          = "docker logs -f gitlab"
+    status        = "docker exec gitlab gitlab-ctl status"
   }
   sensitive = false
 }
 
-output "nexus_credentials" {
-  description = "Nexus credentials (use with caution)"
+output "nexus_connection" {
+  description = "Nexus connection details"
   value = {
-    admin_user     = "admin"
-    admin_password = var.nexus_admin_password
-    user_name      = var.nexus_user_name
-    user_password  = var.nexus_user_password
+    web_url            = "http://localhost:${var.nexus_host_port}"
+    registry_url       = "localhost:${var.nexus_registry_port}"
+    initial_password   = "docker exec nexus cat /nexus-data/admin.password"
+    logs               = "docker logs -f nexus"
   }
-  sensitive = true
+  sensitive = false
 }
 
+output "docker_network" {
+  description = "Docker network details"
+  value = {
+    name    = docker_network.app_network.name
+    subnet  = "172.21.0.0/24"
+  }
+  sensitive = false
+}
 
 
 # output "generated_files" {

@@ -1,40 +1,37 @@
 #!/bin/bash
 set -e
 
+set -o allexport
+source ./.env
+set +o allexport
+
 echo "🔧 Nexus Configuration Script"
 echo "============================="
 
 # Параметры
-NEXUS_PORT="${1:-8081}"
-ADMIN_NEW_PASS="$2"
-USER_NAME="$3"
-USER_PASS="$4"
-
-NEXUS_URL="http://localhost:${NEXUS_PORT}"
-
 echo "Parameters:"
-echo "  Port: ${NEXUS_PORT}"
+echo "  URL: ${NEXUS__URL}"
 echo "  Admin new password: [set]"
-echo "  User: ${USER_NAME}"
+echo "  User: ${NEXUS_USER_NAME}"
 echo "  User password: [set]"
 
 # Функция для ожидания
 wait_for_nexus() {
     echo "⏳ Waiting for Nexus to start (max 5 minutes)..."
-    
+
     local max_wait=300
     local counter=0
-    
+ 
     while true; do
-        if curl -s --fail "http://localhost:${NEXUS_PORT}" > /dev/null; then
+        if curl -s --fail $NEXUS_WEB_URL > /dev/null; then
             echo "✅ Nexus is responding!"
             return 0
         fi
-        
+
         sleep 5
         counter=$((counter + 5))
         echo "   Waited ${counter}s..."
-        
+
         if [ $counter -ge $max_wait ]; then
             echo "❌ Nexus did not start in ${max_wait} seconds"
             return 1
@@ -92,9 +89,9 @@ if [ -z "$INITIAL_PASS" ]; then
     echo "   Trying to authenticate with provided password..."
     
     # Пробуем аутентифицироваться с новым паролем
-    if curl -s -u "admin:${ADMIN_NEW_PASS}" "${NEXUS_URL}/service/rest/v1/status" > /dev/null; then
+    if curl -s -u "admin:${NEXUS_ADMIN_NEW_PASS}" "${NEXUS_URL}/service/rest/v1/status" > /dev/null; then
         echo "✅ Nexus already configured with new password"
-        INITIAL_PASS="$ADMIN_NEW_PASS"
+        INITIAL_PASS="$NEXUS_ADMIN_NEW_PASS"
     else
         echo "❌ Cannot authenticate. Nexus might be in unexpected state."
         echo "   Try: docker exec nexus cat /nexus-data/admin.password"
@@ -146,7 +143,7 @@ nexus_api "admin" "$INITIAL_PASS" "POST" "/service/rest/v1/repositories/helm/hos
 }' || echo "   ℹ️  May already exist"
 
 # 4. Меняем пароль администратора (только если у нас начальный пароль)
-if [ "$INITIAL_PASS" != "$ADMIN_NEW_PASS" ]; then
+if [ "$INITIAL_PASS" != "$NEXUS_ADMIN_NEW_PASS" ]; then
     echo ""
     echo "4. Changing admin password..."
     
@@ -154,16 +151,16 @@ if [ "$INITIAL_PASS" != "$ADMIN_NEW_PASS" ]; then
         -X PUT \
         "${NEXUS_URL}/service/rest/v1/security/users/admin/change-password" \
         -H "Content-Type: text/plain" \
-        --data "${ADMIN_NEW_PASS}" > /dev/null 2>&1; then
+        --data "${NEXUS_ADMIN_NEW_PASS}" > /dev/null 2>&1; then
         echo "   ✅ Admin password changed"
         
         # Ждём применения пароля
         sleep 2
         
         # Проверяем новый пароль
-        if curl -s -u "admin:${ADMIN_NEW_PASS}" "${NEXUS_URL}/service/rest/v1/status" > /dev/null; then
+        if curl -s -u "admin:${NEXUS_ADMIN_NEW_PASS}" "${NEXUS_URL}/service/rest/v1/status" > /dev/null; then
             echo "   ✅ New password verified"
-            CURRENT_ADMIN_PASS="$ADMIN_NEW_PASS"
+            CURRENT_ADMIN_PASS="$NEXUS_ADMIN_NEW_PASS"
         else
             echo "   ⚠️  New password might not work"
             CURRENT_ADMIN_PASS="$INITIAL_PASS"
@@ -175,18 +172,18 @@ if [ "$INITIAL_PASS" != "$ADMIN_NEW_PASS" ]; then
 else
     echo ""
     echo "4. Admin password already changed"
-    CURRENT_ADMIN_PASS="$ADMIN_NEW_PASS"
+    CURRENT_ADMIN_PASS="$NEXUS_ADMIN_NEW_PASS"
 fi
 
 # 5. Создаём дополнительного пользователя
 echo ""
-echo "5. Creating user '${USER_NAME}'..."
+echo "5. Creating user '${NEXUS_USER_NAME}'..."
 nexus_api "admin" "$CURRENT_ADMIN_PASS" "POST" "/service/rest/v1/security/users" "{
-  \"userId\": \"${USER_NAME}\",
+  \"userId\": \"${NEXUS_USER_NAME}\",
   \"firstName\": \"Terraform\",
   \"lastName\": \"User\",
-  \"emailAddress\": \"${USER_NAME}@example.com\",
-  \"password\": \"${USER_PASS}\",
+  \"emailAddress\": \"${NEXUS_USER_NAME}@example.com\",
+  \"password\": \"${NEXUS_USER_PASSWORD}\",
   \"status\": \"active\",
   \"roles\": [\"nx-admin\"]
 }" || echo "   ℹ️  User may already exist"
@@ -196,28 +193,30 @@ echo ""
 echo "6. Verifying configuration..."
 if curl -s -u "admin:${CURRENT_ADMIN_PASS}" \
     "${NEXUS_URL}/service/rest/v1/security/users" \
-    | grep -q "\"userId\":\"${USER_NAME}\""; then
-    echo "   ✅ User '${USER_NAME}' confirmed"
+    | grep "userId" | grep  ${NEXUS_USER_NAME} > /dev/null 2>&1; then
+    echo "   ✅ User '${NEXUS_USER_NAME}' confirmed"
 else
-    echo "   ⚠️  User '${USER_NAME}' not found in list"
+    echo "   ⚠️  User '${NEXUS_USER_NAME}' not found"
+    echo "   Debug: first 200 chars of response:"
+    curl -s -u "admin:${CURRENT_ADMIN_PASS}" "${NEXUS_URL}/service/rest/v1/security/users" | head -c 200
 fi
 
 echo ""
 echo "========================================="
 echo "🎉 Nexus configuration script complete!"
 echo ""
-echo "📊 Nexus UI:   http://localhost:${NEXUS_PORT}"
-echo "👤 Admin:      admin / ${ADMIN_NEW_PASS}"
-echo "👤 User:       ${USER_NAME} / ${USER_PASS}"
+echo "📊 Nexus UI:   $NEXUS_WEB_URL"
+echo "👤 Admin:      admin / ${NEXUS_ADMIN_NEW_PASS}"
+echo "👤 User:       ${NEXUS_USER_NAME} / ${NEXUS_USER_PASSWORD}"
 echo "🐳 Registry:   localhost:5000"
 echo ""
 echo "Test commands:"
-echo "  curl -u admin:${ADMIN_NEW_PASS} ${NEXUS_URL}/service/rest/v1/status"
+echo "  curl -u admin:${NEXUS_ADMIN_NEW_PASS} ${NEXUS_URL}/service/rest/v1/status"
 echo "  docker login localhost:5000 -u admin"
 echo "========================================="
 
 # Создаём маркерный файл
-echo "nexus_configured: true" > /tmp/nexus_configured.txt
-echo "admin: admin / ${ADMIN_NEW_PASS}" >> /tmp/nexus_configured.txt
-echo "user: ${USER_NAME} / ${USER_PASS}" >> /tmp/nexus_configured.txt
-echo "timestamp: $(date)" >> /tmp/nexus_configured.txt
+# echo "nexus_configured: true" > /tmp/nexus_configured.txt
+# echo "admin: admin / ${NEXUS_ADMIN_NEW_PASS}" >> /tmp/nexus_configured.txt
+# echo "user: ${USER_NAME} / ${NEXUS_USER_PASSWORD}" >> /tmp/nexus_configured.txt
+# echo "timestamp: $(date)" >> /tmp/nexus_configured.txt

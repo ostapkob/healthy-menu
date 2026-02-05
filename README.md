@@ -1,7 +1,9 @@
 # Для локальной разработки ln -Lf env_example .env ln -Lf env_example admin-backend/.env
+ln -Lf env_example admin-backend/.env
 ln -Lf env_example order-backend/.env
 ln -Lf env_example courier-backend/.env
 ln -Lf env_example migrations/.env
+ln -Lf env_example scripts/.env
 export $(grep -v '^#' .env | xargs)
 
 echo "127.0.0.1       kafka postgres minio" >>  /etc/hosts

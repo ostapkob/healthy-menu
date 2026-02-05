@@ -318,36 +318,114 @@ resource "docker_container" "nexus" {
   name    = "nexus"
   image   = docker_image.nexus.image_id
   restart = "unless-stopped"
-  
+
   ports {
     internal = 8081
     external = var.nexus_host_port
   }
-  
+
   ports {
     internal = 5000
     external = var.nexus_registry_port
   }
-  
+
   volumes {
     volume_name    = docker_volume.nexus_data.name
     container_path = "/nexus-data"
   }
-  
+
   networks_advanced {
     name    = docker_network.app_network.name
     aliases = ["nexus"]
   }
-  
+
   healthcheck {
     test     = ["CMD", "curl", "-f", "http://localhost:8081/"]
     interval = "30s"
     timeout  = "10s"
     retries  = 5
   }
-  
+
   # Nexus требует больше памяти
   cpu_shares = 1024
   memory     = 2048  # 2GB минимум для Nexus
   memory_swap = 4096
+}
+
+
+# ==================== GitLab ====================
+resource "docker_volume" "gitlab_config" {
+  name = "gitlab_config"
+}
+
+resource "docker_volume" "gitlab_logs" {
+  name = "gitlab_logs"
+}
+
+resource "docker_volume" "gitlab_data" {
+  name = "gitlab_data"
+}
+
+resource "docker_image" "gitlab" {
+  name         = "gitlab/gitlab-ce:latest"
+  keep_locally = true
+}
+
+resource "docker_container" "gitlab" {
+  name    = "gitlab"
+  image   = docker_image.gitlab.image_id
+  restart = "always"
+
+  ports {
+    internal = var.gitlab_http_port
+    external = var.gitlab_http_port
+    ip       = "0.0.0.0"
+  }
+
+  ports {
+    internal = 22
+    external = var.gitlab_ssh_port
+    ip       = "0.0.0.0"
+  }
+
+  volumes {
+    volume_name    = docker_volume.gitlab_config.name
+    container_path = "/etc/gitlab"
+  }
+
+  volumes {
+    volume_name    = docker_volume.gitlab_logs.name
+    container_path = "/var/log/gitlab"
+  }
+
+  volumes {
+    volume_name    = docker_volume.gitlab_data.name
+    container_path = "/var/opt/gitlab"
+  }
+
+  # Shared memory (256MB)
+  shm_size = 1024 * 1024 * 256
+
+  networks_advanced {
+    name    = docker_network.app_network.name
+    aliases = ["gitlab"]
+  }
+
+  # Минимальная конфигурация
+  env = [
+    "GITLAB_OMNIBUS_CONFIG=external_url '${var.gitlab_external_url}:${var.gitlab_http_port}'\ngitlab_rails['gitlab_shell_ssh_port'] = ${var.gitlab_ssh_port}\nnginx['listen_port'] = ${var.gitlab_http_port}\nnginx['listen_https'] = false\ngitlab_rails['time_zone'] = 'UTC'"
+  ]
+
+  cpu_shares = 2048
+  memory     = var.gitlab_memory_limit * 1024 * 1024
+  memory_swap = var.gitlab_memory_limit * 1024 * 1024 * 2
+
+
+  healthcheck {
+    test     = ["CMD", "curl", "-Lf", "http://localhost:8060"]
+    interval = "60s"
+    timeout  = "10s"
+    retries  = 3
+    start_period = "600s" 
+  }
 }

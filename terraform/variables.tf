@@ -70,6 +70,71 @@ variable "nexus_user_password" {
 }
 
 
+# == gitlab ==
+variable "gitlab_external_url" {
+  description = "External URL for GitLab"
+  type        = string
+  default     = "http://127.0.0.1"
+}
+
+variable "gitlab_http_port" {
+  description = "GitLab HTTP port"
+  type        = number
+  default     = 8060
+}
+
+variable "gitlab_ssh_port" {
+  description = "GitLab SSH port"
+  type        = number
+  default     = 2222
+}
+
+variable "gitlab_shm_size" {
+  description = "GitLab shared memory size"
+  type        = number
+  default     = 268435456  # 256MB в байтах
+}
+
+variable "gitlab_memory_limit" {
+  description = "GitLab container memory limit (MB)"
+  type        = number
+  default     = 4096  # 4GB
+}
+
+variable "gitlab_root_password" {
+  description = "GitLab root password"
+  type        = string
+  sensitive   = true
+}
+
+variable "gitlab_user_name" {
+  description = "GitLab username for the new user"
+  type        = string
+}
+
+variable "gitlab_user_password" {
+  description = "GitLab user password (for the new user)"
+  type        = string
+  sensitive   = true
+}
+
+variable "gitlab_root_email" {
+  description = "GitLab root email"
+  type        = string
+  default     = "admin@example.com"
+}
+
+variable "gitlab_name" {
+  description = "GitLab user's full name"
+  type        = string
+  default     = "Ostap Kob"
+}
+
+variable "gitlab_email" {
+  description = "GitLab user email"
+  type        = string
+  default     = "ostapkob@gmail.com"
+}
 
 
 
