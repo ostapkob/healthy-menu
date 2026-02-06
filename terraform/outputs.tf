@@ -31,11 +31,11 @@ output "kafka_connection" {
 output "gitlab_connection" {
   description = "GitLab connection details"
   value = {
-    web_url       = "${var.gitlab_external_url}:${var.gitlab_http_port}"
-    ssh_url       = "ssh://git@127.0.0.1:${var.gitlab_ssh_port}"
+    web_url          = "${var.gitlab_external_url}:${var.gitlab_http_port}"
+    ssh_url          = "ssh://git@127.0.0.1:${var.gitlab_ssh_port}"
     initial_password = "docker exec gitlab cat /etc/gitlab/initial_root_password"
-    logs          = "docker logs -f gitlab"
-    status        = "docker exec gitlab gitlab-ctl status"
+    logs             = "docker logs -f gitlab"
+    status           = "docker exec gitlab gitlab-ctl status"
   }
   sensitive = false
 }
@@ -43,10 +43,10 @@ output "gitlab_connection" {
 output "nexus_connection" {
   description = "Nexus connection details"
   value = {
-    web_url            = "http://localhost:${var.nexus_host_port}"
-    registry_url       = "localhost:${var.nexus_registry_port}"
-    initial_password   = "docker exec nexus cat /nexus-data/admin.password"
-    logs               = "docker logs -f nexus"
+    web_url          = "http://localhost:${var.nexus_host_port}"
+    registry_url     = "localhost:${var.nexus_registry_port}"
+    initial_password = "docker exec nexus cat /nexus-data/admin.password"
+    logs             = "docker logs -f nexus"
   }
   sensitive = false
 }
@@ -54,12 +54,30 @@ output "nexus_connection" {
 output "docker_network" {
   description = "Docker network details"
   value = {
-    name    = docker_network.app_network.name
-    subnet  = "172.21.0.0/24"
+    name   = docker_network.app_network.name
+    subnet = "172.21.0.0/24"
   }
   sensitive = false
 }
 
+
+output "sonarqube_connection" {
+  description = "SonarQube connection details"
+  value = {
+    web_url          = "http://localhost:${var.sonar_web_port}"
+    default_login    = "admin"
+    default_password = "admin"
+    db_connection = {
+      host     = "postgres-sonar"
+      port     = 5432
+      database = var.sonar_postgres_db
+      user     = var.sonar_postgres_user
+    }
+    api_status   = "http://localhost:${var.sonar_web_port}/api/system/status"
+    logs_command = "docker logs -f sonarqube"
+  }
+  sensitive = false
+}
 
 # output "generated_files" {
 #   description = "Generated configuration files"

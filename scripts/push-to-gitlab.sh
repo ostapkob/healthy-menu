@@ -8,37 +8,11 @@ yellow='\033[1;33m'
 blue='\033[0;34m'
 reset='\033[0m'
 
-# Загружаем .env
-if [ -f "${ENV}" ]; then
-    set -o allexport
-    source "${ENV}"
-    set +o allexport
-else
-    echo -e "${red}❌ Ошибка: файл ${ENV} не найден!${reset}"
-    exit 1
-fi
-
-# Display GitLab URL for confirmation
-echo -e "${green}URL: $GITLAB_URL${reset}"
-
-ACCESS_TOKEN="$GITLAB_ACCESS_TOKEN"
-
-if [ -z "$ACCESS_TOKEN" ]; then
-  echo -e "${red}❌ Токен не введен${reset}"
-  exit 1
-fi
-
-# Validate access token
-echo -e "${blue}🔍 Проверяем токен...${reset}"
-USER_INFO=$(curl -s "$GITLAB_URL/api/v4/user" -H "PRIVATE-TOKEN: $ACCESS_TOKEN")
-
-if echo "$USER_INFO" | grep -q "\"username\""; then
-  USERNAME=$(echo "$USER_INFO" | grep -o '"username":"[^"]*"' | cut -d'"' -f4)
-  echo -e "${green}✅ Токен действителен. Пользователь: $USERNAME${reset}"
-else
-  echo -e "${red}❌ Неверный токен${reset}"
-  exit 1
-fi
+# Webhook configuration
+WEBHOOK_URL="http://jenkins:8080/generic-webhook-trigger/invoke?token=gitlab-mr-build"
+PUSH_EVENTS=true
+MERGE_REQUEST_EVENTS=true
+ENABLE_SSL_VERIFICATION=false
 
 # All repositories (kept for processing/pushing)
 REPOSITORIES=(
@@ -63,6 +37,40 @@ HOOK_TARGETS=(
   "order-frontend"
 )
 
+# Загружаем .env
+if [ -f "${ENV}" ]; then
+    set -o allexport
+    source "${ENV}"
+    set +o allexport
+else
+    echo -e "${red}❌ Ошибка: файл ${ENV} не найден!${reset}"
+    exit 1
+fi
+
+# Display GitLab URL for confirmation
+echo -e "${green}URL: $GITLAB_URL${reset}"
+echo "-----------------------------------"
+sleep 2
+ACCESS_TOKEN="$GITLAB_ACCESS_TOKEN"
+
+if [ -z "$ACCESS_TOKEN" ]; then
+  echo -e "${red}❌ Токен не введен${reset}"
+  exit 1
+fi
+
+# Validate access token
+echo -e "${blue}🔍 Проверяем токен...${reset}"
+USER_INFO=$(curl -s "$GITLAB_URL/api/v4/user" -H "PRIVATE-TOKEN: $ACCESS_TOKEN")
+
+if echo "$USER_INFO" | grep -q "\"username\""; then
+  USERNAME=$(echo "$USER_INFO" | grep -o '"username":"[^"]*"' | cut -d'"' -f4)
+  echo -e "${green}✅ Токен действителен. Пользователь: $USERNAME${reset}"
+else
+  echo -e "${red}❌ Неверный токен${reset}"
+  exit 1
+fi
+
+
 # Prompt for commit message
 echo -e "${yellow}📝 Введите сообщение для коммита:${reset}"
 read -r COMMIT_MESSAGE
@@ -76,11 +84,6 @@ echo ""
 echo -e "${pink}📁 Обработка ${#REPOSITORIES[@]} репозиториев...${reset}"
 echo "========================================"
 
-# Webhook configuration
-WEBHOOK_URL="http://jenkins:8080/generic-webhook-trigger/invoke?token=gitlab-mr-build"
-PUSH_EVENTS=true
-MERGE_REQUEST_EVENTS=true
-ENABLE_SSL_VERIFICATION=false
 
 # Function to check if repo is in HOOK_TARGETS
 should_add_hook() {
@@ -121,7 +124,7 @@ add_webhook() {
     echo -e "${green}Webhook добавлен${reset}"
     return 0
   else
-    echo -e "${red}Ошибка добавления webhook: $response${reset}"
+    echo -e "${red}Ошибка добавления webhook (смотри README.md): $response${reset}"
     return 1
   fi
 }

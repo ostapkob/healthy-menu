@@ -8,12 +8,17 @@ set +o allexport
 echo "🔧 Nexus Configuration Script"
 echo "============================="
 
+
+# Проверяем обязательные переменные
+: "${NEXUS_URL:?Не задана NEXUS_URL}"
+: "${NEXUS_USER_NAME:?Не задана NEXUS_USER_NAME}"
+: "${NEXUS_ADMIN_NEW_PASS:?Не задана NEXUS_ADMIN_NEW_PASS}"
+: "${NEXUS_USER_PASSWORD:?Не задана NEXUS_USER_PASSWORD}"
+
 # Параметры
 echo "Parameters:"
-echo "  URL: ${NEXUS__URL}"
-echo "  Admin new password: [set]"
+echo "  URL: ${NEXUS_URL}"
 echo "  User: ${NEXUS_USER_NAME}"
-echo "  User password: [set]"
 
 # Функция для ожидания
 wait_for_nexus() {
@@ -23,7 +28,7 @@ wait_for_nexus() {
     local counter=0
  
     while true; do
-        if curl -s --fail $NEXUS_WEB_URL > /dev/null; then
+        if curl -s --fail $NEXUS_URL > /dev/null; then
             echo "✅ Nexus is responding!"
             return 0
         fi
@@ -205,7 +210,7 @@ echo ""
 echo "========================================="
 echo "🎉 Nexus configuration script complete!"
 echo ""
-echo "📊 Nexus UI:   $NEXUS_WEB_URL"
+echo "📊 Nexus UI:   $NEXUS_URL"
 echo "👤 Admin:      admin / ${NEXUS_ADMIN_NEW_PASS}"
 echo "👤 User:       ${NEXUS_USER_NAME} / ${NEXUS_USER_PASSWORD}"
 echo "🐳 Registry:   localhost:5000"

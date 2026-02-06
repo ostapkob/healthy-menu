@@ -1,4 +1,4 @@
- # == postgres ==
+# == postgres ==
 variable "postgres_user" {
   description = "PostgreSQL username"
   type        = string
@@ -17,7 +17,7 @@ variable "postgres_db" {
   default     = "food_db"
 }
 
- # == minio ==
+# == minio ==
 variable "minio_root_user" {
   description = "MinIO root username"
   type        = string
@@ -37,7 +37,7 @@ variable "minio_bucket" {
 }
 
 
- # == kafka ==
+# == kafka ==
 variable "kafka_topics" {
   description = "List of Kafka topics to create"
   type        = list(string)
@@ -92,13 +92,13 @@ variable "gitlab_ssh_port" {
 variable "gitlab_shm_size" {
   description = "GitLab shared memory size"
   type        = number
-  default     = 268435456  # 256MB в байтах
+  default     = 1024 * 1024 * 256 # 256MB в байтах
 }
 
 variable "gitlab_memory_limit" {
   description = "GitLab container memory limit (MB)"
   type        = number
-  default     = 4096  # 4GB
+  default     = 4096 # 4GB
 }
 
 variable "gitlab_root_password" {
@@ -137,10 +137,54 @@ variable "gitlab_email" {
 }
 
 
+# == Jenkins ==
+variable "jenkins_secret" {
+  type        = string
+  description = "Jenkins agent secret"
+  sensitive   = true
+}
+
+variable "jenkins_agent_name" {
+  type    = string
+  default = "agent-1"
+}
+
+variable "jenkins_agent_workdir" {
+  type    = string
+  default = "/home/jenkins/"
+}
 
 
+# == SonarQube ==
+variable "sonar_postgres_user" {
+  description = "PostgreSQL user for SonarQube"
+  type        = string
+  sensitive   = true
+}
 
+variable "sonar_postgres_password" {
+  description = "PostgreSQL password for SonarQube"
+  type        = string
+  sensitive   = true
+}
 
+variable "sonar_postgres_db" {
+  description = "PostgreSQL database name for SonarQube"
+  type        = string
+  default     = "sonar"
+}
+
+variable "sonar_web_port" {
+  description = "SonarQube web interface port"
+  type        = number
+  default     = 9090
+}
+
+variable "sonar_es_disable_bootstrap_checks" {
+  description = "Disable Elasticsearch bootstrap checks"
+  type        = string
+  default     = "true"
+}
 
 
 # variable "jenkins_plugins" {

@@ -22,286 +22,286 @@ resource "docker_network" "app_network" {
   name   = "app-network"
   driver = "bridge"
   ipam_config {
-    subnet = "172.21.0.0/24"  # Изменён подсеть для избежания конфликтов
+    subnet = "172.21.0.0/24" # Изменён подсеть для избежания конфликтов
   }
-  
+
   # Не давать сети удаляться, пока есть контейнеры
   lifecycle {
-    prevent_destroy = false  # Можно временно поставить true для отладки
+    prevent_destroy = false # Можно временно поставить true для отладки
   }
 }
 
-# # ==================== PostgreSQL ====================
-# resource "docker_volume" "postgres_data" {
-#   name = "postgres_data"
-# }
-#
-# resource "docker_image" "postgres" {
-#   name         = "postgres:16-alpine"
-#   keep_locally = true
-# }
-#
-# resource "docker_container" "postgres" {
-#   name    = "postgres"
-#   image   = docker_image.postgres.image_id
-#   restart = "always"
-#
-#   env = [
-#     "POSTGRES_USER=${var.postgres_user}",
-#     "POSTGRES_PASSWORD=${var.postgres_password}",
-#     "POSTGRES_DB=${var.postgres_db}"
-#   ]
-#
-#   ports {
-#     internal = 5432
-#     external = 5432
-#     ip       = "0.0.0.0"
-#   }
-#
-#   volumes {
-#     volume_name    = docker_volume.postgres_data.name
-#     container_path = "/var/lib/postgresql/data"
-#     read_only      = false
-#   }
-#
-#   networks_advanced {
-#     name    = docker_network.app_network.name
-#     aliases = ["postgres"]
-#   }
-#
-#   healthcheck {
-#     test     = ["CMD-SHELL", "pg_isready -U ${var.postgres_user}"]
-#     interval = "5s"
-#     timeout  = "5s"
-#     retries  = 10
-#   }
-#
-#   # Ограничение ресурсов
-#   cpu_shares = 512
-#   memory     = 1024 # 1GB
-# }
-#
-# # ==================== Zookeeper (для Kafka) ====================
-# resource "docker_image" "zookeeper" {
-#   name         = "confluentinc/cp-zookeeper:latest"
-#   keep_locally = true
-# }
-#
-# resource "docker_container" "zookeeper" {
-#   name    = "zookeeper"
-#   image   = docker_image.zookeeper.image_id
-#   restart = "always"
-#
-#   env = [
-#     "ZOOKEEPER_CLIENT_PORT=2181",
-#     "ZOOKEEPER_TICK_TIME=2000"
-#   ]
-#
-#   ports {
-#     internal = 2181
-#     external = 2181
-#     ip       = "0.0.0.0"
-#   }
-#
-#   networks_advanced {
-#     name    = docker_network.app_network.name
-#     aliases = ["zookeeper"]
-#   }
-#
-#   healthcheck {
-#     test     = ["CMD", "bash", "-c", "echo ruok | nc localhost 2181"]
-#     interval = "10s"
-#     timeout  = "5s"
-#     retries  = 5
-#   }
-#
-#   cpu_shares = 256
-#   memory     = 512 # 512MB
-# }
-#
-# # ==================== Kafka ====================
-# resource "docker_image" "kafka" {
-#   name         = "confluentinc/cp-kafka:7.4.0"
-#   keep_locally = true
-# }
-#
-# resource "docker_container" "kafka" {
-#   name       = "kafka"
-#   image      = docker_image.kafka.image_id
-#   restart    = "always"
-#   depends_on = [docker_container.zookeeper]
-#
-#   env = [
-#     "KAFKA_BROKER_ID=1",
-#     "KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181",
-#     "KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://localhost:9092",
-#     "KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=PLAINTEXT:PLAINTEXT",
-#     "KAFKA_INTER_BROKER_LISTENER_NAME=PLAINTEXT",
-#     "KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1",
-#     "KAFKA_AUTO_CREATE_TOPICS_ENABLE=true",
-#     "KAFKA_NUM_PARTITIONS=3"
-#   ]
-#
-#   ports {
-#     internal = 9092
-#     external = 9092
-#     ip       = "0.0.0.0"
-#   }
-#
-#   networks_advanced {
-#     name    = docker_network.app_network.name
-#     aliases = ["kafka"]
-#   }
-#
-#   healthcheck {
-#     test     = ["CMD", "kafka-topics", "--bootstrap-server", "localhost:9092", "--list"]
-#     interval = "15s"
-#     timeout  = "10s"
-#     retries  = 5
-#   }
-#
-#   cpu_shares = 512
-#   memory     = 1024 # 1GB
-# }
-#
-# # ==================== MinIO ====================
-# resource "docker_volume" "minio_data" {
-#   name = "minio_data"
-# }
-#
-# resource "docker_image" "minio" {
-#   name         = "quay.io/minio/minio:latest"
-#   keep_locally = true
-# }
-#
-# resource "docker_container" "minio" {
-#   name    = "minio"
-#   image   = docker_image.minio.image_id
-#   restart = "always"
-#
-#   env = [
-#     "MINIO_ROOT_USER=${var.minio_root_user}",
-#     "MINIO_ROOT_PASSWORD=${var.minio_root_password}"
-#   ]
-#
-#   command = ["server", "/data", "--console-address", ":9001"]
-#
-#   ports {
-#     internal = 9000
-#     external = 9000
-#     ip       = "0.0.0.0"
-#   }
-#
-#   ports {
-#     internal = 9001
-#     external = 9001
-#     ip       = "0.0.0.0"
-#   }
-#
-#   volumes {
-#     volume_name    = docker_volume.minio_data.name
-#     container_path = "/data"
-#     read_only      = false
-#   }
-#
-#   networks_advanced {
-#     name    = docker_network.app_network.name
-#     aliases = ["minio"]
-#   }
-#
-#   healthcheck {
-#     test     = ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
-#     interval = "5s"
-#     timeout  = "5s"
-#     retries  = 5
-#   }
-#
-#   cpu_shares = 512
-#   memory     = 1024 # 1GB
-# }
-#
-# # ==================== Инициализация MinIO ====================
-# resource "docker_image" "mc" {
-#   name         = "quay.io/minio/mc:latest"
-#   keep_locally = true
-# }
-#
-# # Временный контейнер для инициализации MinIO
-# resource "docker_container" "minio_init" {
-#   name    = "minio-init"
-#   image   = docker_image.mc.image_id
-#   restart = "no"
-#
-#   # Переопределяем entrypoint на /bin/sh
-#   entrypoint = ["/bin/sh", "-c"]
-#
-#   # Команда для выполнения
-#   command = [<<-EOT
-#     echo "Waiting for MinIO to be ready..."
-#
-#     # ждать пока mc сможет подключиться к серверу
-#     until /usr/bin/mc admin info minio >/dev/null 2>&1; do
-#       /usr/bin/mc alias set minio http://minio:9000 ${var.minio_root_user} ${var.minio_root_password} >/dev/null 2>&1 || true
-#       sleep 2
-#     done
-#
-#     echo "Setting up MinIO alias..."
-#     /usr/bin/mc alias set minio http://minio:9000 ${var.minio_root_user} ${var.minio_root_password}
-#
-#     echo "Creating bucket '${var.minio_bucket}'..."
-#     /usr/bin/mc mb minio/${var.minio_bucket} --ignore-existing
-#
-#     echo "Setting bucket policy to public..."
-#     /usr/bin/mc anonymous set public minio/${var.minio_bucket}
-#
-#     echo "Listing buckets to verify..."
-#     /usr/bin/mc ls minio/
-#
-#     echo "MinIO initialization complete!"
-#     EOT
-#   ]
-#
-#   networks_advanced {
-#     name = docker_network.app_network.name
-#   }
-#
-#   # Зависит от основного контейнера MinIO
-#   depends_on = [docker_container.minio]
-#
-#   # Удаляем контейнер после выполнения (очистка)
-#   rm = true
-# }
-#
-#
-# # ==================== Тестовый продюсер Kafka ====================
-# resource "null_resource" "kafka_test" {
-#   depends_on = [docker_container.kafka]
-#
-#   provisioner "local-exec" {
-#     command = <<-EOT
-#       echo "Waiting for Kafka..."
-#       sleep 20
-#
-#       echo "Creating test topic..."
-#       docker run --rm --network ${docker_network.app_network.name} \
-#         confluentinc/cp-kafka:7.4.0 \
-#         kafka-topics --bootstrap-server kafka:9092 \
-#         --create --topic test-topic --partitions 1 --replication-factor 1 --if-not-exists
-#
-#       echo "Sending test message..."
-#       docker run --rm --network ${docker_network.app_network.name} \
-#         confluentinc/cp-kafka:7.4.0 \
-#         bash -c 'echo "{\"message\": \"Terraform deployment successful!\"}" | \
-#         kafka-console-producer --bootstrap-server kafka:9092 --topic test-topic'
-#
-#       echo "Test message sent!"
-#     EOT
-#   }
-#
-#   triggers = {
-#     always_run = timestamp()
-#   }
-# }
+# ==================== PostgreSQL ====================
+resource "docker_volume" "postgres_data" {
+  name = "postgres_data"
+}
+
+resource "docker_image" "postgres" {
+  name         = "postgres:16-alpine"
+  keep_locally = true
+}
+
+resource "docker_container" "postgres" {
+  name    = "postgres"
+  image   = docker_image.postgres.image_id
+  restart = "always"
+
+  env = [
+    "POSTGRES_USER=${var.postgres_user}",
+    "POSTGRES_PASSWORD=${var.postgres_password}",
+    "POSTGRES_DB=${var.postgres_db}"
+  ]
+
+  ports {
+    internal = 5432
+    external = 5432
+    ip       = "0.0.0.0"
+  }
+
+  volumes {
+    volume_name    = docker_volume.postgres_data.name
+    container_path = "/var/lib/postgresql/data"
+    read_only      = false
+  }
+
+  networks_advanced {
+    name    = docker_network.app_network.name
+    aliases = ["postgres"]
+  }
+
+  healthcheck {
+    test     = ["CMD-SHELL", "pg_isready -U ${var.postgres_user}"]
+    interval = "5s"
+    timeout  = "5s"
+    retries  = 10
+  }
+
+  # Ограничение ресурсов
+  cpu_shares = 512
+  memory     = 1024 # 1GB
+}
+
+# ==================== Zookeeper (для Kafka) ====================
+resource "docker_image" "zookeeper" {
+  name         = "confluentinc/cp-zookeeper:latest"
+  keep_locally = true
+}
+
+resource "docker_container" "zookeeper" {
+  name    = "zookeeper"
+  image   = docker_image.zookeeper.image_id
+  restart = "always"
+
+  env = [
+    "ZOOKEEPER_CLIENT_PORT=2181",
+    "ZOOKEEPER_TICK_TIME=2000"
+  ]
+
+  ports {
+    internal = 2181
+    external = 2181
+    ip       = "0.0.0.0"
+  }
+
+  networks_advanced {
+    name    = docker_network.app_network.name
+    aliases = ["zookeeper"]
+  }
+
+  healthcheck {
+    test     = ["CMD", "bash", "-c", "echo ruok | nc localhost 2181"]
+    interval = "10s"
+    timeout  = "5s"
+    retries  = 5
+  }
+
+  cpu_shares = 256
+  memory     = 512 # 512MB
+}
+
+# ==================== Kafka ====================
+resource "docker_image" "kafka" {
+  name         = "confluentinc/cp-kafka:7.4.0"
+  keep_locally = true
+}
+
+resource "docker_container" "kafka" {
+  name       = "kafka"
+  image      = docker_image.kafka.image_id
+  restart    = "always"
+  depends_on = [docker_container.zookeeper]
+
+  env = [
+    "KAFKA_BROKER_ID=1",
+    "KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181",
+    "KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://localhost:9092",
+    "KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=PLAINTEXT:PLAINTEXT",
+    "KAFKA_INTER_BROKER_LISTENER_NAME=PLAINTEXT",
+    "KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1",
+    "KAFKA_AUTO_CREATE_TOPICS_ENABLE=true",
+    "KAFKA_NUM_PARTITIONS=3"
+  ]
+
+  ports {
+    internal = 9092
+    external = 9092
+    ip       = "0.0.0.0"
+  }
+
+  networks_advanced {
+    name    = docker_network.app_network.name
+    aliases = ["kafka"]
+  }
+
+  healthcheck {
+    test     = ["CMD", "kafka-topics", "--bootstrap-server", "localhost:9092", "--list"]
+    interval = "15s"
+    timeout  = "10s"
+    retries  = 5
+  }
+
+  cpu_shares = 512
+  memory     = 1024 # 1GB
+}
+
+# ==================== MinIO ====================
+resource "docker_volume" "minio_data" {
+  name = "minio_data"
+}
+
+resource "docker_image" "minio" {
+  name         = "quay.io/minio/minio:latest"
+  keep_locally = true
+}
+
+resource "docker_container" "minio" {
+  name    = "minio"
+  image   = docker_image.minio.image_id
+  restart = "always"
+
+  env = [
+    "MINIO_ROOT_USER=${var.minio_root_user}",
+    "MINIO_ROOT_PASSWORD=${var.minio_root_password}"
+  ]
+
+  command = ["server", "/data", "--console-address", ":9001"]
+
+  ports {
+    internal = 9000
+    external = 9000
+    ip       = "0.0.0.0"
+  }
+
+  ports {
+    internal = 9001
+    external = 9001
+    ip       = "0.0.0.0"
+  }
+
+  volumes {
+    volume_name    = docker_volume.minio_data.name
+    container_path = "/data"
+    read_only      = false
+  }
+
+  networks_advanced {
+    name    = docker_network.app_network.name
+    aliases = ["minio"]
+  }
+
+  healthcheck {
+    test     = ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+    interval = "5s"
+    timeout  = "5s"
+    retries  = 5
+  }
+
+  cpu_shares = 512
+  memory     = 1024 # 1GB
+}
+
+# ==================== Инициализация MinIO ====================
+resource "docker_image" "mc" {
+  name         = "quay.io/minio/mc:latest"
+  keep_locally = true
+}
+
+# Временный контейнер для инициализации MinIO
+resource "docker_container" "minio_init" {
+  name    = "minio-init"
+  image   = docker_image.mc.image_id
+  restart = "no"
+
+  # Переопределяем entrypoint на /bin/sh
+  entrypoint = ["/bin/sh", "-c"]
+
+  # Команда для выполнения
+  command = [<<-EOT
+    echo "Waiting for MinIO to be ready..."
+
+    # ждать пока mc сможет подключиться к серверу
+    until /usr/bin/mc admin info minio >/dev/null 2>&1; do
+      /usr/bin/mc alias set minio http://minio:9000 ${var.minio_root_user} ${var.minio_root_password} >/dev/null 2>&1 || true
+      sleep 2
+    done
+
+    echo "Setting up MinIO alias..."
+    /usr/bin/mc alias set minio http://minio:9000 ${var.minio_root_user} ${var.minio_root_password}
+
+    echo "Creating bucket '${var.minio_bucket}'..."
+    /usr/bin/mc mb minio/${var.minio_bucket} --ignore-existing
+
+    echo "Setting bucket policy to public..."
+    /usr/bin/mc anonymous set public minio/${var.minio_bucket}
+
+    echo "Listing buckets to verify..."
+    /usr/bin/mc ls minio/
+
+    echo "MinIO initialization complete!"
+    EOT
+  ]
+
+  networks_advanced {
+    name = docker_network.app_network.name
+  }
+
+  # Зависит от основного контейнера MinIO
+  depends_on = [docker_container.minio]
+
+  # Удаляем контейнер после выполнения (очистка)
+  rm = true
+}
+
+
+# ==================== Тестовый продюсер Kafka ====================
+resource "null_resource" "kafka_test" {
+  depends_on = [docker_container.kafka]
+
+  provisioner "local-exec" {
+    command = <<-EOT
+      echo "Waiting for Kafka..."
+      sleep 20
+
+      echo "Creating test topic..."
+      docker run --rm --network ${docker_network.app_network.name} \
+        confluentinc/cp-kafka:7.4.0 \
+        kafka-topics --bootstrap-server kafka:9092 \
+        --create --topic test-topic --partitions 1 --replication-factor 1 --if-not-exists
+
+      echo "Sending test message..."
+      docker run --rm --network ${docker_network.app_network.name} \
+        confluentinc/cp-kafka:7.4.0 \
+        bash -c 'echo "{\"message\": \"Terraform deployment successful!\"}" | \
+        kafka-console-producer --bootstrap-server kafka:9092 --topic test-topic'
+
+      echo "Test message sent!"
+    EOT
+  }
+
+  triggers = {
+    always_run = timestamp()
+  }
+}
 
 
 # ==================== Nexus ====================
@@ -347,8 +347,8 @@ resource "docker_container" "nexus" {
   }
 
   # Nexus требует больше памяти
-  cpu_shares = 1024
-  memory     = 2048  # 2GB минимум для Nexus
+  cpu_shares  = 1024
+  memory      = 2048 # 2GB минимум для Nexus
   memory_swap = 4096
 }
 
@@ -403,7 +403,7 @@ resource "docker_container" "gitlab" {
     container_path = "/var/opt/gitlab"
   }
 
-  # Shared memory (256MB)
+  # shared memory (256mb)
   shm_size = 1024 * 1024 * 256
 
   networks_advanced {
@@ -411,21 +411,224 @@ resource "docker_container" "gitlab" {
     aliases = ["gitlab"]
   }
 
-  # Минимальная конфигурация
+  # минимальная конфигурация
   env = [
     "GITLAB_OMNIBUS_CONFIG=external_url '${var.gitlab_external_url}:${var.gitlab_http_port}'\ngitlab_rails['gitlab_shell_ssh_port'] = ${var.gitlab_ssh_port}\nnginx['listen_port'] = ${var.gitlab_http_port}\nnginx['listen_https'] = false\ngitlab_rails['time_zone'] = 'UTC'"
   ]
 
-  cpu_shares = 2048
-  memory     = var.gitlab_memory_limit * 1024 * 1024
+  cpu_shares  = 2048
+  memory      = var.gitlab_memory_limit * 1024 * 1024
   memory_swap = var.gitlab_memory_limit * 1024 * 1024 * 2
 
 
   healthcheck {
-    test     = ["CMD", "curl", "-Lf", "http://localhost:8060"]
-    interval = "60s"
-    timeout  = "10s"
-    retries  = 3
-    start_period = "600s" 
+    # test     = ["CMD", "curl", "-Lf", "http://localhost:8060"]
+    test         = ["CMD-SHELL", "gitlab-ctl status | grep -q 'run:'"]
+    interval     = "60s"
+    timeout      = "10s"
+    retries      = 3
+    start_period = "600s"
   }
+}
+
+
+# ==================== Jenkins ====================
+
+resource "docker_volume" "jenkins_home" {
+  name = "jenkins_home"
+}
+
+resource "docker_image" "jenkins" {
+  name         = "jenkins/jenkins:lts"
+  keep_locally = true
+}
+
+resource "docker_container" "jenkins" {
+  name    = "jenkins"
+  image   = docker_image.jenkins.image_id
+  restart = "always"
+
+  ports {
+    internal = 8080
+    external = 8080
+    ip       = "0.0.0.0"
+  }
+  ports {
+    internal = 50000
+    external = 50000
+    ip       = "0.0.0.0"
+  }
+  volumes {
+    volume_name    = docker_volume.jenkins_home.name
+    container_path = "/var/jenkins_home"
+  }
+  env = [
+    "JENKINS_OPTS=--httpPort=8080"
+  ]
+  networks_advanced {
+    name    = docker_network.app_network.name
+    aliases = ["jenkins"]
+  }
+  healthcheck {
+    test         = ["CMD-SHELL", "curl -f http://localhost:8080 || exit 1"]
+    interval     = "30s"
+    timeout      = "10s"
+    retries      = 5
+    start_period = "90s"
+  }
+  # Ресурсы как в твоих контейнерах
+  cpu_shares = 1024
+  memory     = 2048 # 2GB
+}
+
+
+# ==================== Jenkins-Agent ====================
+resource "docker_volume" "agent_workdir" {
+  name = "agent_workdir"
+}
+
+# Jenkins agent image с Docker CLI/buildx
+resource "docker_image" "jenkins_agent" {
+  name         = "trion/jenkins-docker-client"
+  keep_locally = true
+}
+
+resource "docker_container" "jenkins_agent" {
+  name       = "jenkins-agent"
+  image      = docker_image.jenkins_agent.image_id
+  restart    = "always"
+  depends_on = [docker_container.jenkins]
+
+  env = [
+    "JENKINS_URL=http://jenkins:8080/",
+    "JENKINS_AGENT_SECRET=${var.jenkins_secret}",
+    "JENKINS_AGENT_NAME=${var.jenkins_agent_name}",
+    "JENKINS_AGENT_WORKDIR=${var.jenkins_agent_workdir}",
+    "JENKINS_WEBSOCKET=true", # Включает -webSocket auto
+    "JENKINS_SLAVE_AGENT_PORT=50000"
+  ]
+
+  # OVERRIDE entrypoint (пусто = отключаем)
+  entrypoint = []
+
+  command = [
+    "-c",
+    "whoami > /tmp/whoami.txt && date > /tmp/date.txt && ls -la /tmp/ && sleep 3600"
+  ]
+
+  volumes {
+    volume_name    = docker_volume.agent_workdir.name
+    container_path = "/home/jenkins/"
+  }
+  networks_advanced {
+    name    = docker_network.app_network.name
+    aliases = ["jenkins-agent"]
+  }
+  healthcheck {
+    test         = ["CMD-SHELL", "curl -f http://jenkins:8080 || exit 1"]
+    interval     = "30s"
+    timeout      = "10s"
+    retries      = 5
+    start_period = "120s" # Время на connect
+  }
+
+  privileged = true # Для Docker daemon access
+  cpu_shares = 512
+  memory     = 1024
+}
+
+
+# ==================== SonarQube PostgreSQL ====================
+resource "docker_volume" "postgres_sonar_data" {
+  name = "postgres-sonar-data"
+}
+
+resource "docker_image" "postgres_sonar" {
+  name         = "postgres:13-alpine"
+  keep_locally = true
+}
+
+resource "docker_container" "postgres_sonar" {
+  name    = "postgres-sonar"
+  image   = docker_image.postgres_sonar.image_id
+  restart = "unless-stopped"
+
+  env = [
+    "POSTGRES_USER=${var.sonar_postgres_user}",
+    "POSTGRES_PASSWORD=${var.sonar_postgres_password}",
+    "POSTGRES_DB=${var.sonar_postgres_db}"
+  ]
+
+  volumes {
+    volume_name    = docker_volume.postgres_sonar_data.name
+    container_path = "/var/lib/postgresql/data"
+  }
+
+  networks_advanced {
+    name    = docker_network.app_network.name
+    aliases = ["postgres-sonar"]
+  }
+
+  healthcheck {
+    test     = ["CMD-SHELL", "pg_isready -U ${var.sonar_postgres_user}"]
+    interval = "10s"
+    timeout  = "5s"
+    retries  = 5
+  }
+
+  cpu_shares = 256
+  memory     = 512 # 512MB
+}
+
+# ==================== SonarQube ====================
+resource "docker_volume" "sonarqube_data" {
+  name = "sonarqube_data"
+}
+
+resource "docker_image" "sonarqube" {
+  name         = "sonarqube:lts-community"
+  keep_locally = true
+}
+
+resource "docker_container" "sonarqube" {
+  name       = "sonarqube"
+  image      = docker_image.sonarqube.image_id
+  restart    = "unless-stopped"
+  depends_on = [docker_container.postgres_sonar]
+
+  env = [
+    "SONAR_JDBC_URL=jdbc:postgresql://postgres-sonar:5432/${var.sonar_postgres_db}",
+    "SONAR_JDBC_USERNAME=${var.sonar_postgres_user}",
+    "SONAR_JDBC_PASSWORD=${var.sonar_postgres_password}",
+    "SONAR_ES_BOOTSTRAP_CHECKS_DISABLE=${var.sonar_es_disable_bootstrap_checks}"
+  ]
+
+  ports {
+    internal = 9000
+    external = var.sonar_web_port
+    ip       = "0.0.0.0"
+  }
+
+  volumes {
+    volume_name    = docker_volume.sonarqube_data.name
+    container_path = "/opt/sonarqube/data"
+  }
+
+  networks_advanced {
+    name    = docker_network.app_network.name
+    aliases = ["sonarqube"]
+  }
+
+  # Healthcheck для SonarQube (проверяет статус через API)
+  healthcheck {
+    test         = ["CMD", "curl", "-f", "http://localhost:9000/api/system/status"]
+    interval     = "30s"
+    timeout      = "10s"
+    retries      = 10
+    start_period = "120s" # SonarQube может долго стартовать
+  }
+
+  cpu_shares  = 1024 # 1 ядро
+  memory      = 2048 # 2GB минимум для SonarQube
+  memory_swap = 4096
 }

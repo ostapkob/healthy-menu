@@ -39,6 +39,11 @@ echo -e "${green}User: ${pink}${GITLAB_USER}${reset}"
 echo -e "${green}Name: ${pink}${GITLAB_NAME}${reset}"
 echo -e "${green}Email: ${pink}${GITLAB_EMAIL}${reset}"
 
+if ! curl -sSf --max-time 5 --head "$GITLAB_URL" >/dev/null; then
+  echo "Host $GITLAB_URL недоступен (timeout)" >&2
+  exit 1
+fi
+
 # Вычисляем дату истечения токена (+2 месяца от текущей даты)
 EXPIRES_AT=$(date -d "+2 months" +%Y-%m-%d)
 echo -e "${green}📅 Token expiry: ${pink}${EXPIRES_AT}${reset}"
@@ -113,34 +118,25 @@ echo -e "${green}✅ Root token created${reset}"
 
 # Шаг 4: Создаём пользователя ${GITLAB_USER}
 echo -e "${green}👤 Creating user ${GITLAB_USER}...${reset}"
+CREATE_USER_RESPONSE=$(curl -s -w "HTTPSTATUS:%{http_code}" \
+    -H "PRIVATE-TOKEN: ${ROOT_TOKEN}" \
+    -H "Content-Type: application/x-www-form-urlencoded" \
+    -d "username=${GITLAB_USER}&name=${GITLAB_NAME}&email=${GITLAB_EMAIL}&password=${GITLAB_PASSWORD}&skip_confirmation=true" \
+    "${GITLAB_URL}/api/v4/users")
 
-# Сначала удаляем пользователя, если уже существует
-echo -e "${green}   Checking if user exists...${reset}"
-EXISTING_USER=$(curl -s --header "PRIVATE-TOKEN: ${ROOT_TOKEN}" \
-    "${GITLAB_URL}/api/v4/users?username=${GITLAB_USER}" | jq -r '.[0].id // empty')
+HTTP_STATUS=$(echo "${CREATE_USER_RESPONSE}" | sed -n 's/.*HTTPSTATUS:\([0-9][0-9]*\).*/\1/p')
+BODY=$(echo "${CREATE_USER_RESPONSE}" | sed 's/HTTPSTATUS:[0-9]*//g')
 
-if [ -n "${EXISTING_USER}" ]; then
-    echo -e "${green}   ⚠️  User already exists, deleting...${reset}"
-    curl -s --header "PRIVATE-TOKEN: ${ROOT_TOKEN}" \
-        --request DELETE "${GITLAB_URL}/api/v4/users/${EXISTING_USER}"
-    sleep 2
-fi
+echo "Debug: HTTP ${HTTP_STATUS}, Body first 100: ${BODY:0:100}"
 
-echo -e "${green}   Creating new user...${reset}"
-CREATE_USER_RESPONSE=$(curl -s --header "PRIVATE-TOKEN: ${ROOT_TOKEN}" \
-    --data "username=${GITLAB_USER}" \
-    --data "name=${GITLAB_NAME}" \
-    --data "email=${GITLAB_EMAIL}" \
-    --data "password=${GITLAB_PASSWORD}" \
-    --data "skip_confirmation=true" \
-    --request POST "${GITLAB_URL}/api/v4/users")
-USER_ID=$(echo "${CREATE_USER_RESPONSE}" | jq -r '.id')
-
-if [ -z "${USER_ID}" ] || [ "${USER_ID}" = "null" ]; then
-    echo -e "${red}❌ Error creating user! Response: ${CREATE_USER_RESPONSE}${reset}"
+if [ "${HTTP_STATUS}" = "201" ]; then
+    USER_ID=$(echo "${BODY}" | jq -r '.id')
+    echo -e "${green}✅ User ${GITLAB_USER} created with ID: ${pink}${USER_ID}${reset}"
+else
+    echo -e "${red}❌ Error creating user! HTTP ${HTTP_STATUS}${reset}"
+    echo "${BODY}" | jq '. // empty'
     exit 1
 fi
-echo -e "${green}✅ User ${GITLAB_USER} created with ID: ${pink}${USER_ID}${reset}"
 
 # Шаг 5: Создаём token для ${GITLAB_USER}
 echo -e "${green}🔑 Creating token for ${GITLAB_USER}...${reset}"
