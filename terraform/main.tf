@@ -47,6 +47,8 @@ resource "docker_container" "postgres" {
   restart = "always"
 
   env = [
+    "POSTGRES_HOST=${var.postgres_host}",
+    "POSTGRES_PORT=${var.postgres_port}",
     "POSTGRES_USER=${var.postgres_user}",
     "POSTGRES_PASSWORD=${var.postgres_password}",
     "POSTGRES_DB=${var.postgres_db}"
@@ -274,35 +276,35 @@ resource "docker_container" "minio_init" {
 
 
 # ==================== Тестовый продюсер Kafka ====================
-resource "null_resource" "kafka_test" {
-  depends_on = [docker_container.kafka]
-
-  provisioner "local-exec" {
-    command = <<-EOT
-      echo "Waiting for Kafka..."
-      sleep 20
-
-      echo "Creating test topic..."
-      docker run --rm --network ${docker_network.app_network.name} \
-        confluentinc/cp-kafka:7.4.0 \
-        kafka-topics --bootstrap-server kafka:9092 \
-        --create --topic test-topic --partitions 1 --replication-factor 1 --if-not-exists
-
-      echo "Sending test message..."
-      docker run --rm --network ${docker_network.app_network.name} \
-        confluentinc/cp-kafka:7.4.0 \
-        bash -c 'echo "{\"message\": \"Terraform deployment successful!\"}" | \
-        kafka-console-producer --bootstrap-server kafka:9092 --topic test-topic'
-
-      echo "Test message sent!"
-    EOT
-  }
-
-  triggers = {
-    always_run = timestamp()
-  }
-}
-
+# resource "null_resource" "kafka_test" {
+#   depends_on = [docker_container.kafka]
+#
+#   provisioner "local-exec" {
+#     command = <<-EOT
+#       echo "Waiting for Kafka..."
+#       sleep 20
+#
+#       echo "Creating test topic..."
+#       docker run --rm --network ${docker_network.app_network.name} \
+#         confluentinc/cp-kafka:7.4.0 \
+#         kafka-topics --bootstrap-server kafka:9092 \
+#         --create --topic test-topic --partitions 1 --replication-factor 1 --if-not-exists
+#
+#       echo "Sending test message..."
+#       docker run --rm --network ${docker_network.app_network.name} \
+#         confluentinc/cp-kafka:7.4.0 \
+#         bash -c 'echo "{\"message\": \"Terraform deployment successful!\"}" | \
+#         kafka-console-producer --bootstrap-server kafka:9092 --topic test-topic'
+#
+#       echo "Test message sent!"
+#     EOT
+#   }
+#
+#   triggers = {
+#     always_run = timestamp()
+#   }
+# }
+#
 
 # ==================== Nexus ====================
 resource "docker_volume" "nexus_data" {
@@ -483,60 +485,53 @@ resource "docker_container" "jenkins" {
 
 
 # ==================== Jenkins-Agent ====================
-resource "docker_volume" "agent_workdir" {
-  name = "agent_workdir"
-}
-
-# Jenkins agent image с Docker CLI/buildx
-resource "docker_image" "jenkins_agent" {
-  name         = "trion/jenkins-docker-client"
-  keep_locally = true
+resource "docker_volume" "agent_docker_cache" {
+  name = "jenkins_agent_docker_data"
 }
 
 resource "docker_container" "jenkins_agent" {
-  name       = "jenkins-agent"
-  image      = docker_image.jenkins_agent.image_id
-  restart    = "always"
+  name  = "jenkins-agent"
+  image = "jenkins/inbound-agent:alpine"
+  privileged = true
+  user       = "root" # Нужно для запуска docker daemon внутри
+
+  memory     = 4096 
+  cpu_shares = 2048
+
   depends_on = [docker_container.jenkins]
 
   env = [
-    "JENKINS_URL=http://jenkins:8080/",
-    "JENKINS_AGENT_SECRET=${var.jenkins_secret}",
-    "JENKINS_AGENT_NAME=${var.jenkins_agent_name}",
-    "JENKINS_AGENT_WORKDIR=${var.jenkins_agent_workdir}",
-    "JENKINS_WEBSOCKET=true", # Включает -webSocket auto
-    "JENKINS_SLAVE_AGENT_PORT=50000"
+    "JENKINS_URL=http://jenkins:8080",
+    "JENKINS_SECRET=3001527dbd2b351f03f6327ca215ac9752816a219b24322dcfbf8d706d3ef25d",
+    "JENKINS_AGENT_NAME=agent-1",
+    "JENKINS_WEB_SOCKET=true"
   ]
 
-  # OVERRIDE entrypoint (пусто = отключаем)
-  entrypoint = []
-
-  command = [
-    "-c",
-    "whoami > /tmp/whoami.txt && date > /tmp/date.txt && ls -la /tmp/ && sleep 3600"
+  entrypoint = [
+    "sh", "-c", 
+    <<-EOT
+    if ! command -v docker >/dev/null; then apk add --no-cache docker fuse-overlayfs; fi && \
+    (dockerd --storage-driver=fuse-overlayfs --host=unix:///var/run/docker.sock &) && \
+    sleep 5 && \
+    /usr/local/bin/jenkins-agent
+    EOT
   ]
 
   volumes {
-    volume_name    = docker_volume.agent_workdir.name
-    container_path = "/home/jenkins/"
+    volume_name    = docker_volume.agent_docker_cache.name
+    container_path = "/var/lib/docker"
   }
+
+  volumes {
+    volume_name    = "jenkins_uv_cache"
+    container_path = "/root/.cache/uv"
+  }
+
   networks_advanced {
     name    = docker_network.app_network.name
-    aliases = ["jenkins-agent"]
+    aliases = ["postgres-sonar"]
   }
-  healthcheck {
-    test         = ["CMD-SHELL", "curl -f http://jenkins:8080 || exit 1"]
-    interval     = "30s"
-    timeout      = "10s"
-    retries      = 5
-    start_period = "120s" # Время на connect
-  }
-
-  privileged = true # Для Docker daemon access
-  cpu_shares = 512
-  memory     = 1024
 }
-
 
 # ==================== SonarQube PostgreSQL ====================
 resource "docker_volume" "postgres_sonar_data" {

@@ -8,13 +8,13 @@ set +o allexport
 
 function execute_copy {
 
-    psql "${DATABASE_URL}" -c "\copy $1 FROM '$2' WITH CSV HEADER;"
+    psql "${POSTGRES_DATABASE_URL}" -c "\copy $1 FROM '$2' WITH CSV HEADER;"
 }
 
 # Удаление лишних коллонок из оригинального источника
-# csvcut -c id,name,unit_name,nutrient_nbr ./csv_data/FoodData_Central_foundation_food_csv_2025-12-18/nutrient.csv > ./csv_data/nutrient.csv
-# csvcut -c fdc_id,description,food_category_id ./csv_data/FoodData_Central_foundation_food_csv_2025-12-18/food.csv > ./csv_data/food.csv
-# csvcut -c id,fdc_id,nutrient_id,amount ./csv_data/FoodData_Central_foundation_food_csv_2025-12-18/food_nutrient.csv > ./csv_data/food_nutrient.csv
+csvcut -c id,name,unit_name,nutrient_nbr ./csv_data/FoodData_Central_foundation_food_csv_2025-12-18/nutrient.csv > ./csv_data/nutrient.csv
+csvcut -c fdc_id,description,food_category_id ./csv_data/FoodData_Central_foundation_food_csv_2025-12-18/food.csv > ./csv_data/food.csv
+csvcut -c id,fdc_id,nutrient_id,amount ./csv_data/FoodData_Central_foundation_food_csv_2025-12-18/food_nutrient.csv > ./csv_data/food_nutrient.csv
 
 
 # Nutrients
@@ -39,10 +39,10 @@ execute_copy "food_ru(id,fdc_id,name_ru,food_category_id)" "./csv_data/food_ru.c
 execute_copy "nutrient_ru(id,nutrient_id,name_ru)" "./csv_data/nutrient_ru.csv"
 execute_copy "food_category_ru(category_id,name_ru,description_ru)" "./csv_data/food_category_ru.csv"
 
-psql "${DATABASE_URL}" -f ./csv_data/food_tmp.sql
+psql "${POSTGRES_DATABASE_URL}" -f ./csv_data/food_tmp.sql
 
 # export
-# psql "${DATABASE_URL}" -c "\copy food_tmp TO './csv_data/food_tmp.csv' DELIMITER ',' CSV HEADER"
+# psql "${POSTGRES_DATABASE_URL}" -c "\copy food_tmp TO './csv_data/food_tmp.csv' DELIMITER ',' CSV HEADER"
 
 
 # Органы и их описание
@@ -71,8 +71,8 @@ psql "${DATABASE_URL}" -f ./csv_data/food_tmp.sql
 execute_copy "couriers(id, name, status, current_order_id)" "./csv_data/courier.csv"
 
 # INDEXES
-psql "$DATABASE_URL" -c "CREATE INDEX IF NOT EXISTS idx_food_fdc_id ON food(fdc_id);"
-psql "$DATABASE_URL" -c "CREATE INDEX IF NOT EXISTS idx_food_nutrient_fdc ON food_nutrient(fdc_id);"
-psql "$DATABASE_URL" -c "CREATE INDEX IF NOT EXISTS idx_food_nutrient_nutr ON food_nutrient(nutrient_id);"
-psql "$DATABASE_URL" -c "CREATE INDEX IF NOT EXISTS idx_food_ru_fdc ON food_ru(fdc_id);"
-psql "$DATABASE_URL" -c "CREATE INDEX IF NOT EXISTS idx_nutr_ru_id ON nutrient_ru(nutrient_id);"
+psql "$POSTGRES_DATABASE_URL" -c "CREATE INDEX IF NOT EXISTS idx_food_fdc_id ON food(fdc_id);"
+psql "$POSTGRES_DATABASE_URL" -c "CREATE INDEX IF NOT EXISTS idx_food_nutrient_fdc ON food_nutrient(fdc_id);"
+psql "$POSTGRES_DATABASE_URL" -c "CREATE INDEX IF NOT EXISTS idx_food_nutrient_nutr ON food_nutrient(nutrient_id);"
+psql "$POSTGRES_DATABASE_URL" -c "CREATE INDEX IF NOT EXISTS idx_food_ru_fdc ON food_ru(fdc_id);"
+psql "$POSTGRES_DATABASE_URL" -c "CREATE INDEX IF NOT EXISTS idx_nutr_ru_id ON nutrient_ru(nutrient_id);"

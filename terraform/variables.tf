@@ -17,6 +17,18 @@ variable "postgres_db" {
   default     = "food_db"
 }
 
+variable "postgres_host" {
+  description = "PostgreSQL database host"
+  type        = string
+  default     = "localhost"
+}
+
+variable "postgres_port" {
+  description = "PostgreSQL database port"
+  type        = string
+  default     = "5432"
+}
+
 # == minio ==
 variable "minio_root_user" {
   description = "MinIO root username"

@@ -35,8 +35,10 @@ kafka-console-consumer --bootstrap-server localhost:9092 --topic new_orders --fr
 kcat -b kafka:9092 -t new_orders -C
 
 # SQL
+install csvkit
 bash setup-models.sh
 bash load_data.sh
+CREATE DATABASE food_db_tests WITH TEMPLATE food_db;
 
 # MiniO
 auto created bucket in docker-compose

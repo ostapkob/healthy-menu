@@ -95,11 +95,17 @@ pipeline {
                     env | grep -E "(POSTGRES|MINIO)" > /tmp/envfile
                     docker run --rm \
                       --env-file /tmp/envfile \
-                      --add-host minio:${FEDORA} \
-                      --add-host postgres:${FEDORA} \
-                      --add-host kafka:${FEDORA} \
                       ${TEST_IMAGE}
                 '''
+                // sh '''
+                //     env | grep -E "(POSTGRES|MINIO)" > /tmp/envfile
+                //     docker run --rm \
+                //       --env-file /tmp/envfile \
+                //       --add-host minio:${NIX} \
+                //       --add-host postgres:${NIX} \
+                //       --add-host kafka:${NIX} \
+                //       ${TEST_IMAGE}
+                // '''
             }
         }
 

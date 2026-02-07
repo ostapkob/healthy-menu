@@ -76,7 +76,7 @@ output "sonarqube_connection" {
     api_status   = "http://localhost:${var.sonar_web_port}/api/system/status"
     logs_command = "docker logs -f sonarqube"
   }
-  sensitive = false
+  sensitive = true
 }
 
 # output "generated_files" {

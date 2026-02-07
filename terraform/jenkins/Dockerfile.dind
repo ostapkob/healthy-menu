@@ -1,0 +1,24 @@
+FROM docker:27-dind
+
+USER root
+
+RUN apk add --no-cache \
+    openjdk17-jre \
+    curl \
+    bash \
+	host \
+    git \
+    jq \
+    git \
+	bash
+
+WORKDIR /home/jenkins
+
+
+ENTRYPOINT ["sh", "-c", "dockerd-entrypoint.sh ]
+
+
+RUN adduser -D -u 1000 jenkins && \
+    addgroup jenkins docker
+
+USER jenkins
