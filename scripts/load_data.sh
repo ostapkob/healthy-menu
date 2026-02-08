@@ -76,3 +76,6 @@ psql "$POSTGRES_DATABASE_URL" -c "CREATE INDEX IF NOT EXISTS idx_food_nutrient_f
 psql "$POSTGRES_DATABASE_URL" -c "CREATE INDEX IF NOT EXISTS idx_food_nutrient_nutr ON food_nutrient(nutrient_id);"
 psql "$POSTGRES_DATABASE_URL" -c "CREATE INDEX IF NOT EXISTS idx_food_ru_fdc ON food_ru(fdc_id);"
 psql "$POSTGRES_DATABASE_URL" -c "CREATE INDEX IF NOT EXISTS idx_nutr_ru_id ON nutrient_ru(nutrient_id);"
+
+# Test DataBase
+psql "$POSTGRES_DATABASE_URL" -c "CREATE DATABASE food_db_tests WITH TEMPLATE food_db;"

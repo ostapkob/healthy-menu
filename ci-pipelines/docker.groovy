@@ -91,21 +91,16 @@ pipeline {
 
         stage('Run tests') {
             steps {
+                // FIX: rm env 
                 sh '''
                     env | grep -E "(POSTGRES|MINIO)" > /tmp/envfile
                     docker run --rm \
                       --env-file /tmp/envfile \
+                      --add-host minio:172.21.0.3 \
+                      --add-host postgres:172.21.0.10 \
+                      --add-host kafka:172.21.0.11 \
                       ${TEST_IMAGE}
                 '''
-                // sh '''
-                //     env | grep -E "(POSTGRES|MINIO)" > /tmp/envfile
-                //     docker run --rm \
-                //       --env-file /tmp/envfile \
-                //       --add-host minio:${NIX} \
-                //       --add-host postgres:${NIX} \
-                //       --add-host kafka:${NIX} \
-                //       ${TEST_IMAGE}
-                // '''
             }
         }
 

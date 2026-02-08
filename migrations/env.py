@@ -28,15 +28,16 @@ def get_database_url():
         return os.getenv('POSTGRES_DATABASE_URL')
 
 url = config.get_main_option("sqlalchemy.url")
-print("---------------------")
-print(url)
-print("---------------------")
 if url and 'POSTGRES_DATABASE_URL' in url:
     db_url = get_database_url()
     if db_url:
         config.set_main_option("sqlalchemy.url", db_url)
     else:
         raise ValueError("POSTGRES_DATABASE_URL not found in environment variables")
+
+print("---------------------")
+print(db_url)
+print("---------------------")
 
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)

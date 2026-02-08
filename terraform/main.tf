@@ -19,17 +19,20 @@ provider "docker" {
 
 # Общая сеть для всех сервисов
 resource "docker_network" "app_network" {
-  name   = "app-network"
-  driver = "bridge"
+  name            = "app-network"
+  driver          = "bridge"
+
   ipam_config {
     subnet = "172.21.0.0/24" # Изменён подсеть для избежания конфликтов
   }
 
   # Не давать сети удаляться, пока есть контейнеры
   lifecycle {
-    prevent_destroy = false # Можно временно поставить true для отладки
+    create_before_destroy = true
+    prevent_destroy       = false # Можно временно поставить true для отладки
   }
 }
+
 
 # ==================== PostgreSQL ====================
 resource "docker_volume" "postgres_data" {
@@ -489,33 +492,53 @@ resource "docker_volume" "agent_docker_cache" {
   name = "jenkins_agent_docker_data"
 }
 
+resource "docker_volume" "jenkins_uv_cache" {
+  name = "jenkins_uv_cache"
+}
+
 resource "docker_container" "jenkins_agent" {
-  name  = "jenkins-agent"
-  image = "jenkins/inbound-agent:alpine"
+  name       = "jenkins-agent"
+  image      = "jenkins/inbound-agent:alpine"
   privileged = true
   user       = "root" # Нужно для запуска docker daemon внутри
 
-  memory     = 4096 
+  memory     = 4096
   cpu_shares = 2048
 
   depends_on = [docker_container.jenkins]
 
+  # FIX: use hashicorp vault
   env = [
     "JENKINS_URL=http://jenkins:8080",
     "JENKINS_SECRET=3001527dbd2b351f03f6327ca215ac9752816a219b24322dcfbf8d706d3ef25d",
     "JENKINS_AGENT_NAME=agent-1",
-    "JENKINS_WEB_SOCKET=true"
+    "JENKINS_WEB_SOCKET=true",
+    "POSTGRES_HOST=${var.postgres_host}",
+    "POSTGRES_PORT=${var.postgres_port}",
+    "POSTGRES_USER=${var.postgres_user}",
+    "POSTGRES_PASSWORD=${var.postgres_password}",
+    "POSTGRES_DB=${var.postgres_db}",
+    "MINIO_ROOT_USER=${var.minio_root_user}",
+    "MINIO_ROOT_PASSWORD=${var.minio_root_password}",
+    "MINIO_BUCKET=${var.minio_bucket}",
+    "MINIO_HOST=${var.minio_host}",
+    "MINIO_PORT=${var.minio_port}"
+
   ]
 
   entrypoint = [
-    "sh", "-c", 
+    "sh", "-c",
     <<-EOT
-    if ! command -v docker >/dev/null; then apk add --no-cache docker fuse-overlayfs; fi && \
-    (dockerd --storage-driver=fuse-overlayfs --host=unix:///var/run/docker.sock &) && \
-    sleep 5 && \
+    if ! command -v docker >/dev/null; then
+      apk add --no-cache docker fuse-overlayfs
+      rm -f /var/run/docker.pid /var/run/docker.sock
+    fi
+    (dockerd --storage-driver=fuse-overlayfs --host=unix:///var/run/docker.sock &)
+    sleep 5
     /usr/local/bin/jenkins-agent
     EOT
   ]
+
 
   volumes {
     volume_name    = docker_volume.agent_docker_cache.name

@@ -20,7 +20,7 @@ variable "postgres_db" {
 variable "postgres_host" {
   description = "PostgreSQL database host"
   type        = string
-  default     = "localhost"
+  default     = "postgres"
 }
 
 variable "postgres_port" {
@@ -48,6 +48,17 @@ variable "minio_bucket" {
   default     = "healthy-menu-dishes"
 }
 
+variable "minio_host" {
+  description = "MinIO bucket host"
+  type        = string
+  default     = "minio"
+}
+
+variable "minio_port" {
+  description = "MinIO bucket port"
+  type        = string
+  default     = "9000"
+}
 
 # == kafka ==
 variable "kafka_topics" {
