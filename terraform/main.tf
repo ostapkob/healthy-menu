@@ -505,7 +505,7 @@ resource "docker_container" "jenkins_agent" {
   memory     = 4096
   cpu_shares = 2048
 
-  depends_on = [docker_container.jenkins]
+  depends_on = [docker_container.jenkins, docker_container.postgres, docker_container.kafka, docker_container.minio]
 
   # FIX: use hashicorp vault
   env = [
@@ -522,10 +522,15 @@ resource "docker_container" "jenkins_agent" {
     "MINIO_ROOT_PASSWORD=${var.minio_root_password}",
     "MINIO_BUCKET=${var.minio_bucket}",
     "MINIO_HOST=${var.minio_host}",
-    "MINIO_PORT=${var.minio_port}"
-
+    "MINIO_PORT=${var.minio_port}",
+    "MINIO_IP=${docker_container.minio.network_data[0].ip_address}",
+    "POSTGRES_IP=${docker_container.postgres.network_data[0].ip_address}",
+    "KAFKA_IP=${docker_container.kafka.network_data[0].ip_address}",
+    "SONAR_IP=${docker_container.sonarqube.network_data[0].ip_address}",
+    "NEXUS_REGISTRY_URL=${docker_container.nexus.network_data[0].ip_address}:${var.nexus_registry_port}"
   ]
 
+  # FIX: after https rm insecure
   entrypoint = [
     "sh", "-c",
     <<-EOT
@@ -533,7 +538,9 @@ resource "docker_container" "jenkins_agent" {
       apk add --no-cache docker fuse-overlayfs
       rm -f /var/run/docker.pid /var/run/docker.sock
     fi
-    (dockerd --storage-driver=fuse-overlayfs --host=unix:///var/run/docker.sock &)
+    (dockerd --storage-driver=fuse-overlayfs \
+      --host=unix:///var/run/docker.sock \
+      --insecure-registry ${docker_container.nexus.network_data[0].ip_address}:${var.nexus_registry_port} &) && \
     sleep 5
     /usr/local/bin/jenkins-agent
     EOT

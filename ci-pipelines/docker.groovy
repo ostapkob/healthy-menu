@@ -96,9 +96,9 @@ pipeline {
                     env | grep -E "(POSTGRES|MINIO)" > /tmp/envfile
                     docker run --rm \
                       --env-file /tmp/envfile \
-                      --add-host minio:172.21.0.3 \
-                      --add-host postgres:172.21.0.10 \
-                      --add-host kafka:172.21.0.11 \
+                      --add-host minio:$MINIO_IP \
+                      --add-host postgres:$POSTGRES_IP \
+                      --add-host kafka:$KAFKA_IP \
                       ${TEST_IMAGE}
                 '''
             }

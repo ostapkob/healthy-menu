@@ -1,9 +1,9 @@
 # Для локальной разработки ln -Lf env_example .env ln -Lf env_example admin-backend/.env
-ln -Lf env_example admin-backend/.env
-ln -Lf env_example order-backend/.env
-ln -Lf env_example courier-backend/.env
-ln -Lf env_example migrations/.env
-ln -Lf env_example .env
+ln -f env_example admin-backend/.env
+ln -f env_example order-backend/.env
+ln -f env_example courier-backend/.env
+ln -f env_example migrations/.env
+ln -f env_example .env
 export $(grep -v '^#' .env | xargs)
 
 echo "127.0.0.1       kafka postgres minio" >>  /etc/hosts
@@ -87,7 +87,10 @@ curl -v \
 
 
 # SonarQube
+admin
+admin
 Создать токен и добавить его в Jenkins 
+My Account -> Security -> Global
 
 
 # Argo
@@ -122,19 +125,21 @@ docker volume rm nexus_data
 terraform apply -auto-approve
 ```
 
-
+# Nexus
+make setup-nexus
 
 # TODO
 - [x] Add webhook 
 - [x] SonarQube
 - [x] Argo
-- [ ] Terraform
+- [x] Change .env -> values
+- [x] Terraform
+- [X] Docker in Docker
+- [ ] rename healthy-menu- 
+- [ ] https
 - [ ] Vault HashiCorp
 - [ ] Istio
 - [ ] Fluenbit
 - [ ] Prometheus
 - [ ] Grafana
-- [ ] Docker in Docker
-- [ ] Change .env -> values
-- [ ] rename healthy-menu- 
 
