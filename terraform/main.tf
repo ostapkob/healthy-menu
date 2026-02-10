@@ -535,7 +535,7 @@ resource "docker_container" "jenkins_agent" {
     "sh", "-c",
     <<-EOT
     if ! command -v docker >/dev/null; then
-      apk add --no-cache docker fuse-overlayfs
+      apk add --no-cache docker fuse-overlayfs jq
       rm -f /var/run/docker.pid /var/run/docker.sock
     fi
     (dockerd --storage-driver=fuse-overlayfs \

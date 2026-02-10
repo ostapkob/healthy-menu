@@ -25,10 +25,20 @@ pipeline {
       steps {
         script {
           // Получаем теги и преобразуем в список
-          def tagsOutput = sh(
-            script: "curl -s 'http://nexus:5000/v2/${SERVICE}/tags/list' | jq -r '.tags[]'",
-            returnStdout: true
-          ).trim()
+          // def tagsOutput = sh(
+          //   script: "curl -s 'http://nexus:5000/v2/${SERVICE}/tags/list' | jq -r '.tags[]'",
+          //   returnStdout: true
+          // ).trim()
+          def tagsOutput
+          
+          withCredentials([usernamePassword(credentialsId: 'nexus-cred', 
+                                  passwordVariable: 'NEXUS_PWD', 
+                                  usernameVariable: 'NEXUS_USR')]) {
+            tagsOutput = sh(
+                script: "curl -s -u \$NEXUS_USR:\$NEXUS_PWD 'http://nexus:5000/v2/${SERVICE}/tags/list' | jq -r '.tags[]'",
+                returnStdout: true
+              ).trim()
+          }
           
           // Разбиваем по строкам и фильтруем пустые значения
           def TAGS = tagsOutput.split('\n').findAll { it.trim() }
@@ -60,7 +70,7 @@ pipeline {
             )]) {
               // Используем переменные окружения для безопасной передачи credentials
               sh """
-                GIT_URL="http://${GIT_USER}:${GIT_PASS}@gitlab:8060/ostapkob/healthy-menu-gitops.git"
+                GIT_URL="http://${GIT_USER}:${GIT_PASS}@gitlab:8060/ostapkob/gitops.git"
                 git clone "\${GIT_URL}" "${repoDir}"
               """
             }

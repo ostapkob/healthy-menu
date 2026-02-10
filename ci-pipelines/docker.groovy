@@ -138,7 +138,7 @@ pipeline {
         stage('Push to Nexus') {
             steps {
                 withCredentials([usernamePassword(
-                    credentialsId: 'nexus-docker-creds',
+                    credentialsId: 'nexus-creds',
                     usernameVariable: 'NEXUS_USER',
                     passwordVariable: 'NEXUS_PASS'
                 )]) {

@@ -23,8 +23,8 @@ REPOSITORIES=(
   "order-backend"
   "order-frontend"
   "ci-pipelines"
-  "healthy-menu-gitops"
-  "healthy-menu-infra"
+  "gitops"
+  "infra"
 )
 
 # Only these repos will receive the webhook

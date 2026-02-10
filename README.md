@@ -95,21 +95,27 @@ My Account -> Security -> Global
 
 # Argo
 kubectl create namespace argocd
+kubectl create namespace healthy-menu-dev
 kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
-kubectl port-forward svc/argocd-server -n argocd 8080:443
+kubectl port-forward svc/argocd-server -n argocd 18080:443
 
+argocd admin initial-password -n argocd
+kubectl apply -f argocd-appsets/dev-appset.yaml -n argocd
+
+argocd login localhost:18080 --username admin --password $ARGO_PASSWORD --insecure
+argocd logout localhost:18080
+
+argocd repo add http://host.minikube.internal:8060/ostapkob/infra.git \
+  --username git \
+  --password $GITLAB_ACCESS_TOKEN \
+  --name infra
+
+argocd repo add http://host.minikube.internal:8060/ostapkob/gitops.git \
+  --username git \
+  --password $GITLAB_ACCESS_TOKEN \
+  --name gitops
 
 kubectl apply -f dev/admin-backend/app-admin-backend.yaml -n argocd
-
-argocd repo add http://gitlab:8060/ostapkob/healthy-menu-infra.git \
-  --username git \
-  --password $GITLAB_ACCESS_TOKEN \
-  --name healthy-menu-infra
-
-argocd repo add http://gitlab:8060/ostapkob/healthy-menu-gitops.git \
-  --username git \
-  --password $GITLAB_ACCESS_TOKEN \
-  --name healthy-menu-gitops
 
 # Terraform
 ```
@@ -127,6 +133,14 @@ terraform apply -auto-approve
 
 # Nexus
 make setup-nexus
+
+kubectl create secret docker-registry nexus-creds \
+  --docker-server=nexus:5000 \
+  --docker-username=ostapkob \
+  --docker-password=superpass123 \
+  --docker-email=any@example.com -o yaml > nexus.yaml
+
+
 
 # TODO
 - [x] Add webhook 
