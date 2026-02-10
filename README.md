@@ -97,25 +97,32 @@ My Account -> Security -> Global
 kubectl create namespace argocd
 kubectl create namespace healthy-menu-dev
 kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
-kubectl port-forward svc/argocd-server -n argocd 18080:443
+curl -LO https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/crds/applicationset-crd.yaml
+kubectl apply --server-side --force-conflicts -f applicationset-crd.yaml
+rm  applicationset-crd.yaml
+
+kubectl port-forward --address localhost,192.168.1.163 svc/argocd-server -n argocd 18080:443
 
 argocd admin initial-password -n argocd
-kubectl apply -f argocd-appsets/dev-appset.yaml -n argocd
 
 argocd login localhost:18080 --username admin --password $ARGO_PASSWORD --insecure
 argocd logout localhost:18080
 
-argocd repo add http://host.minikube.internal:8060/ostapkob/infra.git \
+docker network connect app-network minikube
+
+argocd repo add http://gitlab:8060/ostapkob/infra.git \
   --username git \
   --password $GITLAB_ACCESS_TOKEN \
   --name infra
 
-argocd repo add http://host.minikube.internal:8060/ostapkob/gitops.git \
+argocd repo add http://gitlab:8060/ostapkob/gitops.git \
   --username git \
   --password $GITLAB_ACCESS_TOKEN \
   --name gitops
 
-kubectl apply -f dev/admin-backend/app-admin-backend.yaml -n argocd
+kubectl apply -f argocd-appsets/dev-appset.yaml -n argocd
+kubectl delete appset healthy-menu-dev -n argocd
+
 
 # Terraform
 ```
@@ -138,7 +145,7 @@ kubectl create secret docker-registry nexus-creds \
   --docker-server=nexus:5000 \
   --docker-username=ostapkob \
   --docker-password=superpass123 \
-  --docker-email=any@example.com -o yaml > nexus.yaml
+  --docker-email=any@example.com -o yaml > nexus-secret.yaml
 
 
 
@@ -149,11 +156,11 @@ kubectl create secret docker-registry nexus-creds \
 - [x] Change .env -> values
 - [x] Terraform
 - [X] Docker in Docker
-- [ ] rename healthy-menu- 
-- [ ] https
+- [x] rename healthy-menu- 
 - [ ] Vault HashiCorp
 - [ ] Istio
 - [ ] Fluenbit
 - [ ] Prometheus
 - [ ] Grafana
+- [ ] https
 

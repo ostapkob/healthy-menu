@@ -59,8 +59,8 @@ courier-frontend/.gitignore
 order-backend/.gitignore
 order-frontend/.gitignore
 ci-pipelines/.gitignore
-healthy-menu-gitops/.gitignore
-healthy-menu-infra/.gitignore
+gitops/.gitignore
+infra/.gitignore
 
 csv_data/FoodData_Central_foundation_food_csv_2025-12-18
 admin-backend/uv.lock
