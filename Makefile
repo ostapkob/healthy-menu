@@ -1,7 +1,7 @@
-.PHONY: load-data publish push-gitlab setup-gitlab setup-models setup-nexus tmux
+.PHONY: load-data publish push-gitlab setup-gitlab setup-models setup-nexus setup-sonar tmux
 
 load-data:
-	bash scripts/load_data.sh
+	bash scripts/load-data.sh
 
 publish:
 	bash scripts/publish-to-registry.sh
@@ -17,6 +17,9 @@ setup-models:
 
 setup-nexus:
 	bash scripts/setup-nexus.sh
+
+setup-sonar:
+	bash scripts/setup-sonar.sh
 
 tmux:
 	bash scripts/tmux.sh

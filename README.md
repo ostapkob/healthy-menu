@@ -3,6 +3,7 @@ ln -f env_example admin-backend/.env
 ln -f env_example order-backend/.env
 ln -f env_example courier-backend/.env
 ln -f env_example migrations/.env
+ln -f env_example terraform/.env
 ln -f env_example .env
 export $(grep -v '^#' .env | xargs)
 
@@ -89,8 +90,12 @@ curl -v \
 # SonarQube
 admin
 admin
+
 Создать токен и добавить его в Jenkins 
 My Account -> Security -> Global
+
+Administration -> Configuration -> Webhooks
+URL: http://jenkins:8080/sonarqube-webhook/
 
 
 # Argo
@@ -110,6 +115,7 @@ argocd login localhost:18080 --username admin --password $ARGO_PASSWORD --insecu
 argocd logout localhost:18080
 
 docker network connect app-network minikube
+docker network disconnect -f app-network minikube
 
 argocd repo add http://gitlab:8060/ostapkob/infra.git \
   --username git \

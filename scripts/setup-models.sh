@@ -8,6 +8,7 @@ cp admin-backend/shared/database.py migrations/models/database.py
 cp admin-backend/shared/models.py migrations/models/admin_models.py
 cp order-backend/shared/models.py migrations/models/order_models.py
 cp courier-backend/shared/models.py migrations/models/courier_models.py
+rm migrations/versions/*.py
 
 echo "models copied to migrations/models/"
 
