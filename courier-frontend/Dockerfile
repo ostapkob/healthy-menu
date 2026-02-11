@@ -1,11 +1,11 @@
 # Stage 1: Зависимости
-FROM node:20.19.0-alpine as deps
+FROM node:22-alpine AS deps
 WORKDIR /app
 COPY package*.json ./
 RUN npm ci
 
 # Stage 2: Сборка
-FROM node:20-alpine as builder
+FROM node:22-alpine AS builder
 
 # Объявляем ARG в Stage 2
 ARG API_BASE_URL='http://localhost:8003'

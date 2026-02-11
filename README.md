@@ -97,6 +97,7 @@ My Account -> Security -> Global
 kubectl create namespace argocd
 kubectl create namespace healthy-menu-dev
 kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+### Скачиваем свежий манифест CRDs (stable ветка на февраль 2026)
 curl -LO https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/crds/applicationset-crd.yaml
 kubectl apply --server-side --force-conflicts -f applicationset-crd.yaml
 rm  applicationset-crd.yaml

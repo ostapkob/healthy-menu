@@ -1,3 +1,6 @@
+# Tests 
+kubectl run debug --rm -it --image=ghcr.io/curl/curl --restart=Never -- sh
+
 # Установите Minikube если нужно
 minikube start
 
@@ -38,28 +41,17 @@ image: localhost:5000/admin-backend:latest
 # Если registry работает
 ./publish-to-registry.sh
 
-
-# Примените манифесты
-kubectl apply -f k8s/base/namespace.yaml
-kubectl apply -f k8s/base/configmap.yaml
-
 # Test minio
 echo 'host.minikube.internal' > /etc/hosts
 kubectl run -it --rm test --image=alpine -- sh
 apk add --no-cache curl
 curl -v http://host.minikube.internal:9000/healthy-menu-dishes/
 
-# Nexus
-./setup-nexus.sh
-./publish-to-registry.sh
-
-
 # Minikube
 minikube delete
 
 minikube start \
   --insecure-registry="nexus:5000" \
-  --insecure-registry="nix:5000" \
   --insecure-registry="192.168.49.0/24"  # Весь диапазон IP minikube
 
 minikube ssh "echo '192.168.1.163 nexus jenkins gitlab' | sudo tee -a /etc/hosts"

@@ -12,10 +12,13 @@ spec:
     metadata:
       labels:
         app: admin-frontend
+
     spec:
+      imagePullSecrets: 
+         - name: nexus-creds 
       containers:
       - name: admin-frontend
-        image: host.minikube.internal:5000/admin-frontend:1.0.1
+        image: nexus:5000/admin-frontend:124
         imagePullPolicy: Always
         ports:
         - containerPort: 80
