@@ -22,6 +22,8 @@ else
     exit 1
 fi
 
+echo "-----------------GITLAB-----------------"
+
 # Проверяем обязательные переменные
 : "${GITLAB_URL:?Не задана GITLAB_URL}"
 : "${GITLAB_CONTAINER_NAME:?Не задана GITLAB_CONTAINER_NAME}"

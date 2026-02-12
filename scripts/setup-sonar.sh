@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+echo "-----------------SONARQUBE-----------------"
+
 red='\033[0;31m'
 reset='\033[0m'
 ENV="./.env"
@@ -23,7 +25,7 @@ fi
 : "${SONAR_USER_EMAIL:?Не задан SONAR_USER_EMAIL}"
 : "${SONAR_USER_PASS:?Не задан SONAR_USER_PASS}"
 : "${SONAR_TOKEN_NAME:?Не задано SONAR_TOKEN_NAME}"
-: "${JENKINS_WEBHOOK_URL:?Не задан JENKINS_WEBHOOK_URL}"
+: "${SONAR_JENKINS_WEBHOOK_URL:?Не задан SONAR_JENKINS_WEBHOOK_URL}"
 : "${SONAR_HOST:?Не задан SONAR_HOST}"
 : "${SONAR_PORT:?Не задан SONAR_PORT}"
 SONAR_URL="http://${SONAR_HOST}:${SONAR_PORT}"
@@ -34,10 +36,9 @@ EXPIRATION=$(date -d "+2 months" +%Y-%m-%d)
 echo "Дата истечения токенов: ${EXPIRATION}"
 
 # 1. Меняем пароль admin
-# echo "🔄 Меняем ${SONAR_ADMIN}:${SONAR_ADMIN_PASS}"
-# curl -v -u "${SONAR_ADMIN}:${SONAR_ADMIN_PASS}" -X POST \
-#   "${SONAR_URL}/api/users/change_password" \
-#   -d "login=${SONAR_ADMIN}&previousPassword=${SONAR_ADMIN_PASS}&password=${SONAR_ADMIN_NEW_PASS}&password_confirmation=${SONAR_ADMIN_NEW_PASS}"
+echo "🔄 Меняем ${SONAR_ADMIN}:${SONAR_ADMIN_PASS}"
+curl -u admin:admin -X POST "{$SONAR_URL}/api/users/change_password?login=admin&previousPassword=admin&password=${SONAR_ADMIN_NEW_PASS}"
+sleep 1
 
 curl -sS -u "${SONAR_ADMIN}:${SONAR_ADMIN_NEW_PASS}" \
   "${SONAR_URL}/api/authentication/validate" | jq .
@@ -68,13 +69,13 @@ echo "✅ Пароль ${SONAR_USER_LOGIN} подтверждён"
 echo "🔄 Создаём webhook для Jenkins..."
 # Проверяем, существует ли уже webhook с таким URL
 existing_webhooks="$(curl -sS -u "${SONAR_ADMIN}:${SONAR_ADMIN_NEW_PASS}" "${SONAR_URL}/api/webhooks/list")"
-if echo "${existing_webhooks}" | jq -e ".webhooks[] | select(.url == \"${JENKINS_WEBHOOK_URL}\")" >/dev/null 2>&1; then
-  echo "✅ Webhook ${JENKINS_WEBHOOK_URL} уже существует"
+if echo "${existing_webhooks}" | jq -e ".webhooks[] | select(.url == \"${SONAR_JENKINS_WEBHOOK_URL}\")" >/dev/null 2>&1; then
+  echo "✅ Webhook ${SONAR_JENKINS_WEBHOOK_URL} уже существует"
 else
   curl -sS -u "${SONAR_ADMIN}:${SONAR_ADMIN_NEW_PASS}" -X POST \
     "${SONAR_URL}/api/webhooks/create" \
     -d "name=jenkins-webhook" \
-    -d "url=${JENKINS_WEBHOOK_URL}" >/dev/null
+    -d "url=${SONAR_JENKINS_WEBHOOK_URL}" >/dev/null
   echo "✅ Глобальный webhook для Jenkins создан"
 fi
 
@@ -110,6 +111,3 @@ fi
 echo -e "\n🎉 Результаты:"
 echo "SONAR_ADMIN_TOKEN=${admin_token}"
 echo "SONAR_USER_TOKEN=${user_token}"
-echo "JENKINS_WEBHOOK_URL=${JENKINS_WEBHOOK_URL}"
-echo "Истекают токены: ${EXPIRATION}"
-

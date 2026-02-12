@@ -5,9 +5,7 @@ set -o allexport
 source ./.env
 set +o allexport
 
-echo "🔧 Nexus Configuration Script"
-echo "============================="
-
+echo "-----------------NEXUS-----------------"
 
 # Проверяем обязательные переменные
 : "${NEXUS_URL:?Не задана NEXUS_URL}"
