@@ -1,0 +1,10 @@
+commit 6e6cda999740cb98f6515de57c53cee66bbe0ae0
+tree c232f15b6d6307ffaf35223c3ee550432d12b34f
+parent ba3e1cd8dddc5f0a6beeedd67a295d9bd9578075
+author Ostapchenko A. <ostapkob@gmail.com> 2026-02-08 17:17:33 +0500
+committer Ostapchenko A. <ostapkob@gmail.com> 2026-02-08 17:17:33 +0500
+
+    host 2
+
+
+:100644 100644 1a32488947e0de3aa9b6a5d56600d39f659320ca aa2a1a5c2529d1439792d808c7c6556d744b74c8 M	docker.groovy

@@ -39,6 +39,7 @@ pipeline {
         DOCKER_BUILDKIT    = '1'
         // имя установки сканера из Global Tool Configuration
         SONAR_SCANNER_HOME = tool 'SonarScanner'
+        GIT_URL = 'gitlab:80/ostapkob/'
     }
 
     stages {
@@ -55,7 +56,7 @@ pipeline {
 
                     env.SERVICE_NAME = finalService
                     echo "Using SERVICE_NAME=${env.SERVICE_NAME}"
-                    def repoUrl = "http://gitlab:8060/ostapkob/${env.SERVICE_NAME}"
+                    def repoUrl = "http://${GIT_URL}${env.SERVICE_NAME}"
                     git(
                         url: repoUrl,
                         branch: 'master',
@@ -68,7 +69,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 script {
-                    def repoUrl = "http://gitlab:8060/ostapkob/${env.SERVICE_NAME}"
+                    def repoUrl = "http://${GIT_URL}${env.SERVICE_NAME}"
                     git(
                         url: repoUrl,
                         branch: 'master',
@@ -96,9 +97,7 @@ pipeline {
                     env | grep -E "(POSTGRES|MINIO)" > /tmp/envfile
                     docker run --rm \
                       --env-file /tmp/envfile \
-                      --add-host minio:$MINIO_IP \
-                      --add-host postgres:$POSTGRES_IP \
-                      --add-host kafka:$KAFKA_IP \
+                      --network host \
                       ${TEST_IMAGE}
                 '''
             }
@@ -138,7 +137,7 @@ pipeline {
         stage('Push to Nexus') {
             steps {
                 withCredentials([usernamePassword(
-                    credentialsId: 'nexus-creds',
+                    credentialsId: 'nexus-cred',
                     usernameVariable: 'NEXUS_USER',
                     passwordVariable: 'NEXUS_PASS'
                 )]) {

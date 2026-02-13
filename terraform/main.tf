@@ -351,6 +351,9 @@ resource "docker_container" "nexus" {
     retries  = 5
   }
 
+  lifecycle {
+    prevent_destroy = true
+  }
 
   # Nexus требует больше памяти
   cpu_shares  = 1024

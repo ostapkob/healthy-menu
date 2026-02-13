@@ -1,0 +1,7 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<hudson.plugins.gradle.enriched.EnrichedSummaryConfig plugin="gradle@2.18.1203.v2c96b_1243c72">
+  <enrichedSummaryEnabled>false</enrichedSummaryEnabled>
+  <httpClientTimeoutInSeconds>1</httpClientTimeoutInSeconds>
+  <httpClientMaxRetries>3</httpClientMaxRetries>
+  <httpClientDelayBetweenRetriesInSeconds>1</httpClientDelayBetweenRetriesInSeconds>
+</hudson.plugins.gradle.enriched.EnrichedSummaryConfig>

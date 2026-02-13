@@ -1,5 +1,9 @@
 pipeline {
   agent { label 'docker' }
+  environment {
+    GIT_URL = 'gitlab:80/ostapkob/'
+  }
+
   stages {
     stage('Select Service') {
       steps {
@@ -70,8 +74,8 @@ pipeline {
             )]) {
               // Используем переменные окружения для безопасной передачи credentials
               sh """
-                GIT_URL="http://${GIT_USER}:${GIT_PASS}@gitlab:8060/ostapkob/gitops.git"
-                git clone "\${GIT_URL}" "${repoDir}"
+                GIT_FULL_URL="http://${GIT_USER}:${GIT_PASS}@${GIT_URL}/gitops.git"
+                git clone "\${GIT_FULL_URL}" "${repoDir}"
               """
             }
             

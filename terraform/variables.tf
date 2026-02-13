@@ -200,7 +200,7 @@ variable "sonar_postgres_db" {
 variable "sonar_web_port" {
   description = "SonarQube web interface port"
   type        = number
-  default     = 9090
+  default     = 9009
 }
 
 variable "sonar_es_disable_bootstrap_checks" {

@@ -4,10 +4,13 @@
     <smtpPort>25</smtpPort>
     <useSsl>false</useSsl>
     <useTls>false</useTls>
+    <advProperties></advProperties>
     <defaultAccount>true</defaultAccount>
     <useOAuth2>false</useOAuth2>
   </mailAccount>
   <addAccounts/>
+  <charset>UTF-8</charset>
+  <defaultContentType>text/plain</defaultContentType>
   <defaultSubject>$PROJECT_NAME - Build # $BUILD_NUMBER - $BUILD_STATUS!</defaultSubject>
   <defaultBody>$PROJECT_NAME - Build # $BUILD_NUMBER - $BUILD_STATUS:
 
@@ -20,7 +23,9 @@ Check console output at $BUILD_URL to view the results.</defaultBody>
   <maxAttachmentSize>-1</maxAttachmentSize>
   <recipientList></recipientList>
   <defaultReplyTo></defaultReplyTo>
+  <allowedDomains></allowedDomains>
   <excludedCommitters></excludedCommitters>
+  <listId></listId>
   <precedenceBulk>false</precedenceBulk>
   <debugMode>false</debugMode>
   <requireAdminForTemplateTesting>false</requireAdminForTemplateTesting>

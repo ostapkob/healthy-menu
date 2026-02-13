@@ -63,11 +63,11 @@ while true; do
             break
         fi
     fi
-    
+
     sleep 10
     COUNTER=$((COUNTER + 10))
     echo -e "${green}   Waiting... ${COUNTER}s${reset}"
-    
+
     if [ $COUNTER -ge $MAX_WAIT ]; then
         echo -e "${red}❌ GitLab didn't start in ${MAX_WAIT} seconds${reset}"
         echo -e "${red}   Check logs: docker logs ${GITLAB_CONTAINER_NAME}${reset}"
@@ -155,15 +155,22 @@ if [ -z "${USER_TOKEN}" ] || [ "${USER_TOKEN}" = "null" ]; then
 fi
 echo -e "${green}✅ Token for ${GITLAB_USER} created${reset}"
 
+# Шаг 6: Добавляем jenkins в whitelist
+echo -e "${green}🌐 Add jenkins в whitelist...${reset}"
+docker exec -it "${GITLAB_CONTAINER_NAME}" gitlab-rails runner "
+  settings = ApplicationSetting.current;
+  settings.update!(
+    allow_local_requests_from_web_hooks_and_services: true,
+    outbound_local_requests_whitelist: ['jenkins:8080']
+  )"
+
+
 # Финал
 echo -e "${green}🎉 GitLab configuration complete!${reset}"
 echo -e "${green}🌐 URL: ${pink}${GITLAB_URL}${reset}"
 echo -e "${green}👤 Root: root / ${GITLAB_ROOT_PASSWORD}${reset}"
 echo -e "${green}👤 User: ${GITLAB_USER} / ${GITLAB_PASSWORD}${reset}"
-echo -e "${green}🔑 Root token: ${pink}${ROOT_TOKEN}${reset}"
-echo -e "${green}🔑 User token: ${pink}${USER_TOKEN}${reset}"
-echo ""
+echo -e "${green}🔑 GITLAB_ROOT_TOKEN=${pink}${ROOT_TOKEN}${reset}"
+echo -e "${green}🔑 GITLAB_ACCESS_TOKEN=${pink}${USER_TOKEN}${reset}"
 echo -e "${green}📋 Save these tokens for future use:${reset}"
-echo "GITLAB_ROOT_TOKEN=${ROOT_TOKEN}"
-echo "GITLAB_ACCESS_TOKEN=${USER_TOKEN}"
 
