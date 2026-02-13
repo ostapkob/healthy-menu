@@ -1,11 +1,14 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-echo "-----------------SONARQUBE-----------------"
 
+pink='\033[1;35m'
+green='\033[0;32m'
 red='\033[0;31m'
 reset='\033[0m'
 ENV="./.env"
+
+echo -e "${pink}-----------------SONARQUBE-----------------${reset}"
 
 if [ -f "${ENV}" ]; then
     set -o allexport
@@ -87,8 +90,8 @@ resp_admin="$(curl -sS -u "${SONAR_ADMIN}:${SONAR_ADMIN_NEW_PASS}" \
   -H "Content-Type: application/x-www-form-urlencoded" \
   -d "${DATA}")"
 
-admin_token="$(printf '%s\n' "${resp_admin}" | jq -r '.token')"
-if [[ "${admin_token}" == "null" || -z "${admin_token}" ]]; then
+ADMIN_TOKEN="$(printf '%s\n' "${resp_admin}" | jq -r '.token')"
+if [[ "${ADMIN_TOKEN}" == "null" || -z "${ADMIN_TOKEN}" ]]; then
   echo "❌ Ошибка токена admin: ${resp_admin}"
   exit 1
 fi
@@ -101,13 +104,19 @@ resp_user="$(curl -sS -u "${SONAR_USER_LOGIN}:${SONAR_USER_PASS}" \
   -H "Content-Type: application/x-www-form-urlencoded" \
   -d "${DATA}")"
 
-user_token="$(printf '%s\n' "${resp_user}" | jq -r '.token')"
-if [[ "${user_token}" == "null" || -z "${user_token}" ]]; then
+USER_TOKEN="$(printf '%s\n' "${resp_user}" | jq -r '.token')"
+if [[ "${USER_TOKEN}" == "null" || -z "${USER_TOKEN}" ]]; then
   echo "❌ Ошибка токена user: ${resp_user}"
   exit 1
 fi
 
+
+# Замена
+sed -i -E "s/^SONAR_ADMIN_TOKEN=.*/SONAR_ADMIN_TOKEN=${ADMIN_TOKEN//\//\\/}/" "$ENV"
+sed -i -E "s/^SONAR_ADMIN_TOKEN=.*/SONAR_ADMIN_TOKEN=${USER_TOKEN//\//\\/}/" "$ENV"
+
+ 
 # Вывод результатов
 echo -e "\n🎉 Результаты:"
-echo "SONAR_ADMIN_TOKEN=${admin_token}"
-echo "SONAR_USER_TOKEN=${user_token}"
+echo -e "${green}🔑 SONAR_ADMIN_TOKEN=${pink}${ADMIN_TOKEN}${reset}"
+echo -e "${green}🔑 SONAR_USER_TOKEN=${pink}${USER_TOKEN}${reset}"

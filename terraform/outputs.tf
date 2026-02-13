@@ -1,13 +1,3 @@
-output "postgres_connection" {
-  description = "PostgreSQL connection details"
-  value = {
-    host     = "localhost"
-    port     = 5432
-    database = var.postgres_db
-    user     = var.postgres_user
-  }
-  sensitive = true
-}
 
 output "minio_connection" {
   description = "MinIO connection details"
@@ -33,9 +23,6 @@ output "gitlab_connection" {
   value = {
     web_url          = "${var.gitlab_external_url}:${var.gitlab_http_port}"
     ssh_url          = "ssh://git@127.0.0.1:${var.gitlab_ssh_port}"
-    initial_password = "docker exec gitlab cat /etc/gitlab/initial_root_password"
-    logs             = "docker logs -f gitlab"
-    status           = "docker exec gitlab gitlab-ctl status"
   }
   sensitive = false
 }
@@ -45,8 +32,6 @@ output "nexus_connection" {
   value = {
     web_url          = "http://localhost:${var.nexus_host_port}"
     registry_url     = "localhost:${var.nexus_registry_port}"
-    initial_password = "docker exec nexus cat /nexus-data/admin.password"
-    logs             = "docker logs -f nexus"
   }
   sensitive = false
 }
@@ -55,7 +40,7 @@ output "docker_network" {
   description = "Docker network details"
   value = {
     name   = docker_network.app_network.name
-    subnet = "172.21.0.0/24"
+    subnet = "172.21.0.0/24" # Изменён подсеть для избежания конфликтов
   }
   sensitive = false
 }
@@ -76,6 +61,36 @@ output "sonarqube_connection" {
     api_status   = "http://localhost:${var.sonar_web_port}/api/system/status"
     logs_command = "docker logs -f sonarqube"
   }
+  sensitive = true
+}
+
+
+
+locals {
+  env_path = "${path.module}/../.env"
+  env_text = file(local.env_path)
+  matched_lines = [
+    for l in split("\n", local.env_text) : trimspace(l) # Используем trimspace вместо trim
+    if trimspace(l) != "" && (
+      can(regex("^GITLAB_ROOT_TOKEN", l)) ||
+      can(regex("^GITLAB_ACCESS_TOKEN", l)) ||
+      can(regex("^SONAR_USER_TOKEN", l)) ||
+      can(regex("^SONAR_ADMIN_TOKEN", l))
+    )
+  ]
+  matched_map = {
+    for pair in local.matched_lines :
+    split("=", pair)[0] => (length(split("=", pair)) > 1 ? join("=", slice(split("=", pair), 1, length(split("=", pair)))) : "")
+  }
+}
+
+output "env_matched_lines" {
+  value = local.matched_lines
+  depends_on = [terraform_data.bootstrap] # outputs ignore depends_on at plan, but keeps intent
+}
+
+output "env_matched_map" {
+  value     = local.matched_map
   sensitive = true
 }
 

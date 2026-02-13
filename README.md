@@ -99,6 +99,7 @@ URL: http://jenkins:8080/sonarqube-webhook/
 
 
 # Argo
+minikube start --insecure-registry="nexus:5000" --insecure-registry="192.168.1.193/24"
 kubectl create namespace argocd
 kubectl create namespace healthy-menu-dev
 kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
@@ -106,6 +107,7 @@ kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/st
 curl -LO https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/crds/applicationset-crd.yaml
 kubectl apply --server-side --force-conflicts -f applicationset-crd.yaml
 rm  applicationset-crd.yaml
+kubectl get crd | grep argoproj.io
 
 kubectl port-forward --address localhost,192.168.1.163 svc/argocd-server -n argocd 18080:443
 
@@ -117,12 +119,12 @@ argocd logout localhost:18080
 docker network connect app-network minikube
 docker network disconnect -f app-network minikube
 
-argocd repo add http://gitlab:8060/ostapkob/infra.git \
+argocd repo add http://gitlab:80/ostapkob/infra.git \
   --username git \
   --password $GITLAB_ACCESS_TOKEN \
   --name infra
 
-argocd repo add http://gitlab:8060/ostapkob/gitops.git \
+argocd repo add http://gitlab:80/ostapkob/gitops.git \
   --username git \
   --password $GITLAB_ACCESS_TOKEN \
   --name gitops

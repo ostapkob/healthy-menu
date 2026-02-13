@@ -22,7 +22,7 @@ else
     exit 1
 fi
 
-echo "-----------------GITLAB-----------------"
+echo -e "${pink}-----------------GITLAB-----------------${reset}"
 
 # Проверяем обязательные переменные
 : "${GITLAB_URL:?Не задана GITLAB_URL}"
@@ -33,8 +33,6 @@ echo "-----------------GITLAB-----------------"
 : "${GITLAB_PASSWORD:?Не задана GITLAB_PASSWORD}"
 : "${GITLAB_ROOT_PASSWORD:?Не задана GITLAB_ROOT_PASSWORD}"
 
-echo -e "${green}🔧 GitLab Configuration Script${reset}"
-echo -e "${green}============================${reset}"
 echo -e "${green}URL: ${pink}${GITLAB_URL}${reset}"
 echo -e "${green}Container: ${pink}${GITLAB_CONTAINER_NAME}${reset}"
 echo -e "${green}User: ${pink}${GITLAB_USER}${reset}"
@@ -164,6 +162,10 @@ docker exec -it "${GITLAB_CONTAINER_NAME}" gitlab-rails runner "
     outbound_local_requests_whitelist: ['jenkins:8080']
   )"
 
+
+# Замена
+sed -i -E "s/^GITLAB_ROOT_TOKEN=.*/GITLAB_ROOT_TOKEN=${ROOT_TOKEN//\//\\/}/" "$ENV"
+sed -i -E "s/^GITLAB_ACCESS_TOKEN=.*/GITLAB_ACCESS_TOKEN=${USER_TOKEN//\//\\/}/" "$ENV"
 
 # Финал
 echo -e "${green}🎉 GitLab configuration complete!${reset}"

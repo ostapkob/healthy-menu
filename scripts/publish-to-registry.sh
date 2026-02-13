@@ -4,156 +4,90 @@ set -o allexport
 source ./.env
 set +o allexport
 
-# Настройки
-echo "NEXUS_WEB_URL: $NEXUS_WEB_URL"
- 
+NEXUS_WEB_URL=$NEXUS_HOST:$NEXUS_PORT
 TAG=${1:-latest}
 
-echo "Используем тег: $TAG"
+echo "🚀 Реестр: $NEXUS_REGISTRY_URL | Тег: $TAG"
 
-# Проверка доступности Nexus
-echo "Проверка доступности Nexus..."
-if ! curl -s --head $NEXUS_WEB_URL > /dev/null; then
+# Проверка Nexus
+if ! curl -s --head --connect-timeout 5 "$NEXUS_WEB_URL" > /dev/null; then
     echo "❌ Nexus не доступен на $NEXUS_WEB_URL"
-    echo "Запустите Nexus: docker compose up -d nexus"
     exit 1
 fi
 
-# Проверка доступа к Docker реестру Nexus
-echo "Проверка Docker реестра Nexus..."
-if ! curl -s --head $NEXUS_REGISTRY_URL > /dev/null; then
-    echo "❌ Docker реестр Nexus не доступен на $NEXUS_REGISTRY_URL"
-    exit 1
-fi
+echo "🔐 Логин в Nexus..."
+echo "$NEXUS_USER_PASSWORD" | docker login -u "$NEXUS_USER_NAME" --password-stdin "$NEXUS_REGISTRY_URL" || exit 1
 
-echo "Логин в Nexus..."
-echo $NEXUS_PASSWORD | docker login -u $NEXUS_USER --password-stdin $NEXUS_REGISTRY_URL
-# echo $NEXUS_PASSWORD  $NEXUS_USER  $NEXUS_REGISTRY_URL
-
-if [ $? -ne 0 ]; then
-    echo "❌ Ошибка логина в Nexus"
-    echo "Проверьте:"
-    echo "1. Правильность пароля"
-    echo "2. Аутентификацию в Nexus (Settings > Security > Anonymous Access)"
-    exit 1
-fi
-
-echo "✅ Успешный логин в Nexus"
-
-# Аргументы сборки для каждого сервиса
-# FIX http
+# Аргументы сборки
 declare -A BUILD_ARGS=(
-    ["admin-frontend"]="--build-arg API_BASE_URL=http://healthy-menu.local/api/admin --build-arg SVELTEKIT_BASEPATH='/admin'" 
-    ["order-frontend"]="--build-arg API_BASE_URL=http://healthy-menu.local/api/order --build-arg SVELTEKIT_BASEPATH='/order'" 
-    ["courier-frontend"]="--build-arg API_BASE_URL=http://healthy-menu.local/api/courier --build-arg SVELTEKIT_BASEPATH='/courier' --build-arg WEB_SOCKET_URL=ws://healthy-menu.local/api/courier"
-    ["admin-backend"]=""
-    ["order-backend"]=""
-    ["courier-backend"]=""
+    ["admin-frontend"]="--build-arg API_BASE_URL=http://healthy-menu.local --build-arg SVELTEKIT_BASEPATH=/admin" 
+    ["order-frontend"]="--build-arg API_BASE_URL=http://healthy-menu.local --build-arg SVELTEKIT_BASEPATH=/order" 
+    ["courier-frontend"]="--build-arg API_BASE_URL=http://healthy-menu.local --build-arg SVELTEKIT_BASEPATH=/courier --build-arg WEB_SOCKET_URL=ws://healthy-menu.local/api/courier"
 )
 
-# Все сервисы с путями
+# Все сервисы теперь ищутся в одноименных папках
 declare -a SERVICES=(
-    "admin-frontend   ./frontend/admin-healthy-menu"
-    "order-frontend   ./frontend/order-healthy-menu"
-    "courier-frontend ./frontend/courier-healthy-menu"
-    "admin-backend    ./backend ./backend/admin/Dockerfile"
-    "order-backend    ./backend ./backend/order/Dockerfile"
-    "courier-backend  ./backend ./backend/courier/Dockerfile"
+    "admin-frontend"
+    "order-frontend"
+    "courier-frontend"
+    "admin-backend"
+    "order-backend"
+    "courier-backend"
 )
-
-echo "🚀 Publishing to $NEXUS_REGISTRY_URL"  # Исправлено: было $EGISTRY
-echo "============================="
 
 success=0
 fail=0
 
-# Функция для очистки при прерывании
-cleanup() {
-    echo ""
-    echo "Прерывание операции..."
-    docker logout $NEXUS_REGISTRY_URL
-    exit 1
-}
-trap cleanup INT TERM
+trap 'docker logout $NEXUS_REGISTRY_URL; exit 1' INT TERM
 
-for item in "${SERVICES[@]}"; do
-    read -r name context dockerfile <<< "$item"
-    
-    echo "=== $name ==="
-    
-    # Если dockerfile не указан, используем стандартный
-    if [ -z "$dockerfile" ]; then
-        dockerfile="$context/Dockerfile"
-    fi
-    
-    # Проверяем существование файлов
-    if [ ! -d "$context" ]; then
-        echo "❌ Context directory not found: $context"
-        ((fail++))
-        continue
-    fi
-    
+for name in "${SERVICES[@]}"; do
+    context="./$name"
+    dockerfile="$context/Dockerfile"
+    full_image="$NEXUS_REGISTRY_URL/$name:$TAG"
+    args=${BUILD_ARGS[$name]}
+
+    echo "=== [ $name ] ==="
+
     if [ ! -f "$dockerfile" ]; then
-        echo "❌ Dockerfile not found: $dockerfile"
+        echo "❌ Ошибка: Файл $dockerfile не найден"
         ((fail++))
         continue
     fi
+
+    # Вывод и выполнение команды сборки
+    echo "📦 Подготовка сборки..."
     
-    # Получаем аргументы сборки для этого сервиса
-    ARGS="${BUILD_ARGS[$name]}"
+    build_params=($args) 
     
-    # Формируем и выполняем команду сборки
-    BUILD_CMD="docker build $ARGS -t $NEXUS_REGISTRY_URL/$name:$TAG -f $dockerfile $context"
+    echo "$ docker build ${build_params[@]} -t $full_image -f $dockerfile $context"
     
-    echo "\$ $BUILD_CMD"
-    # Сборка
-    if eval "$BUILD_CMD"; then  # Убрал > /dev/null 2>&1 для отладки
-        echo "  ✅ Built"
+    if docker build "${build_params[@]}" -t "$full_image" -f "$dockerfile" "$context"; then
+        echo "✅ Сборка OK"
     else
-        echo "❌ Build failed"
+        echo "❌ Ошибка сборки"
         ((fail++))
         continue
     fi
+
+    # Вывод и выполнение команды отправки
+    echo "🚀 Отправка в реестр..."
+    echo "$ docker push $full_image"
     
-    # Проверяем, что образ создался
-    if ! docker image inspect "$NEXUS_REGISTRY_URL/$name:$TAG" &> /dev/null; then
-        echo "❌ Образ не найден после сборки: $NEXUS_REGISTRY_URL/$name:$TAG"
-        ((fail++))
-        continue
-    fi
-    
-    # Публикация
-    PUBLISH_CMD="docker push $NEXUS_REGISTRY_URL/$name:$TAG"
-    echo "\$ $PUBLISH_CMD"
-    if eval "$PUBLISH_CMD"; then  # Убрал > /dev/null 2>&1 для отладки
-        echo "  ✅ Published"
+    if docker push "$full_image"; then
+        echo "✅ Опубликовано"
         ((success++))
     else
-        echo "❌ Push failed"
-        echo "Возможные причины:"
-        echo "1. Docker не настроен на работу с insecure registry"
-        echo "2. Nexus не разрешает push в репозиторий"
-        echo "3. Проблемы с сетью"
+        echo "❌ Ошибка push"
         ((fail++))
     fi
-    
     echo ""
 done
 
-docker logout $NEXUS_REGISTRY_URL
+docker logout "$NEXUS_REGISTRY_URL"
 
 echo "======================================="
-echo "📊 Results: $success published, $fail failed"
+echo "📊 Итог: $success ок, $fail ошибок"
 echo "======================================="
 
-if [ $fail -eq 0 ]; then
-    echo "🎉 Success!"
-else
-    echo "⚠️  Some images failed to publish"
-    exit 1
-fi
-
-
-
-
+[ $fail -eq 0 ] || exit 1
 

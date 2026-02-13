@@ -1,11 +1,23 @@
 #!/bin/bash
 set -e
 
-set -o allexport
-source ./.env
-set +o allexport
+pink='\033[1;35m'
+green='\033[0;32m'
+red='\033[0;31m'
+reset='\033[0m'
 
-echo "-----------------NEXUS-----------------"
+ENV="./.env"
+
+if [ -f "${ENV}" ]; then
+    set -o allexport
+    source "${ENV}"
+    set +o allexport
+else
+    echo -e "${red}❌ Ошибка: файл ${ENV} не найден!${reset}"
+    exit 1
+fi
+
+echo -e "${pink}-----------------NEXUS-----------------${reset}"
 
 # Проверяем обязательные переменные
 : "${NEXUS_URL:?Не задана NEXUS_URL}"
@@ -104,7 +116,6 @@ else
     echo "📝 Initial password: ${INITIAL_PASS}"
 fi
 
-echo ""
 echo "🔧 Starting configuration..."
 
 # 1. Включаем Docker Bearer Token Realm
@@ -115,7 +126,6 @@ nexus_api "admin" "$INITIAL_PASS" "PUT" "/service/rest/v1/security/realms/active
 ]' || echo "   ℹ️  May already be configured"
 
 # 2. Создаём Docker hosted репозиторий
-echo ""
 echo "2. Creating Docker hosted repository..."
 nexus_api "admin" "$INITIAL_PASS" "POST" "/service/rest/v1/repositories/docker/hosted" '{
   "name": "docker-hosted",
@@ -133,7 +143,6 @@ nexus_api "admin" "$INITIAL_PASS" "POST" "/service/rest/v1/repositories/docker/h
 }' || echo "   ℹ️  May already exist"
 
 # 3. Создаём Helm hosted репозиторий
-echo ""
 echo "3. Creating Helm hosted repository..."
 nexus_api "admin" "$INITIAL_PASS" "POST" "/service/rest/v1/repositories/helm/hosted" '{
   "name": "helm-hosted",
@@ -179,7 +188,6 @@ else
 fi
 
 # 5. Создаём дополнительного пользователя
-echo ""
 echo "5. Creating user '${NEXUS_USER_NAME}'..."
 nexus_api "admin" "$CURRENT_ADMIN_PASS" "POST" "/service/rest/v1/security/users" "{
   \"userId\": \"${NEXUS_USER_NAME}\",
@@ -192,7 +200,6 @@ nexus_api "admin" "$CURRENT_ADMIN_PASS" "POST" "/service/rest/v1/security/users"
 }" || echo "   ℹ️  User may already exist"
 
 # 6. Проверяем создание пользователя
-echo ""
 echo "6. Verifying configuration..."
 if curl -s -u "admin:${CURRENT_ADMIN_PASS}" \
     "${NEXUS_URL}/service/rest/v1/security/users" \
