@@ -1,31 +1,18 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: healthy-menu-ingress
+  name: healthy-menu-frontend-ingress
+  namespace: healthy-menu-dev
   annotations:
-    # Явно указываем, что делать с префиксом /admin
-    # $2 означает вторую группу захвата в регулярном выражении
-    # path: /admin(/|$)(.*) -> regexp: ^(/admin)(.*) -> $1=/admin, $2=оставшаяся_часть_пути
-    # rewrite-target: /$2 -> удаляем /admin, оставляем остальное
+    nginx.ingress.kubernetes.io/use-regex: "true"
     nginx.ingress.kubernetes.io/rewrite-target: /$2
-    # Аннотации для WebSocket
-    # nginx.ingress.kubernetes.io/configuration-snippet: |
-    #   proxy_read_timeout 86400s;
-    #   proxy_send_timeout 86400s;
-    #   proxy_connect_timeout 86400s;
-    #   proxy_set_header Upgrade $http_upgrade;
-    #   proxy_set_header Connection "upgrade";
-    #   proxy_set_header Host $host;
-    #   proxy_set_header X-Real-IP $remote_addr;
-    #   proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    #   proxy_set_header X-Forwarded-Proto $scheme;
 spec:
   rules:
   - host: healthy-menu.local
     http:
       paths:
-      - path: /admin(/|$)(.*) # Обновляем путь для регулярного выражения, захватываем /
-        pathType: ImplementationSpecific # Обязательно для rewrite-target
+      - path: /admin(/|$)(.*)
+        pathType: ImplementationSpecific
         backend:
           service:
             name: admin-frontend
@@ -45,24 +32,38 @@ spec:
             name: courier-frontend
             port:
               number: 80
-      - path: /api/admin(/|$)(.*)
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: healthy-menu-api-ingress
+  namespace: healthy-menu-dev
+  annotations:
+    nginx.ingress.kubernetes.io/use-regex: "true"
+spec:
+  rules:
+  - host: healthy-menu.local
+    http:
+      paths:
+      - path: /api/v1/admin(/|$)(.*)
         pathType: ImplementationSpecific
         backend:
           service:
             name: admin-backend
             port:
               number: 8000
-      - path: /api/order(/|$)(.*)
+      - path: /api/v1/order(/|$)(.*)
         pathType: ImplementationSpecific
         backend:
           service:
             name: order-backend
             port:
               number: 8000
-      - path: /api/courier(/|$)(.*)
+      - path: /api/v1/courier(/|$)(.*)
         pathType: ImplementationSpecific
         backend:
           service:
             name: courier-backend
             port:
               number: 8000
+

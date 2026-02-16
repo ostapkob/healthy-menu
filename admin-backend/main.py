@@ -21,9 +21,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(tech.router)
-app.include_router(dishes.router)
-app.include_router(foods.router)
+API_PREFIX = "/api/v1/admin"
+
+app.include_router(tech.router, prefix=API_PREFIX)
+app.include_router(dishes.router, prefix=API_PREFIX)
+app.include_router(foods.router, prefix=API_PREFIX)
+
 
 
 @app.get("/health")

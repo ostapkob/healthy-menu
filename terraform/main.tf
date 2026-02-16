@@ -19,8 +19,8 @@ provider "docker" {
 
 # Общая сеть для всех сервисов
 resource "docker_network" "app_network" {
-  name            = "app-network"
-  driver          = "bridge"
+  name   = "app-network"
+  driver = "bridge"
 
   ipam_config {
     subnet = "172.21.0.0/24" # Изменён подсеть для избежания конфликтов
@@ -30,6 +30,9 @@ resource "docker_network" "app_network" {
   lifecycle {
     create_before_destroy = true
     prevent_destroy       = false # Можно временно поставить true для отладки
+    ignore_changes = [
+      ipam_config # предотвратит "forces replacement"    ]
+    ]
   }
 }
 
@@ -373,43 +376,43 @@ resource "docker_volume" "gitlab_data" {
   name = "gitlab_data"
 }
 resource "docker_image" "gitlab" {
-  name = "gitlab/gitlab-ce:latest"
+  name         = "gitlab/gitlab-ce:latest"
   keep_locally = true
 }
 resource "docker_container" "gitlab" {
-  name = "gitlab"
-  image = docker_image.gitlab.image_id
+  name    = "gitlab"
+  image   = docker_image.gitlab.image_id
   restart = "always"
   ports {
-    internal = 80 
+    internal = 80
     external = var.gitlab_http_port
-    ip = "0.0.0.0"
+    ip       = "0.0.0.0"
   }
   ports {
     internal = 22
     external = var.gitlab_ssh_port
-    ip = "0.0.0.0"
+    ip       = "0.0.0.0"
   }
   volumes {
-    volume_name = docker_volume.gitlab_config.name
+    volume_name    = docker_volume.gitlab_config.name
     container_path = "/etc/gitlab"
   }
   volumes {
-    volume_name = docker_volume.gitlab_logs.name
+    volume_name    = docker_volume.gitlab_logs.name
     container_path = "/var/log/gitlab"
   }
   volumes {
-    volume_name = docker_volume.gitlab_data.name
+    volume_name    = docker_volume.gitlab_data.name
     container_path = "/var/opt/gitlab"
   }
   # shared memory (256mb)
   shm_size = 1024 * 1024 * 256
   networks_advanced {
-    name = docker_network.app_network.name
+    name    = docker_network.app_network.name
     aliases = ["gitlab"]
   }
   env = [
-  <<EOT
+    <<EOT
 GITLAB_OMNIBUS_CONFIG=<<-INNER
   external_url 'http://localhost:${var.gitlab_http_port}'
   gitlab_rails['gitlab_shell_ssh_port'] = ${var.gitlab_ssh_port}
@@ -419,15 +422,15 @@ GITLAB_OMNIBUS_CONFIG=<<-INNER
   gitlab_rails['time_zone'] = 'UTC'
 INNER
 EOT
-]
-  cpu_shares = 2048
-  memory = var.gitlab_memory_limit * 1024 * 1024
+  ]
+  cpu_shares  = 2048
+  memory      = var.gitlab_memory_limit * 1024 * 1024
   memory_swap = var.gitlab_memory_limit * 1024 * 1024 * 2
   healthcheck {
-    test = ["CMD-SHELL", "curl --fail --silent http://localhost/-/health || exit 1"]
-    interval = "30s"
-    timeout = "10s"
-    retries = 8
+    test         = ["CMD-SHELL", "curl --fail --silent http://localhost/-/health || exit 1"]
+    interval     = "30s"
+    timeout      = "10s"
+    retries      = 8
     start_period = "300s"
   }
 }
@@ -515,7 +518,7 @@ resource "docker_container" "sonarqube" {
 
   healthcheck {
     # Проверяем, что в ответе есть статус "UP"
-    test = ["CMD-SHELL", "wget -qO- http://localhost:9000/api/system/status | grep -q 'UP' || exit 1"]
+    test         = ["CMD-SHELL", "wget -qO- http://localhost:9000/api/system/status | grep -q 'UP' || exit 1"]
     interval     = "30s"
     timeout      = "10s"
     retries      = 10
@@ -666,17 +669,17 @@ resource "docker_container" "jenkins_agent" {
 resource "terraform_data" "bootstrap" {
   # Список зависимостей
   depends_on = [
-    docker_container.jenkins, 
-    docker_container.postgres, 
-    docker_container.nexus, 
-    docker_container.minio, 
+    docker_container.jenkins,
+    docker_container.postgres,
+    docker_container.nexus,
+    docker_container.minio,
     docker_container.gitlab,
     docker_container.sonarqube
   ]
 
   provisioner "local-exec" {
     # Указываем папку, где лежат ваши Makefile, вместо "cd .."
-    working_dir = "${path.module}/.." 
+    working_dir = "${path.module}/.."
 
     command = <<EOT
       # Функция ожидания здоровья контейнера
