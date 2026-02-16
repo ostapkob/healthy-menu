@@ -1,18 +1,19 @@
-<!-- src/routes/my-deliveries/+page.svelte -->
 <script>
   import { onMount } from 'svelte';
 
   let deliveries = [];
   const courierId = 1;
-  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8003';
+  // const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8003';
+  const API_BASE_URL = window.location.origin;
+
 
   onMount(async () => {
-    const response = await fetch(`${API_BASE_URL}/my-deliveries/${courierId}`);
+    const response = await fetch(`${API_BASE_URL}/api/v1/courier/deliveries/my-deliveries/${courierId}`);
     deliveries = await response.json();
   });
 
   const updateStatus = async (deliveryId, newStatus) => {
-    const response = await fetch(`${API_BASE_URL}/update-delivery-status/${deliveryId}?status=${newStatus}`, {
+    const response = await fetch(`${API_BASE_URL}/api/v1/courier/deliveries/update-delivery-status/${deliveryId}?status=${newStatus}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status: newStatus })

@@ -1,9 +1,10 @@
-<!-- src/components/OrderCard.svelte -->
 <script>
     import { courierId } from '../stores/courier.js';
 
     export let order;
-    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8003';
+    // const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8003';
+    const API_BASE_URL = window.location.origin;
+
 
     let isAccepting = false; // для отображения состояния
 
@@ -14,7 +15,7 @@
         await new Promise(resolve => setTimeout(resolve, 500));
 
         try {
-            const response = await fetch(`${API_BASE_URL}/assign-delivery/`, {
+            const response = await fetch(`${API_BASE_URL}/api/v1/courier/deliveries/assign-delivery/`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

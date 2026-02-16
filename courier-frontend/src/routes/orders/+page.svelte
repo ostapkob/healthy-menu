@@ -3,8 +3,10 @@
   import { onMount, onDestroy } from 'svelte';
   import OrderCard from '../../components/OrderCard.svelte';
 
-  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8003';
-  const WEB_SOCKET_URL = import.meta.env.VITE_WEB_SOCKET_URL || 'ws://localhost:8003';
+  // const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8003';
+  // const WEB_SOCKET_URL = import.meta.env.VITE_WEB_SOCKET_URL || 'ws://localhost:8003';
+  const WEB_SOCKET_URL = `${window.location.origin.replace(/^http/, 'ws')}`;  // Автоматически ws:// для http, wss:// для https
+  const API_BASE_URL = window.location.origin;
   const courierId = 1;
 
   let orders = [];
@@ -12,11 +14,11 @@
 
   onMount(async () => {
     // Получаем начальные заказы
-    const response = await fetch(`${API_BASE_URL}/available-orders/`);
+    const response = await fetch(`${API_BASE_URL}/api/v1/courier/orders/available-orders/`);
     orders = await response.json();
 
     // Подключаемся к WebSocket
-    ws = new WebSocket(`${WEB_SOCKET_URL}/ws/${courierId}`);
+    ws = new WebSocket(`${WEB_SOCKET_URL}/api/v1/courier/ws/${courierId}`);
 
     ws.onopen = () => console.log('WebSocket connected');
     ws.onclose = () => console.log('WebSocket disconnected');
@@ -27,7 +29,7 @@
       if (data.type === 'new_order') {
         // 🔁 Запрашиваем **полные данные** нового заказа
         try {
-          const orderRes = await fetch(`${API_BASE_URL}/available-orders/`);
+          const orderRes = await fetch(`${API_BASE_URL}/api/v1/courier/orders/available-orders/`);
           const allOrders = await orderRes.json();
 
           // Находим только что появившийся заказ

@@ -2,13 +2,16 @@
   import { base } from '$app/paths';
   import { theme, setTheme } from '$lib/theme.js';
   import { onMount } from 'svelte';
-  import '../app.css'; 
-  
-  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8003';
+  import '../app.css';
+
+  // const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8003';
+  const API_BASE_URL = window.location.origin;
+
+
 
   let mounted = false;
   let sidebarOpen = false;
-  
+
   onMount(() => mounted = true);
 
   const toggleTheme = () => {
@@ -27,7 +30,7 @@
   let courierPhoto = null;
 
   onMount(async () => {
-    const res = await fetch(`${API_BASE_URL}/couriers/1`);
+    const res = await fetch(`${API_BASE_URL}/api/v1/courier/couriers/1`);
     const data = await res.json();
     courierName = data.name;
     courierStatus = data.status;
@@ -38,21 +41,21 @@
 <div class="flex min-h-screen bg-base-100">
   <!-- Mobile Menu Overlay -->
   {#if sidebarOpen}
-    <div 
-      class="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden" 
+    <div
+      class="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
       on:click={toggleSidebar}
       aria-hidden="true"
     ></div>
   {/if}
 
   <!-- Sidebar -->
-  <aside 
+  <aside
     class="fixed lg:static inset-y-0 left-0 z-50 w-64 bg-base-200 flex flex-col border-r border-base-300 transform transition-transform duration-300 ease-in-out lg:transform-none lg:transition-none {sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0"
     role="navigation"
     aria-label="Основная навигация"
   >
     <!-- Mobile Close Button -->
-    <button 
+    <button
       class="lg:hidden absolute top-4 right-4 btn btn-ghost btn-circle btn-sm"
       on:click={toggleSidebar}
       aria-label="Закрыть меню"
@@ -129,7 +132,7 @@
     <header class="navbar bg-base-200 border-b border-base-300 px-4 py-3">
       <div class="flex-1 flex items-center">
         <!-- Mobile Menu Button -->
-        <button 
+        <button
           class="lg:hidden btn btn-ghost btn-circle mr-2"
           on:click={toggleSidebar}
           aria-label="Открыть меню"
@@ -139,7 +142,7 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
           </svg>
         </button>
-        
+
         <div class="flex items-center gap-3">
           <div class="lg:hidden">
             <div class="avatar">
@@ -154,11 +157,11 @@
               </div>
             </div>
           </div>
-          
+
           <h1 class="text-lg md:text-xl font-semibold truncate">Courier Dashboard</h1>
         </div>
       </div>
-      
+
       <div class="flex-none flex items-center gap-2">
         <!-- Mobile Status Badge -->
         <div class="lg:hidden">
@@ -172,11 +175,11 @@
              '🟡'}
           </span>
         </div>
-        
+
         {#if mounted}
-          <button 
-            class="btn btn-ghost btn-square btn-sm md:btn-md" 
-            on:click={toggleTheme} 
+          <button
+            class="btn btn-ghost btn-square btn-sm md:btn-md"
+            on:click={toggleTheme}
             aria-label="Переключить тему"
           >
             {#if $theme === 'dark'}
@@ -204,18 +207,18 @@
   aside {
     box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
   }
-  
+
   /* Улучшаем скролл на мобильных */
   @media (max-width: 1023px) {
     aside {
       max-width: 85%;
     }
-    
+
     main {
       -webkit-overflow-scrolling: touch;
     }
   }
-  
+
   @media (max-width: 768px) {
     aside {
       max-width: 280px;

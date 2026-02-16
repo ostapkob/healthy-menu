@@ -30,9 +30,6 @@ resource "docker_network" "app_network" {
   lifecycle {
     create_before_destroy = true
     prevent_destroy       = false # Можно временно поставить true для отладки
-    ignore_changes = [
-      ipam_config # предотвратит "forces replacement"    ]
-    ]
   }
 }
 

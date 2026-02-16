@@ -8,7 +8,7 @@ ln -f env_example .env
 export $(grep -v '^#' .env | xargs)
 
 echo "127.0.0.1       kafka postgres minio" >>  /etc/hosts
-у меня на другом сервере тогда так  
+у меня на другом сервере тогда так
 192.168.1.163 jenkins gitlab nexus
 
 # python
@@ -16,14 +16,14 @@ cd admin-backend
 uv run uvicorn main:app  --port 8002
 PYTHONPATH=. uv run pytest tests -v
 
-# docker 
+# docker
 docker build -t admin-backend .
-## Del all 
+## Del all
 docker rmi -f $(docker images -aq)
 docker volume prune
 docker rm -vf $(docker ps -aq)
 
-# docker-compose 
+# docker-compose
 docker-compose up -d --build
 docker-compose --profile infra up -d --build
 docker-compose --profile infra down
@@ -53,12 +53,12 @@ how root:
 - в whitelist добавить http://jenkins:8080 или IP/домен ($ docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' gitlab )
 
 # Jenkins
-docker-compose up -d --build jenkins 
-docker exec jenkins cat /var/jenkins_home/secrets/initialAdminPassword 
-install suggest plugins (main thing is to install the Pipeline) 
+docker-compose up -d --build jenkins
+docker exec jenkins cat /var/jenkins_home/secrets/initialAdminPassword
+install suggest plugins (main thing is to install the Pipeline)
 docker cp ./jenkins/jenkins_home  jenkins:/var/
-docker-compose restart jenkins 
- 
+docker-compose restart jenkins
+
 add node (name agent-1, label - docker),
 add secret to .env how JENKINS_SECRET
 
@@ -91,7 +91,7 @@ curl -v \
 admin
 admin
 
-Создать токен и добавить его в Jenkins 
+Создать токен и добавить его в Jenkins
 My Account -> Security -> Global
 
 Administration -> Configuration -> Webhooks
@@ -159,13 +159,13 @@ kubectl create secret docker-registry nexus-creds \
 
 
 # TODO
-- [x] Add webhook 
+- [x] Add webhook
 - [x] SonarQube
 - [x] Argo
 - [x] Change .env -> values
 - [x] Terraform
 - [X] Docker in Docker
-- [x] rename healthy-menu- 
+- [x] rename healthy-menu-
 - [ ] Vault HashiCorp
 - [ ] Istio
 - [ ] Fluenbit
