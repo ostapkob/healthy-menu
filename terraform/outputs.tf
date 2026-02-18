@@ -21,8 +21,8 @@ output "kafka_connection" {
 output "gitlab_connection" {
   description = "GitLab connection details"
   value = {
-    web_url          = "${var.gitlab_external_url}:${var.gitlab_http_port}"
-    ssh_url          = "ssh://git@127.0.0.1:${var.gitlab_ssh_port}"
+    web_url = "${var.gitlab_external_url}:${var.gitlab_http_port}"
+    ssh_url = "ssh://git@127.0.0.1:${var.gitlab_ssh_port}"
   }
   sensitive = false
 }
@@ -30,8 +30,8 @@ output "gitlab_connection" {
 output "nexus_connection" {
   description = "Nexus connection details"
   value = {
-    web_url          = "http://localhost:${var.nexus_host_port}"
-    registry_url     = "localhost:${var.nexus_registry_port}"
+    web_url      = "http://localhost:${var.nexus_host_port}"
+    registry_url = "localhost:${var.nexus_registry_port}"
   }
   sensitive = false
 }
@@ -39,7 +39,7 @@ output "nexus_connection" {
 output "docker_network" {
   description = "Docker network details"
   value = {
-    name   = docker_network.app_network.name
+    name   = "app-network"
     subnet = "172.21.0.0/24" # Изменён подсеть для избежания конфликтов
   }
   sensitive = false
@@ -85,7 +85,7 @@ locals {
 }
 
 output "env_matched_lines" {
-  value = local.matched_lines
+  value      = local.matched_lines
   depends_on = [terraform_data.bootstrap] # outputs ignore depends_on at plan, but keeps intent
 }
 

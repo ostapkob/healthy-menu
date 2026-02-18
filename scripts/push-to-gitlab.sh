@@ -142,6 +142,7 @@ setup_and_push() {
     echo -e "${blue}🔄 Инициализирован git в $repo${reset}"
   fi
 
+  git pull
   git add .
   if ! git commit -m "$COMMIT_MESSAGE"; then
     echo -e "${yellow}⚠️ Нет изменений для коммита в $repo${reset}"

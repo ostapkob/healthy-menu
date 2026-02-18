@@ -8,7 +8,7 @@ import os
 # Добавляем родительскую директорию в путь для импорта
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from main import (
+from api.schemas import (
     NutrientInfo,
     DishNutrientsResponse,
     OrderNutrientsResponse,
@@ -26,7 +26,7 @@ from main import (
 
 class TestNutrientInfoSchema:
     """Тесты для схемы NutrientInfo"""
-    
+
     def test_nutrient_info_creation(self):
         """Тест создания NutrientInfo с полными данными"""
         data = {
@@ -35,13 +35,13 @@ class TestNutrientInfoSchema:
             "amount": 25,
             "daily_percentage": 50
         }
-        
+
         nutrient = NutrientInfo(**data)
         assert nutrient.name == "Белок"
         assert nutrient.unit_name == "г"
         assert nutrient.amount == 25
         assert nutrient.daily_percentage == 50
-    
+
     def test_nutrient_info_without_percentage(self):
         """Тест создания NutrientInfo без daily_percentage"""
         data = {
@@ -49,14 +49,14 @@ class TestNutrientInfoSchema:
             "unit_name": "г",
             "amount": 15
         }
-        
+
         nutrient = NutrientInfo(**data)
         assert nutrient.daily_percentage is None
 
 
 class TestDishNutrientsResponseSchema:
     """Тесты для схемы DishNutrientsResponse"""
-    
+
     def test_dish_nutrients_response_creation(self):
         """Тест создания DishNutrientsResponse"""
         data = {
@@ -72,7 +72,7 @@ class TestDishNutrientsResponseSchema:
                 }
             }
         }
-        
+
         response = DishNutrientsResponse(**data)
         assert response.dish_id == 1
         assert response.dish_name == "Паста Карбонара"
@@ -83,7 +83,7 @@ class TestDishNutrientsResponseSchema:
 
 class TestOrderNutrientsResponseSchema:
     """Тесты для схемы OrderNutrientsResponse"""
-    
+
     def test_order_nutrients_response_creation(self):
         """Тест создания OrderNutrientsResponse"""
         data = {
@@ -112,7 +112,7 @@ class TestOrderNutrientsResponseSchema:
                 }
             ]
         }
-        
+
         response = OrderNutrientsResponse(**data)
         assert response.order_id == 123
         assert len(response.total_nutrients) == 1
@@ -122,7 +122,7 @@ class TestOrderNutrientsResponseSchema:
 
 class TestUserNutrientsResponseSchema:
     """Тесты для схемы UserNutrientsResponse"""
-    
+
     def test_user_nutrients_response_creation(self):
         """Тест создания UserNutrientsResponse"""
         data = {
@@ -137,7 +137,7 @@ class TestUserNutrientsResponseSchema:
             },
             "order_count": 3
         }
-        
+
         response = UserNutrientsResponse(**data)
         assert response.user_id == 1
         assert response.order_count == 3
@@ -146,7 +146,7 @@ class TestUserNutrientsResponseSchema:
 
 class TestMenuMacrosSchema:
     """Тесты для схемы MenuMacros"""
-    
+
     def test_menu_macros_creation(self):
         """Тест создания MenuMacros"""
         data = {
@@ -155,23 +155,23 @@ class TestMenuMacrosSchema:
             "fat": 15,
             "carbs": 50
         }
-        
+
         macros = MenuMacros(**data)
         assert macros.calories == 450
         assert macros.protein == 25
         assert macros.fat == 15
         assert macros.carbs == 50
-    
+
     def test_menu_macros_validation(self):
         """Тест валидации MenuMacros"""
         # Все поля обязательны - должно вызвать ошибку
         with pytest.raises(ValidationError):
             MenuMacros(calories=450, protein=25, fat=15)  # Нет carbs
-        
+
         # Отрицательные значения не принимаются
         with pytest.raises(ValidationError):
             MenuMacros(calories=-100, protein=25, fat=15, carbs=50)
-        
+
         # Строки, которые не конвертируются в числа, не принимаются
         with pytest.raises(ValidationError):
             MenuMacros(calories="не число", protein=25, fat=15, carbs=50)
@@ -180,7 +180,7 @@ class TestMenuMacrosSchema:
 
 class TestMenuMicronutrientSchema:
     """Тесты для схемы MenuMicronutrient"""
-    
+
     def test_menu_micronutrient_creation(self):
         """Тест создания MenuMicronutrient"""
         data = {
@@ -189,7 +189,7 @@ class TestMenuMicronutrientSchema:
             "value": 150,
             "coverage_percent": 15
         }
-        
+
         micronutrient = MenuMicronutrient(**data)
         assert micronutrient.name == "Кальций"
         assert micronutrient.unit == "мг"
@@ -199,7 +199,7 @@ class TestMenuMicronutrientSchema:
 
 class TestMenuDishSchema:
     """Тесты для схемы MenuDish"""
-    
+
     def test_menu_dish_creation(self):
         """Тест создания MenuDish с полными данными"""
         data = {
@@ -225,7 +225,7 @@ class TestMenuDishSchema:
             "score": 8,
             "image_url": "http://example.com/pasta.jpg"
         }
-        
+
         dish = MenuDish(**data)
         assert dish.id == 1
         assert dish.name == "Паста Карбонара"
@@ -236,7 +236,7 @@ class TestMenuDishSchema:
         assert len(dish.recommendations) == 1
         assert dish.score == 8
         assert dish.image_url == "http://example.com/pasta.jpg"
-    
+
     def test_menu_dish_minimal(self):
         """Тест создания MenuDish с минимальными данными"""
         data = {
@@ -252,7 +252,7 @@ class TestMenuDishSchema:
             "micronutrients": {},
             "recommendations": []
         }
-        
+
         dish = MenuDish(**data)
         assert dish.description is None
         assert dish.score is None
@@ -261,7 +261,7 @@ class TestMenuDishSchema:
 
 class TestDishResponseSchema:
     """Тесты для схемы DishResponse"""
-    
+
     def test_dish_response_creation(self):
         """Тест создания DishResponse"""
         data = {
@@ -269,7 +269,7 @@ class TestDishResponseSchema:
             "name": "Паста",
             "price": 12.99
         }
-        
+
         dish = DishResponse(**data)
         assert dish.id == 1
         assert dish.name == "Паста"
@@ -278,35 +278,35 @@ class TestDishResponseSchema:
 
 class TestOrderItemCreateSchema:
     """Тесты для схемы OrderItemCreate"""
-    
+
     def test_order_item_create_creation(self):
         """Тест создания OrderItemCreate"""
         data = {
             "dish_id": 1,
             "quantity": 2
         }
-        
+
         item = OrderItemCreate(**data)
         assert item.dish_id == 1
         assert item.quantity == 2
-    
+
     def test_order_item_create_validation(self):
         """Тест валидации OrderItemCreate"""
         # dish_id обязателен
         with pytest.raises(ValidationError):
             OrderItemCreate(quantity=1)
-        
+
         # quantity обязателен
         with pytest.raises(ValidationError):
             OrderItemCreate(dish_id=1)
-        
+
         # quantity должно быть больше 0
         with pytest.raises(ValidationError):
             OrderItemCreate(dish_id=1, quantity=0)
-        
+
         with pytest.raises(ValidationError):
             OrderItemCreate(dish_id=1, quantity=-1)
-        
+
         # Нечисловые значения не принимаются
         with pytest.raises(ValidationError):
             OrderItemCreate(dish_id=1, quantity="два")
@@ -314,7 +314,7 @@ class TestOrderItemCreateSchema:
 
 class TestOrderItemResponseSchema:
     """Тесты для схемы OrderItemResponse"""
-    
+
     def test_order_item_response_creation(self):
         """Тест создания OrderItemResponse"""
         data = {
@@ -323,7 +323,7 @@ class TestOrderItemResponseSchema:
             "quantity": 2,
             "price": 25.98
         }
-        
+
         item = OrderItemResponse(**data)
         assert item.id == 1
         assert item.dish_id == 5
@@ -333,7 +333,7 @@ class TestOrderItemResponseSchema:
 
 class TestOrderCreateSchema:
     """Тесты для схемы OrderCreate"""
-    
+
     def test_order_create_creation(self):
         """Тест создания OrderCreate"""
         data = {
@@ -343,27 +343,27 @@ class TestOrderCreateSchema:
                 {"dish_id": 2, "quantity": 1}
             ]
         }
-        
+
         order = OrderCreate(**data)
         assert order.user_id == 1
         assert len(order.items) == 2
         assert order.items[0].dish_id == 1
         assert order.items[0].quantity == 2
-    
+
     def test_order_create_empty_items(self):
         """Тест создания OrderCreate с пустым списком items"""
         data = {
             "user_id": 1,
             "items": []
         }
-        
+
         order = OrderCreate(**data)
         assert len(order.items) == 0
 
 
 class TestOrderResponseSchema:
     """Тесты для схемы OrderResponse"""
-    
+
     def test_order_response_creation(self):
         """Тест создания OrderResponse"""
         data = {
@@ -381,7 +381,7 @@ class TestOrderResponseSchema:
                 }
             ]
         }
-        
+
         order = OrderResponse(**data)
         assert order.id == 123
         assert order.user_id == 1

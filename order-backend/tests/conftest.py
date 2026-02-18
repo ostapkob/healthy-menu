@@ -34,25 +34,25 @@ def clean_database(db_session: Session):
     """
     # Получаем список всех таблиц
     tables = db_session.execute(text("""
-        SELECT tablename 
-        FROM pg_tables 
+        SELECT tablename
+        FROM pg_tables
         WHERE schemaname = 'public'
           AND tablename NOT LIKE 'pg_%'
           AND tablename NOT LIKE 'sql_%'
     """)).fetchall()
-    
+
     # Отключаем триггеры (для ускорения и избежания ошибок)
     db_session.execute(text("SET session_replication_role = 'replica'"))
-    
+
     # Очищаем каждую таблицу
     for table in tables:
         db_session.execute(text(f'TRUNCATE TABLE "{table[0]}" CASCADE'))
-    
+
     # Включаем триггеры обратно
     db_session.execute(text("SET session_replication_role = 'origin'"))
-    
+
     db_session.commit()
-    
+
     yield
 
 
@@ -65,10 +65,10 @@ def generate_unique_name(prefix="test"):
 def db_session():
     """Фикстура для тестовой сессии базы данных"""
     db = TestingSessionLocal()
-    
+
     # Начинаем вложенную транзакцию
     db.begin_nested()
-    
+
     try:
         yield db
     finally:
@@ -85,13 +85,13 @@ def order_client(db_session: Session):
             yield db_session
         finally:
             pass
-    
+
     # Подменяем зависимость get_db
     order_app.dependency_overrides[get_db] = override_get_db
-    
+
     with TestClient(order_app) as test_client:
         yield test_client
-    
+
     # Очищаем переопределения после теста
     order_app.dependency_overrides.clear()
 
@@ -99,7 +99,7 @@ def order_client(db_session: Session):
 @pytest.fixture
 def mock_kafka_producer():
     """Фикстура для мока Kafka producer"""
-    with patch('main.get_kafka_producer') as mock_producer:
+    with patch('core.kafka.get_kafka_producer') as mock_producer:
         mock_instance = MagicMock()
         mock_instance.produce = MagicMock()
         mock_instance.poll = MagicMock()
@@ -113,7 +113,7 @@ def test_dish(db_session: Session):
     """Создает тестовое блюдо"""
     # Генерируем уникальное имя
     dish_name = generate_unique_name("test_dish")
-    
+
     # Создаем блюдо
     dish = db_session.execute(
         text("""
@@ -128,7 +128,7 @@ def test_dish(db_session: Session):
             "image_url": "http://example.com/test.jpg"
         }
     ).fetchone()
-    
+
     db_session.commit()
     return dish
 
@@ -143,16 +143,16 @@ def test_nutrients(db_session: Session):
         (1005, "Carbohydrate, by difference", "G", "Углеводы", 300.0),
         (1008, "Energy", "KCAL", "Энергия", 2000.0),
     ]
-    
+
     created_nutrients = []
-    
+
     for nutrient_id, name_en, unit_name, name_ru, daily_norm in nutrients_data:
         # Проверяем существование нутриента
         nutrient = db_session.execute(
             text("SELECT * FROM nutrient WHERE id = :id"),
             {"id": nutrient_id}
         ).fetchone()
-        
+
         if not nutrient:
             # Создаем нутриент
             nutrient = db_session.execute(
@@ -168,13 +168,13 @@ def test_nutrients(db_session: Session):
                     "nutrient_nbr": float(nutrient_id)
                 }
             ).fetchone()
-        
+
         # Проверяем существование перевода
         translation = db_session.execute(
             text("SELECT * FROM nutrient_ru WHERE nutrient_id = :nutrient_id"),
             {"nutrient_id": nutrient_id}
         ).fetchone()
-        
+
         if not translation:
             # Создаем русский перевод
             db_session.execute(
@@ -184,13 +184,13 @@ def test_nutrients(db_session: Session):
                 """),
                 {"nutrient_id": nutrient_id, "name_ru": name_ru}
             )
-        
+
         # Проверяем существование суточной нормы
         norm = db_session.execute(
             text("SELECT * FROM daily_norms WHERE nutrient_id = :nutrient_id"),
             {"nutrient_id": nutrient_id}
         ).fetchone()
-        
+
         if not norm:
             # Создаем суточную норму
             db_session.execute(
@@ -205,9 +205,9 @@ def test_nutrients(db_session: Session):
                     "source": "test"
                 }
             )
-        
+
         created_nutrients.append(nutrient_id)
-    
+
     db_session.commit()
     return created_nutrients
 
@@ -217,12 +217,12 @@ def test_food(db_session: Session):
     """Создает тестовый продукт"""
     # Генерируем уникальное описание
     food_desc = generate_unique_name("test_food")
-    
+
     # Находим или создаем тестовую категорию
     category = db_session.execute(
         text("SELECT id FROM food_category WHERE code = 'TEST'")
     ).fetchone()
-    
+
     if not category:
         category = db_session.execute(
             text("""
@@ -231,14 +231,14 @@ def test_food(db_session: Session):
                 RETURNING id
             """)
         ).fetchone()
-    
+
     # Находим максимальный fdc_id и создаем уникальный
     max_fdc = db_session.execute(
         text("SELECT COALESCE(MAX(fdc_id), 0) FROM food")
     ).fetchone()[0]
-    
+
     fdc_id = max_fdc + 1
-    
+
     # Создаем продукт
     food = db_session.execute(
         text("""
@@ -252,7 +252,7 @@ def test_food(db_session: Session):
             "category_id": category.id
         }
     ).fetchone()
-    
+
     db_session.commit()
     return food
 
@@ -267,14 +267,14 @@ def test_food_nutrients(db_session: Session, test_food, test_nutrients):
         (1005, 60.0),  # Углеводы, 60г
         (1008, 400.0), # Энергия, 400 ккал
     ]
-    
+
     for nutrient_id, amount in nutrients_data:
         # Удаляем старую запись если есть
         db_session.execute(
             text("DELETE FROM food_nutrient WHERE fdc_id = :fdc_id AND nutrient_id = :nutrient_id"),
             {"fdc_id": test_food.fdc_id, "nutrient_id": nutrient_id}
         )
-        
+
         db_session.execute(
             text("""
                 INSERT INTO food_nutrient (fdc_id, nutrient_id, amount, data_points)
@@ -287,7 +287,7 @@ def test_food_nutrients(db_session: Session, test_food, test_nutrients):
                 "data_points": 1
             }
         )
-    
+
     db_session.commit()
 
 
@@ -307,7 +307,7 @@ def test_dish_food(db_session: Session, test_dish, test_food):
             "amount_grams": 250.0  # 250г продукта в блюде
         }
     ).fetchone()
-    
+
     db_session.commit()
     return dish_food
 
@@ -327,7 +327,7 @@ def test_order(db_session: Session):
             "total_price": 25.98
         }
     ).fetchone()
-    
+
     db_session.commit()
     return order
 
@@ -352,7 +352,7 @@ def test_order_items(db_session: Session, test_order, test_dish):
             }
         ).fetchone()
         items.append(item)
-    
+
     db_session.commit()
     return items
 
@@ -370,7 +370,7 @@ def test_order_with_items(db_session: Session):
         """),
         {"name": dish_name, "price": 15.99}
     ).fetchone()
-    
+
     # Создаем заказ
     order = db_session.execute(
         text("""
@@ -384,7 +384,7 @@ def test_order_with_items(db_session: Session):
             "total_price": 31.98  # 15.99 * 2
         }
     ).fetchone()
-    
+
     # Создаем позиции
     items = []
     for i in range(2):
@@ -402,9 +402,9 @@ def test_order_with_items(db_session: Session):
             }
         ).fetchone()
         items.append(item)
-    
+
     db_session.commit()
-    
+
     return {
         "order": order,
         "items": items,

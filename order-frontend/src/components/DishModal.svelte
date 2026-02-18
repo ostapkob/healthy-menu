@@ -1,4 +1,3 @@
-<!-- src/components/DishModal.svelte -->
 <script>
   import { createEventDispatcher } from 'svelte';
 

@@ -1,8 +1,9 @@
-<!-- src/pages/Cart.svelte -->
 <script>
   import { cart, clearCart } from '../stores/cart.js';
   import CartItem from '../components/CartItem.svelte';
-  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8002';
+  // const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8002';
+  const API_BASE_URL = window.location.origin;
+
   import { base } from '$app/paths';
   let submitting = false;
 
@@ -19,7 +20,7 @@
           quantity: item.quantity
         }))
       };
-      const res = await fetch(`${API_BASE_URL}/orders/`, {
+      const res = await fetch(`${API_BASE_URL}/api/v1/order/orders/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(order)

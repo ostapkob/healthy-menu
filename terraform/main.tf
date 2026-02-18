@@ -18,20 +18,20 @@ provider "docker" {
 }
 
 # Общая сеть для всех сервисов
-resource "docker_network" "app_network" {
-  name   = "app-network"
-  driver = "bridge"
+# resource "docker_network" "app_network" {
+#   name   = "app-network"
+#   driver = "bridge"
 
-  ipam_config {
-    subnet = "172.21.0.0/24" # Изменён подсеть для избежания конфликтов
-  }
+#   ipam_config {
+#     subnet = "172.21.0.0/24" # Изменён подсеть для избежания конфликтов
+#   }
 
-  # Не давать сети удаляться, пока есть контейнеры
-  lifecycle {
-    create_before_destroy = true
-    prevent_destroy       = false # Можно временно поставить true для отладки
-  }
-}
+#   # Не давать сети удаляться, пока есть контейнеры
+#   lifecycle {
+#     create_before_destroy = true
+#     prevent_destroy       = false # Можно временно поставить true для отладки
+#   }
+# }
 
 
 # ==================== PostgreSQL ====================
@@ -70,7 +70,7 @@ resource "docker_container" "postgres" {
   }
 
   networks_advanced {
-    name    = docker_network.app_network.name
+    name    = "app-network"
     aliases = ["postgres"]
   }
 
@@ -109,7 +109,7 @@ resource "docker_container" "zookeeper" {
   }
 
   networks_advanced {
-    name    = docker_network.app_network.name
+    name    = "app-network"
     aliases = ["zookeeper"]
   }
 
@@ -154,7 +154,7 @@ resource "docker_container" "kafka" {
   }
 
   networks_advanced {
-    name    = docker_network.app_network.name
+    name    = "app-network"
     aliases = ["kafka"]
   }
 
@@ -210,7 +210,7 @@ resource "docker_container" "minio" {
   }
 
   networks_advanced {
-    name    = docker_network.app_network.name
+    name    = "app-network"
     aliases = ["minio"]
   }
 
@@ -267,7 +267,7 @@ resource "docker_container" "minio_init" {
   ]
 
   networks_advanced {
-    name = docker_network.app_network.name
+    name = "app-network"
   }
 
   # Зависит от основного контейнера MinIO
@@ -340,7 +340,7 @@ resource "docker_container" "nexus" {
   }
 
   networks_advanced {
-    name    = docker_network.app_network.name
+    name    = "app-network"
     aliases = ["nexus"]
   }
 
@@ -405,7 +405,7 @@ resource "docker_container" "gitlab" {
   # shared memory (256mb)
   shm_size = 1024 * 1024 * 256
   networks_advanced {
-    name    = docker_network.app_network.name
+    name    = "app-network"
     aliases = ["gitlab"]
   }
   env = [
@@ -459,7 +459,7 @@ resource "docker_container" "postgres_sonar" {
   }
 
   networks_advanced {
-    name    = docker_network.app_network.name
+    name    = "app-network"
     aliases = ["postgres-sonar"]
   }
 
@@ -509,7 +509,7 @@ resource "docker_container" "sonarqube" {
   }
 
   networks_advanced {
-    name    = docker_network.app_network.name
+    name    = "app-network"
     aliases = ["sonarqube"]
   }
 
@@ -561,7 +561,7 @@ resource "docker_container" "jenkins" {
     "JENKINS_OPTS=--httpPort=8080"
   ]
   networks_advanced {
-    name    = docker_network.app_network.name
+    name    = "app-network"
     aliases = ["jenkins"]
   }
   healthcheck {
@@ -648,7 +648,7 @@ resource "docker_container" "jenkins_agent" {
   }
 
   networks_advanced {
-    name    = docker_network.app_network.name
+    name    = "app-network"
     aliases = ["postgres-sonar"]
   }
 

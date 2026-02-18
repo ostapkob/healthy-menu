@@ -1,4 +1,3 @@
-<!-- src/components/DishCard.svelte -->
 <script>
   import { addToCart } from '../stores/cart.js';
   import DishModal from './DishModal.svelte';

@@ -134,6 +134,8 @@ kubectl delete appset healthy-menu-dev -n argocd
 
 
 # Terraform
+
+terraform apply -target=docker_container.jenkins_agent
 ```
 # Очищаем данные Nexus (если нужно переконфигурировать)
 
@@ -155,6 +157,15 @@ kubectl create secret docker-registry nexus-creds \
   --docker-username=ostapkob \
   --docker-password=superpass123 \
   --docker-email=any@example.com -o yaml > nexus-secret.yaml
+
+# Istio
+curl -L https://istio.io/downloadIstio | sh -
+istioctl install --set profile=default --skip-confirmation
+
+kubectl label namespace healthy-menu-dev istio-injection=enabled --overwrite
+kubectl label namespace healthy-menu-dev istio-injection-
+
+kubectl rollout restart deployment -n healthy-menu-dev
 
 
 
