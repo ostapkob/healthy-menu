@@ -1,0 +1,427 @@
+Started by user [8mha:////4NRg4i+FV9GV36R6cCc3sRyeI5EkAGsVCCK+N0bHQ3VkAAAAmh+LCAAAAAAAAP9b85aBtbiIQTGjNKU4P08vOT+vOD8nVc83PyU1x6OyILUoJzMv2y+/JJUBAhiZGBgqihhk0NSjKDWzXb3RdlLBUSYGJk8GtpzUvPSSDB8G5tKinBIGIZ+sxLJE/ZzEvHT94JKizLx0a6BxUmjGOUNodHsLgAzREgY+/dLi1CL9/OKSxILs/CQAR+5uUMMAAAA=[0mAleksandr Ostapchenko
+Rebuilds build #[8mha:////4BZRBtJ7ygTnYS0ptpU0jInuHolFIXLi8q1uWP55RbGnAAAAmR+LCAAAAAAAAP9b85aBtbiIQTGjNKU4P08vOT+vOD8nVc83PyU1x6OyILUoJzMv2y+/JJUBAhiZGBgqihhk0NSjKDWzXb3RdlLBUSYGJk8GtpzUvPSSDB8G5tKinBIGIZ+sxLJE/ZzEvHT94JKizLx0a6BxUmjGOUNodHsLgAzmEgZe/az8JP2S1OISfUNjQwDLSk5LwgAAAA==[0m131
+Obtained docker.groovy from git http://gitlab:80/ostapkob/ci-pipelines
+[8mha:////4CRvOdlYZc+a8eClBadSAOcNpJcMQdYqO0X6H7Rm1v3sAAAAoh+LCAAAAAAAAP9tjTEOwjAQBM8BClpKHuFItIiK1krDC0x8GCfWnbEdkooX8TX+gCESFVvtrLSa5wtWKcKBo5UdUu8otU4GP9jS5Mixv3geZcdn2TIl9igbHBs2eJyx4YwwR1SwULBGaj0nRzbDRnX6rmuvydanHMu2V1A5c4MHCFXMWcf8hSnC9jqYxPTz/BXAFEIGsfuclm8zQVqFvQAAAA==[0m[Pipeline] Start of Pipeline
+[8mha:////4OQ1mcZOWwMfSG0EqIFtRRJW+1m1VNoXntNdUxMOQK8yAAAApR+LCAAAAAAAAP9tjTEOwjAUQ3+KOrAycohUghExsUZZOEFIQkgb/d8mKe3EibgadyBQiQlLlmxL1nu+oE4RjhQdby12HpP2vA+jK4lPFLtroIm3dOGaMFGwXNpJkrGnpUrKFhaxClYC1hZ1oOTRZdiIVt1VExS65pxj2Q4CKm8GeAAThZxVzN8yR9jeRpMIf5y/AJj7DGxXvP/86jduZBmjwAAAAA==[0m[Pipeline] node
+Running on [8mha:////4KTfKw3RTo7/ib+028VZ22Ad2qw4ZWQyIw/3KE+dLqkNAAAAoB+LCAAAAAAAAP9b85aBtbiIQTGjNKU4P08vOT+vOD8nVc83PyU1x6OyILUoJzMv2y+/JJUBAhiZGBgqihhk0NSjKDWzXb3RdlLBUSYGJk8GtpzUvPSSDB8G5tKinBIGIZ+sxLJE/ZzEvHT94JKizLx0a6BxUmjGOUNodHsLgAz2EgYR/eT83ILSktQi/cT01LwSVSMXQ30AwUWibMkAAAA=[0magent-1 in /home/jenkins/workspace/test
+[8mha:////4AJxhgL0/rHoGtwZ9mik+dYrOxXB60T13h13Hw7/DWsYAAAApR+LCAAAAAAAAP9tjTEOwjAUQ3+KOrAycoh0gA0xsUZZOEFIQkgb/d8mKe3EibgadyBQiQlLlmxL1nu+oE4RjhQdby12HpP2vA+jK4lPFLtroIm3dOGaMFGwXNpJkrGnpUrKFhaxClYC1hZ1oOTRZdiIVt1VExS65pxj2Q4CKm8GeAAThZxVzN8yR9jeRpMIf5y/AJj7DGxXvP/86jfoP95RwAAAAA==[0m[Pipeline] {
+[8mha:////4NOBOl0zCjaxetR3Ai+6Er9FJ+I5x6uzPgRb/mYk/pyoAAAApR+LCAAAAAAAAP9tjTEOwjAUQ3+KOrAycoh0gQkxsUZZOEFIQkgb/d8mKe3EibgadyBQiQlLlmxL1nu+oE4RjhQdby12HpP2vA+jK4lPFLtroIm3dOGaMFGwXNpJkrGnpUrKFhaxClYC1hZ1oOTRZdiIVt1VExS65pxj2Q4CKm8GeAAThZxVzN8yR9jeRpMIf5y/AJj7DGxXvP/86jc09154wAAAAA==[0m[Pipeline] stage
+[8mha:////4M8cATqXmGEa/xwoOXFw6xlNVwgf1H4NsjO5B0mzgC9TAAAApR+LCAAAAAAAAP9tjTEOwjAUQ3+KOrAycoh0ggUxsUZZOEFIQkgb/d8mKe3EibgadyBQiQlLlmxL1nu+oE4RjhQdby12HpP2vA+jK4lPFLtroIm3dOGaMFGwXNpJkrGnpUrKFhaxClYC1hZ1oOTRZdiIVt1VExS65pxj2Q4CKm8GeAAThZxVzN8yR9jeRpMIf5y/AJj7DGxXvP/86jek7ggRwAAAAA==[0m[Pipeline] { (Declarative: Checkout SCM)
+[8mha:////4LeNoG35nL3jO3AmeZNIXsHW9sKNk+s6+FPVf2wmubPzAAAAoh+LCAAAAAAAAP9tjTEOAiEURD9rLGwtPQTbaWGsbAmNJ0AWEZb8zwLrbuWJvJp3kLiJlZNMMm+a93rDOic4UbLcG+wdZu14DKOti0+U+lugiXu6ck2YKRguzSSpM+cFJRUDS1gDKwEbgzpQdmgLbIVXD9UGhba9lFS/o4DGdQM8gYlqLiqVL8wJdvexy4Q/z18BzLEA29ce4gfg7KmOvAAAAA==[0m[Pipeline] checkout
+The recommended git tool is: NONE
+using credential gitlab-token
+Fetching changes from the remote Git repository
+Checking out Revision 0c8a11db451b45e08242bc8cc3fb06d4b41e64d6 (refs/remotes/origin/master)
+Commit message: "reverce"
+ > git rev-parse --resolve-git-dir /home/jenkins/workspace/test/.git # timeout=10
+ > git config remote.origin.url http://gitlab:80/ostapkob/ci-pipelines # timeout=10
+Fetching upstream changes from http://gitlab:80/ostapkob/ci-pipelines
+ > git --version # timeout=10
+ > git --version # 'git version 2.52.0'
+using GIT_ASKPASS to set credentials 
+ > git fetch --tags --force --progress -- http://gitlab:80/ostapkob/ci-pipelines +refs/heads/*:refs/remotes/origin/* # timeout=10
+ > git rev-parse refs/remotes/origin/master^{commit} # timeout=10
+ > git config core.sparsecheckout # timeout=10
+ > git checkout -f 0c8a11db451b45e08242bc8cc3fb06d4b41e64d6 # timeout=10
+ > git rev-list --no-walk 0c8a11db451b45e08242bc8cc3fb06d4b41e64d6 # timeout=10
+[8mha:////4GTwMSwM/5kRrL4vhRWF6DAenXluel3wQ8570MP3vJ0zAAAAoh+LCAAAAAAAAP9tjTEOAiEURD9rLGwtPQTbGRNjZUtoPAGyiLDkfxZYdytP5NW8g8RNrJxkknnTvNcb1jnBiZLl3mDvMGvHYxhtXXyi1N8CTdzTlWvCTMFwaSZJnTkvKKkYWMIaWAnYGNSBskNbYCu8eqg2KLTtpaT6HQU0rhvgCUxUc1GpfGFOsLuPXSb8ef4KYI6xADvU7j9Dg2gqvAAAAA==[0m[Pipeline] }
+[8mha:////4DnCbITt+m9Vf6y1c+9oi4MvhGyUh/RLt5idHidCZ3EMAAAAoh+LCAAAAAAAAP9tjTEOAiEURD9rLGwtPQRbWRhjZUtoPAGyiLDkfxZYdytP5NW8g8RNrJxkknnTvNcb1jnBiZLl3mDvMGvHYxhtXXyi1N8CTdzTlWvCTMFwaSZJnTkvKKkYWMIaWAnYGNSBskNbYCu8eqg2KLTtpaT6HQU0rhvgCUxUc1GpfGFOsLuPXSb8ef4KYI6xADvU7j9J+wGOvAAAAA==[0m[Pipeline] // stage
+[8mha:////4AUwxQbqDR/BFaAC1pg/6OW2ZvwVXyVB5JWvYQXKU+6cAAAAph+LCAAAAAAAAP9tjTEOwjAQBM9BKWgpeYQDEh2iorXc8AITG+PEugv2haTiRXyNPxCIRMVWOyut5vmCMic4UPKycdgGzHWQXez91ORAqb1EGmRDZ1kTZopOajdosu44oyZ2MEcUsFCwdFhHygE9w0o15m6qaNBXJ07TtldQBHuDBwg1mdkk/sKYYH3tbSb8ef4KYOwYxI6h2G4+x/INtuQqUcEAAAA=[0m[Pipeline] withEnv
+[8mha:////4LCSMw56uB65gNndJIGi23tUbUIutJ3i4rJF/NNEz+kgAAAApR+LCAAAAAAAAP9tjTEOwjAUQ3+DOrAycoiUzoiJNerCCUITQtLo/zZJSSdOxNW4Ay2VmPBg2Zas93pDGQOcKBjuNHYWY2t570czJ54pdDdPmTu68pYwkte80bkhpc9rbShpWFUw2AjYamw9RYsmwU44+ZCVl2iqSwrzdhTArBrgCYWYyUmG9C1TgP19VJHwx/kLgKlPwOrDYvXyLD8BobDcwgAAAA==[0m[Pipeline] {
+[8mha:////4ATjfnfniRz55EzMZquaBiaiA/RFinZDu1r0RoK/azQsAAAAox+LCAAAAAAAAP9tjTESwiAURH/iWNhaeggysXWsbBkaT4AJIoT5nwCRVJ7Iq3kH0cxYucXOvm3e8wXrGOBIQTOrcDAYO8O8m3RZLFMYro4ys3RhHWEkp5hQWVCvTgsKSgqWVDWsOGwUdo6iQZ1gy628y8ZJ1M05hfIdONSmH+EBFS/mJEP6whxgd5v6SPjz/BXA7BPUbfupvX8DpQJrNb4AAAA=[0m[Pipeline] tool
+Unpacking https://repo1.maven.org/maven2/org/sonarsource/scanner/cli/sonar-scanner-cli/8.0.1.6346/sonar-scanner-cli-8.0.1.6346.zip to /home/jenkins/tools/hudson.plugins.sonar.SonarRunnerInstallation/SonarScanner on agent-1
+[8mha:////4Ay55ryd+zUQNlxECdbuM+4Fc+n/uDs2BHjcisYnz5I7AAAAph+LCAAAAAAAAP9tjTEOwjAUQ3+LOrAycohUFSNiYo2ycILQhJA0+r9NUtKJE3E17kBLJSY8WLYl673eUMUAJwqGOY2dxdha1vvRzIllCt3NU2aOrqwljOQ1EzoLUvq8VkFJw6qihA2HrcbWU7RoEuy4kw9Ze4mmvqQwb0cOpVUDPKHgMznJkL5lCrC/jyoS/jh/ATD1CcqmWeywPKsPyt/2UMIAAAA=[0m[Pipeline] withEnv
+[8mha:////4MT4ZgdFLtte1yHXK3kfqW7Ry5dgeQUNXJwAqjZ+gDDvAAAApx+LCAAAAAAAAP9tjTEOwjAUQ3+LOrAycohUCDbE1DXKwglCE0La6P/yk9JOnIircQdaKjHhwbItWe/1hiIynIidaCy2HmPtRRd6NyUxELfXQINo6CJqwkjBCmUHRcZWS1WULCzKclhJWFusA0WPLsFGNvqhy6DRlefE03aUkHtzhydkciInzelbRobtrTeR8Mf5C4CxS5Dv9rMd5mfxAbNWnxXCAAAA[0m[Pipeline] {
+[8mha:////4DpCgC1UVlurJszUGVkywSMx9pMjfYT2PaGXHXuvv8rNAAAApx+LCAAAAAAAAP9tjTEOwjAUQ3+LOrAycohUSDAhpq5RFk4QmhDSRv+Xn5R24kRcjTvQUokJD5ZtyXqvNxSR4UTsRGOx9RhrL7rQuymJgbi9BhpEQxdRE0YKVig7KDK2WqqiZGFRlsNKwtpiHSh6dAk2stEPXQaNrjwnnrajhNybOzwhkxM5aU7fMjJsb72JhD/OXwCMXYJ8t5/tMD+LD5WQ+PfCAAAA[0m[Pipeline] stage
+[8mha:////4NjeMUZcfvyhewjYTTdS0NGqQ6muK+YEzxfp1Q9A0RLFAAAApx+LCAAAAAAAAP9tjTEOwjAUQ3+LOrAycohUDLAgpq5RFk4QmhDSRv+Xn5R24kRcjTvQUokJD5ZtyXqvNxSR4UTsRGOx9RhrL7rQuymJgbi9BhpEQxdRE0YKVig7KDK2WqqiZGFRlsNKwtpiHSh6dAk2stEPXQaNrjwnnrajhNybOzwhkxM5aU7fMjJsb72JhD/OXwCMXYJ8t5/tMD+LD/s94rDCAAAA[0m[Pipeline] { (Determine service)
+[8mha:////4M8yeYNiaOBbnKUIdWujU3lblXFFB2ebMS0FOgcoopCGAAAApx+LCAAAAAAAAP9tjTEOwjAUQ3+LOrAycohULDAgpq5RFk4QmhDSRv+Xn5R24kRcjTvQUokJD5ZtyXqvNxSR4UTsRGOx9RhrL7rQuymJgbi9BhpEQxdRE0YKVig7KDK2WqqiZGFRlsNKwtpiHSh6dAk2stEPXQaNrjwnnrajhNybOzwhkxM5aU7fMjJsb72JhD/OXwCMXYJ8t5/tMD+LD1+IXOLCAAAA[0m[Pipeline] script
+[8mha:////4I2c/+w1oyfTgmwZ7UU0rxQZ1r/uQt74PqmoptBWxN5iAAAApx+LCAAAAAAAAP9tjTEOwjAUQ3+LOrAycohUTCAhpq5RFk4QmhDSRv+Xn5R24kRcjTvQUokJD5ZtyXqvNxSR4UTsRGOx9RhrL7rQuymJgbi9BhpEQxdRE0YKVig7KDK2WqqiZGFRlsNKwtpiHSh6dAk2stEPXQaNrjwnnrajhNybOzwhkxM5aU7fMjJsb72JhD/OXwCMXYJ8t5/tMD+LD0rlhNLCAAAA[0m[Pipeline] {
+[8mha:////4FSsiqaqvKr3WpZnjiUfI1G4j8+qe8ziwGehc1xmE2S7AAAApB+LCAAAAAAAAP9tjTEOwjAQBC9BFLSUPOIiOhCiSmu54QUmNsaJdWdsh6TiRXyNPxCIRMUWq51t5vmCZYpw5GixNdQ5So3D4Hs7LRw4dhfPA7Z8xoYpsTcozSBZm3pGydnAnKKEhYCVocZzcmQzrEWr7qryimx1ynH6DgJKp2/wgEJM5qxi/sIYYXPtdWL6ef4KYAwZyu3uU/vwBr2eB0O+AAAA[0m[Pipeline] echo
+Using SERVICE_NAME=admin-backend
+[8mha:////4HftLPjvvM2CnjDzzZcplaujAlv7co0pNZffTA/lGQHZAAAApR+LCAAAAAAAAP9tjTEOwjAQBC9BFLSUPOICVEgoFa3lhheYxBgn1l2wHZyKF/E1/oBFJCq2WO1sM683LIOHmr3BTlNvKTQWBzeavDCx76+OE3Z8wYYpsNModZLc6tOMkqOGOUUJCwErTY3jYMlEWItOPVTlFJnqHH3+jgJK297hCYXI5qh8/MLkYXMb28D08/wVwDREKHeHXPvt8AGtm4OQvgAAAA==[0m[Pipeline] git
+The recommended git tool is: NONE
+using credential gitlab-token
+Fetching changes from the remote Git repository
+Checking out Revision ea09d55224829ae14ffebdef7f15a79b53f3de33 (refs/remotes/origin/master)
+Commit message: "api/v1"
+First time build. Skipping changelog.
+[8mha:////4FoXun3pfhN35C58VGBRHV3T54n5do6XoWYwOcHW1tAkAAAApR+LCAAAAAAAAP9tjTEOwjAQBC9BFLSUPOKiUCEhqrRWGl5gYmOcWHfGdkgqXsTX+AMWkajYYrWzzbzesI4BThwM9poGS7Gz6N1o8sKJw3B1PGHPF+yYIjuNrZ5aVrpZsOWkYUlRwkrARlPnOFoyCbailw9ZOUmmOqeQv6OA0qo7PKEQ2ZxkSF+YA+xuo4pMP89fAczeJyj3da768AGz5oXivgAAAA==[0m[Pipeline] }
+[8mha:////4KYGMaJn2ZDQiMsiqiLow8DsX7gHJLClALXWkfctgmu8AAAApR+LCAAAAAAAAP9tjTEOwjAQBC9BFLSUPMIRaSgQVVorDS8w8WGcWHfGdkgqXsTX+AMWkajYYrWzzbzesI4BThyM6JEGS7GzwrvR5CUmDsPV8SR6voiOKbJD0eLUssZmwZYTwpKihJWEDVLnOFoyCbayVw9VOUWmOqeQv6OE0uo7PKGQ2ZxUSF+YA+xuo45MP89fAczeJyjrOtf+8AGMia70vgAAAA==[0m[Pipeline] // script
+[8mha:////4LhRzhEDr3z09wflytVquqEE2QY5ETG0lT8/cUm6TsHxAAAApR+LCAAAAAAAAP9tjTEOwjAQBC9BFLSUPOIiQKJBqWgtN7zAJMY4se6C7eBUvIiv8QcsIlGxxWpnm3m9YRk81OwNdpp6S6GxOLjR5IWJfX91nLDjCzZMgZ1GqZPkVp9mlBw1zClKWAhYaWocB0smwlp06qEqp8hU5+jzdxRQ2vYOTyhENkfl4xcmD5vb2Aamn+evAKZhiFDu9rm2hw+/avVIvgAAAA==[0m[Pipeline] }
+[8mha:////4LDX+lWdPB0rwq55g0Oe9qLhGQEuKod4pgP7Ts8zqUSXAAAApR+LCAAAAAAAAP9tjTEOwjAQBC9BFLSUPOIiEFQoFa3lhheYxBgn1l2wHZyKF/E1/oBFJCq2WO1sM683LIOHmr3BTlNvKTQWBzeavDCx76+OE3Z8wYYpsNModZLc6tOMkqOGOUUJCwErTY3jYMlEWItOPVTlFJnqHH3+jgJK297hCYXI5qh8/MLkYXMb28D08/wVwDQMEcrdPtf28AG9C/nMvgAAAA==[0m[Pipeline] // stage
+[8mha:////4Lf96nPafQUjC3ehxGNbVsgI4qGfCUaUOgbwv3Lhe7I0AAAAqB+LCAAAAAAAAP9tjTEOwjAUQ3+LOrAycohUIJhQJ9aoCycITQhJo/9LkpJOnIircQcClZjwYNmWrPd8QRU8NOQ1swp7g6EzbHCjzokl8v3FUWKWzqwjDOQUa1VqSarjXFuKCmYVJSw4LBV2joJBHWHFrbiL2gnU9Sn6vB04lEbe4AEFz+QofPyWycP6OspA+OP8BcA0RCg3u2zb/edZvQEIihDGwgAAAA==[0m[Pipeline] stage
+[8mha:////4PYR5E0GYvFCzw3vsiPssoG6o5s0ozEGODY5QUWF8OjMAAAAqB+LCAAAAAAAAP9tjTEOwjAUQ3+LOrAycohUQoIFMXWNsnCC0ISQNvq//KS0EyfiatyBlkpMeLBsS9Z7vaGIDCdiJxqLrcdYe9GF3k1JDMTtNdAgGrqImjBSsELZQZGx1VIVJQuLshxWEtYW60DRo0uwkY1+6DJodOU58bQdJeTe3OEJmZzISXP6lpFhe+tNJPxx/gJg7BLku/1sh/lZfACW9ZT2wgAAAA==[0m[Pipeline] { (Checkout)
+[8mha:////4LsKejxUM/pWodI4noGNm6a0ifmhfG3piSAM+HW1J1t5AAAAqB+LCAAAAAAAAP9tjTEOwjAUQ3+LOrAycohUYoABMXWNsnCC0ISQNvq//KS0EyfiatyBlkpMeLBsS9Z7vaGIDCdiJxqLrcdYe9GF3k1JDMTtNdAgGrqImjBSsELZQZGx1VIVJQuLshxWEtYW60DRo0uwkY1+6DJodOU58bQdJeTe3OEJmZzISXP6lpFhe+tNJPxx/gJg7BLku/1sh/lZfAAyQCqkwgAAAA==[0m[Pipeline] script
+[8mha:////4EWY4nv6CpF7N4KpLGgEmSsVof8IFeXw+OID9rl5+Q/eAAAAqB+LCAAAAAAAAP9tjTEOwjAUQ3+LOrAycohUYgEJMXWNsnCC0ISQNvq//KS0EyfiatyBlkpMeLBsS9Z7vaGIDCdiJxqLrcdYe9GF3k1JDMTtNdAgGrqImjBSsELZQZGx1VIVJQuLshxWEtYW60DRo0uwkY1+6DJodOU58bQdJeTe3OEJmZzISXP6lpFhe+tNJPxx/gJg7BLku/1sh/lZfAAnLfKUwgAAAA==[0m[Pipeline] {
+[8mha:////4PMd70W71tXwNDbTz2wt1V3tnzl9dRVlEdElhP34b2Z8AAAApB+LCAAAAAAAAP9tjTEOwjAQBC9BFLSUPOIiUYEQVVrLDS8wsTFOrDtjOyQVL+Jr/IFAJCq2WO1sM88XLFOEI0eLraHOUWocBt/baeHAsbt4HrDlMzZMib1BaQbJ2tQzSs4G5hQlLASsDDWekyObYS1adVeVV2SrU47TdxBQOn2DBxRiMmcV8xfGCJtrrxPTz/NXAGPIUG53n9qHNwcnzs++AAAA[0m[Pipeline] git
+The recommended git tool is: NONE
+using credential gitlab-token
+Fetching changes from the remote Git repository
+Checking out Revision ea09d55224829ae14ffebdef7f15a79b53f3de33 (refs/remotes/origin/master)
+Commit message: "api/v1"
+[8mha:////4Gn2y6M0L8dSllHgKsIVWIqjO0JDuoIAGOfpZXaPYhAHAAAApR+LCAAAAAAAAP9tjTEOwjAQBC9BFLSUPOKCoEFCqWgtN7zAJMY4se6C7eBUvIiv8QcsIlGxxWpnm3m9YRk81OwNdpp6S6GxOLjR5IWJfX91nLDjCzZMgZ1GqZPkVp9mlBw1zClKWAhYaWocB0smwlp06qEqp8hU5+jzdxRQ2vYOTyhENkfl4xcmD5vb2Aamn+evAKZhiFDut7l2hw9hbYOkvgAAAA==[0m[Pipeline] }
+[8mha:////4B3PShHgQ1eVtUPq9RBn3kW6Cjf5WOL5vKCSjHvQs2P7AAAApR+LCAAAAAAAAP9tjTEOwjAQBC9BFLSUPOIioKBAqWgtN7zAJMY4se6C7eBUvIiv8QcsIlGxxWpnm3m9YRk81OwNdpp6S6GxOLjR5IWJfX91nLDjCzZMgZ1GqZPkVp9mlBw1zClKWAhYaWocB0smwlp06qEqp8hU5+jzdxRQ2vYOTyhENkfl4xcmD5vb2Aamn+evAKZhiFDut7l2hw9Vo2D/vgAAAA==[0m[Pipeline] // script
+[8mha:////4Btocn7u5iBshQnSjh6YURbO/li38T+8M+TYWyYHcDICAAAApR+LCAAAAAAAAP9tjTEOwjAQBC9BFLSUPOIiBYkGUaW10vACExvjxLoztkNS8SK+xh+wiETFFqudbeb1hnUMcOJgsNc0WIqdRe9GkxdOHIar4wl7vmDHFNlpbPXUstLNgi0nDUuKElYCNpo6x9GSSbAVvXzIykky1TmF/B0FlFbd4QmFyOYkQ/rCHGB3G1Vk+nn+CmD2PkG5r3PVhw9t4fMOvgAAAA==[0m[Pipeline] }
+[8mha:////4Jm917ocNPfawJXFIH8b0/pbWw8NtQCLrK4ealhSzpfIAAAApR+LCAAAAAAAAP9tjTEOwjAQBC9BFLSUPMKRiKgQVVorDS8w8WGcWHfGdkgqXsTX+AMWkajYYrWzzbzesI4BThyM6JEGS7GzwrvR5CUmDsPV8SR6voiOKbJD0eLUssZmwZYTwpKihJWEDVLnOFoyCbayVw9VOUWmOqeQv6OE0uo7PKGQ2ZxUSF+YA+xuo45MP89fAczeJyjrOtf+8AFyY6ZcvgAAAA==[0m[Pipeline] // stage
+[8mha:////4Lnn8eLRIDGsVyoHkDEbKajCTbcQpBQIlD0q1A3MGNxhAAAApx+LCAAAAAAAAP9tjTEOwjAUQ3+LOrAycohUiG6IqWuUhROEJIS00f8lSWknTsTVuAOBSkx4sGxL1nu+oIoBjhQs6wz2DqNybPCjzYlNFPqLp4l1dGaKMJI3TJhJkDbtUgUlA4uKElYc1gaVp+jQJtjwTt5l7SXa+pRC3g4cSqdv8ICCZ3KSIX3LHGB7HXUk/HH+AmAeEpS7Jtu++TyrNxlSO6vCAAAA[0m[Pipeline] stage
+[8mha:////4EPheENMkO8zYjgIfql8Rs+EwVqvkKdYn345T9uVu5ijAAAApx+LCAAAAAAAAP9tjTEOwjAUQ3+LOrAycoh0ACbE1DXKwglCE0La6P/yk9JOnIircQdaKjHhwbItWe/1hiIynIidaCy2HmPtRRd6NyUxELfXQINo6CJqwkjBCmUHRcZWS1WULCzKclhJWFusA0WPLsFGNvqhy6DRlefE03aUkHtzhydkciInzelbRobtrTeR8Mf5C4CxS5Dv9rMd5mfxASMfXIzCAAAA[0m[Pipeline] { (Build & Test)
+[8mha:////4HAjYzoJfGXsK1KuFPRH1Fb981DIUs0TiFve6DREH+LUAAAApx+LCAAAAAAAAP9tjTEOwjAUQ3+LOrAycoh0QLAgpq5RFk4QmhDSRv+Xn5R24kRcjTvQUokJD5ZtyXqvNxSR4UTsRGOx9RhrL7rQuymJgbi9BhpEQxdRE0YKVig7KDK2WqqiZGFRlsNKwtpiHSh6dAk2stEPXQaNrjwnnrajhNybOzwhkxM5aU7fMjJsb72JhD/OXwCMXYJ8t5/tMD+LD02yRsvCAAAA[0m[Pipeline] script
+[8mha:////4Bw0NpedSVqlISCYUGuchz7RovHomsDUD4MGqF8JCKElAAAAqB+LCAAAAAAAAP9tjTEOwjAUQ3+LOrAycoh0QIIBMXWNsnCC0ISQNvq//KS0EyfiatyBlkpMeLBsS9Z7vaGIDCdiJxqLrcdYe9GF3k1JDMTtNdAgGrqImjBSsELZQZGx1VIVJQuLshxWEtYW60DRo0uwkY1+6DJodOU58bQdJeTe3OEJmZzISXP6lpFhe+tNJPxx/gJg7BLku/1sh/lZfADpB/iZwgAAAA==[0m[Pipeline] {
+ > git rev-parse --resolve-git-dir /home/jenkins/workspace/test/.git # timeout=10
+ > git config remote.origin.url http://gitlab:80/ostapkob/admin-backend # timeout=10
+Fetching upstream changes from http://gitlab:80/ostapkob/admin-backend
+ > git --version # timeout=10
+ > git --version # 'git version 2.52.0'
+using GIT_ASKPASS to set credentials 
+ > git fetch --tags --force --progress -- http://gitlab:80/ostapkob/admin-backend +refs/heads/*:refs/remotes/origin/* # timeout=10
+ > git rev-parse refs/remotes/origin/master^{commit} # timeout=10
+ > git config core.sparsecheckout # timeout=10
+ > git checkout -f ea09d55224829ae14ffebdef7f15a79b53f3de33 # timeout=10
+ > git branch -a -v --no-abbrev # timeout=10
+ > git checkout -b master ea09d55224829ae14ffebdef7f15a79b53f3de33 # timeout=10
+[8mha:////4HpE0ck+VAHBQW3OfhHzMfx0S83960HdfmG9SuvbpAVFAAAApR+LCAAAAAAAAP9tjTEOwjAQBC9BFLSUPOJSUICEqNJabniBiY1xYt0Z2yGpeBFf4w8EIlGxxWpnm3m+YJkiHDlabA11jlLjMPjeTgsHjt3F84Atn7FhSuwNSjNI1qaeUXI2MKcoYSFgZajxnBzZDGvRqruqvCJbnXKcvoOA0ukbPKAQkzmrmL8wRthce52Yfp6/AhhDhnK7+9Q+vAEGDPXtvgAAAA==[0m[Pipeline] sh
++ docker version
+Client:
+ Version:           29.1.3
+ API version:       1.52
+ Go version:        go1.25.7
+ Git commit:        f52814d454173982e6692dd7e290a41b828d9cbc
+ Built:             Thu Feb  5 09:16:59 2026
+ OS/Arch:           linux/amd64
+ Context:           default
+
+Server:
+ Engine:
+  Version:          29.1.3
+  API version:      1.52 (minimum version 1.44)
+  Go version:       go1.25.7
+  Git commit:       fbf3ed25f893e6ce21336f1101590e40a13934f4
+  Built:            Thu Feb  5 09:16:59 2026
+  OS/Arch:          linux/amd64
+  Experimental:     false
+ containerd:
+  Version:          v2.2.0
+  GitCommit:        1c4457e00facac03ce1d75f7b6777a7a851e5c41
+ runc:
+  Version:          1.4.0
+  GitCommit:        8bd78a9977e604c4d5f67a7415d7b8b8c109cdc4
+ docker-init:
+  Version:          0.19.0
+  GitCommit:        
+[8mha:////4NYdmPuI1ItAA3FaPq8FpLN+CXxG2x3qvNCPNfDwFIf7AAAApR+LCAAAAAAAAP9tjTEOwjAQBC9BFLSUPOJSUCCEqNJabniBiY1xYt0Z2yGpeBFf4w8EIlGxxWpnm3m+YJkiHDlabA11jlLjMPjeTgsHjt3F84Atn7FhSuwNSjNI1qaeUXI2MKcoYSFgZajxnBzZDGvRqruqvCJbnXKcvoOA0ukbPKAQkzmrmL8wRthce52Yfp6/AhhDhnK7+9Q+vAFHPe70vgAAAA==[0m[Pipeline] sh
+ > git rev-parse --resolve-git-dir /home/jenkins/workspace/test/.git # timeout=10
+ > git config remote.origin.url http://gitlab:80/ostapkob/admin-backend # timeout=10
+Fetching upstream changes from http://gitlab:80/ostapkob/admin-backend
+ > git --version # timeout=10
+ > git --version # 'git version 2.52.0'
+using GIT_ASKPASS to set credentials 
+ > git fetch --tags --force --progress -- http://gitlab:80/ostapkob/admin-backend +refs/heads/*:refs/remotes/origin/* # timeout=10
+ > git rev-parse refs/remotes/origin/master^{commit} # timeout=10
+ > git config core.sparsecheckout # timeout=10
+ > git checkout -f ea09d55224829ae14ffebdef7f15a79b53f3de33 # timeout=10
+ > git branch -a -v --no-abbrev # timeout=10
+ > git branch -D master # timeout=10
+ > git checkout -b master ea09d55224829ae14ffebdef7f15a79b53f3de33 # timeout=10
++ docker buildx build -f Dockerfile.test -t admin-backend:test .
+#0 building with "default" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile.test
+#1 transferring dockerfile: 899B done
+#1 DONE 0.0s
+
+#2 [internal] load metadata for docker.io/library/python:3.13-slim-bookworm
+#2 ...
+
+#3 [internal] load metadata for ghcr.io/astral-sh/uv:python3.13-bookworm-slim
+#3 DONE 1.9s
+
+#2 [internal] load metadata for docker.io/library/python:3.13-slim-bookworm
+#2 DONE 2.1s
+
+#4 [internal] load .dockerignore
+#4 transferring context: 84B done
+#4 DONE 0.0s
+
+#5 [internal] load build context
+#5 transferring context: 140.99kB 0.0s done
+#5 DONE 0.0s
+
+#6 [stage-1 1/6] FROM docker.io/library/python:3.13-slim-bookworm@sha256:8092ae2ef67061f9db412458dbdce44dbf16748fb3cae5cdbd020f467a9712d0
+#6 resolve docker.io/library/python:3.13-slim-bookworm@sha256:8092ae2ef67061f9db412458dbdce44dbf16748fb3cae5cdbd020f467a9712d0 0.0s done
+#6 sha256:8092ae2ef67061f9db412458dbdce44dbf16748fb3cae5cdbd020f467a9712d0 9.13kB / 9.13kB done
+#6 sha256:3fca5da0ee6056c2f144419fb1f8c29f219b2d3f2196e4780835e8029572b039 1.75kB / 1.75kB done
+#6 sha256:3c06574031dfa0a016314808d6c62b2c85942bc5329fccac8f2fb07c41389b2b 5.53kB / 5.53kB done
+#6 sha256:4831516dd0cb86845f5f902cb9b9d25b5c853152c337eb57e4737a9b7e2a2eb9 0B / 28.23MB 0.1s
+#6 sha256:467052f4a1389ec38f11302108fd79db16496f7bd44d942a55695e68cd6de5d3 0B / 3.52MB 0.1s
+#6 sha256:49529fcd9c668f91c35456772fee4008a6f56753204442a6f39ce599885c8c30 0B / 12.48MB 0.1s
+#6 sha256:4831516dd0cb86845f5f902cb9b9d25b5c853152c337eb57e4737a9b7e2a2eb9 2.10MB / 28.23MB 0.9s
+#6 sha256:4831516dd0cb86845f5f902cb9b9d25b5c853152c337eb57e4737a9b7e2a2eb9 5.24MB / 28.23MB 1.1s
+#6 sha256:4831516dd0cb86845f5f902cb9b9d25b5c853152c337eb57e4737a9b7e2a2eb9 8.39MB / 28.23MB 1.5s
+#6 sha256:49529fcd9c668f91c35456772fee4008a6f56753204442a6f39ce599885c8c30 1.05MB / 12.48MB 1.7s
+#6 sha256:4831516dd0cb86845f5f902cb9b9d25b5c853152c337eb57e4737a9b7e2a2eb9 10.49MB / 28.23MB 1.8s
+#6 sha256:49529fcd9c668f91c35456772fee4008a6f56753204442a6f39ce599885c8c30 2.10MB / 12.48MB 2.0s
+#6 sha256:4831516dd0cb86845f5f902cb9b9d25b5c853152c337eb57e4737a9b7e2a2eb9 12.58MB / 28.23MB 2.2s
+#6 sha256:467052f4a1389ec38f11302108fd79db16496f7bd44d942a55695e68cd6de5d3 1.05MB / 3.52MB 2.3s
+#6 sha256:4831516dd0cb86845f5f902cb9b9d25b5c853152c337eb57e4737a9b7e2a2eb9 15.73MB / 28.23MB 2.6s
+#6 sha256:467052f4a1389ec38f11302108fd79db16496f7bd44d942a55695e68cd6de5d3 2.10MB / 3.52MB 2.6s
+#6 sha256:49529fcd9c668f91c35456772fee4008a6f56753204442a6f39ce599885c8c30 3.15MB / 12.48MB 2.6s
+#6 sha256:467052f4a1389ec38f11302108fd79db16496f7bd44d942a55695e68cd6de5d3 3.15MB / 3.52MB 2.8s
+#6 sha256:4831516dd0cb86845f5f902cb9b9d25b5c853152c337eb57e4737a9b7e2a2eb9 18.87MB / 28.23MB 2.9s
+#6 sha256:467052f4a1389ec38f11302108fd79db16496f7bd44d942a55695e68cd6de5d3 3.52MB / 3.52MB 2.8s done
+#6 sha256:49529fcd9c668f91c35456772fee4008a6f56753204442a6f39ce599885c8c30 4.19MB / 12.48MB 2.9s
+#6 sha256:6944d89e62fefb5f0d03ccfa5239be40aa483e864abd370be7f9f032f5e7d71f 0B / 250B 2.9s
+#6 sha256:4831516dd0cb86845f5f902cb9b9d25b5c853152c337eb57e4737a9b7e2a2eb9 20.97MB / 28.23MB 3.1s
+#6 sha256:4831516dd0cb86845f5f902cb9b9d25b5c853152c337eb57e4737a9b7e2a2eb9 23.07MB / 28.23MB 3.3s
+#6 sha256:49529fcd9c668f91c35456772fee4008a6f56753204442a6f39ce599885c8c30 5.24MB / 12.48MB 3.3s
+#6 sha256:6944d89e62fefb5f0d03ccfa5239be40aa483e864abd370be7f9f032f5e7d71f 250B / 250B 3.3s done
+#6 sha256:4831516dd0cb86845f5f902cb9b9d25b5c853152c337eb57e4737a9b7e2a2eb9 25.17MB / 28.23MB 3.6s
+#6 sha256:49529fcd9c668f91c35456772fee4008a6f56753204442a6f39ce599885c8c30 6.29MB / 12.48MB 3.7s
+#6 sha256:4831516dd0cb86845f5f902cb9b9d25b5c853152c337eb57e4737a9b7e2a2eb9 28.23MB / 28.23MB 3.9s
+#6 sha256:4831516dd0cb86845f5f902cb9b9d25b5c853152c337eb57e4737a9b7e2a2eb9 28.23MB / 28.23MB 3.9s done
+#6 sha256:49529fcd9c668f91c35456772fee4008a6f56753204442a6f39ce599885c8c30 7.34MB / 12.48MB 4.1s
+#6 extracting sha256:4831516dd0cb86845f5f902cb9b9d25b5c853152c337eb57e4737a9b7e2a2eb9
+#6 sha256:49529fcd9c668f91c35456772fee4008a6f56753204442a6f39ce599885c8c30 8.39MB / 12.48MB 4.4s
+#6 sha256:49529fcd9c668f91c35456772fee4008a6f56753204442a6f39ce599885c8c30 9.44MB / 12.48MB 4.6s
+#6 sha256:49529fcd9c668f91c35456772fee4008a6f56753204442a6f39ce599885c8c30 10.49MB / 12.48MB 4.8s
+#6 sha256:49529fcd9c668f91c35456772fee4008a6f56753204442a6f39ce599885c8c30 12.48MB / 12.48MB 5.1s done
+#6 extracting sha256:4831516dd0cb86845f5f902cb9b9d25b5c853152c337eb57e4737a9b7e2a2eb9 1.7s done
+#6 extracting sha256:467052f4a1389ec38f11302108fd79db16496f7bd44d942a55695e68cd6de5d3
+#6 extracting sha256:467052f4a1389ec38f11302108fd79db16496f7bd44d942a55695e68cd6de5d3 0.2s done
+#6 extracting sha256:49529fcd9c668f91c35456772fee4008a6f56753204442a6f39ce599885c8c30
+#6 extracting sha256:49529fcd9c668f91c35456772fee4008a6f56753204442a6f39ce599885c8c30 1.3s done
+#6 extracting sha256:6944d89e62fefb5f0d03ccfa5239be40aa483e864abd370be7f9f032f5e7d71f done
+#6 DONE 7.4s
+
+#7 [builder 1/6] FROM ghcr.io/astral-sh/uv:python3.13-bookworm-slim@sha256:531f855bda2c73cd6ef67d56b733b357cea384185b3022bd09f05e002cd144ca
+#7 resolve ghcr.io/astral-sh/uv:python3.13-bookworm-slim@sha256:531f855bda2c73cd6ef67d56b733b357cea384185b3022bd09f05e002cd144ca 0.0s done
+#7 sha256:531f855bda2c73cd6ef67d56b733b357cea384185b3022bd09f05e002cd144ca 2.22kB / 2.22kB done
+#7 sha256:847b5e690018bc6b9d97a0848da65f721b785f1e78d9c7067b8947c7010b2718 1.25kB / 1.25kB done
+#7 sha256:c4dcad67a4c666f07b6ae7aa08d2333e9223a2434642346678059ac80d10bdd2 6.79kB / 6.79kB done
+#7 sha256:4831516dd0cb86845f5f902cb9b9d25b5c853152c337eb57e4737a9b7e2a2eb9 28.23MB / 28.23MB 3.9s done
+#7 sha256:fbc0dcc63d771f80eaa9166cd1c40c8d8732d0a36520463a116cf3d700f8f612 3.52MB / 3.52MB 4.8s done
+#7 sha256:2da24cd4b4cdc45eb7acfe991f6e3545565d4c924199f412cea311a76322a4cf 10.49MB / 12.47MB 7.3s
+#7 sha256:ec1a19ed825f35cd5ed0fdb5d11d71c6cf86342cbdac1c54bfb0d3446d5c5dd9 252B / 252B 5.2s done
+#7 sha256:07bbad0c9f2012fe1102fc534be4a764fd5e67ca9b9b64a7956941aa6fc11345 7.34MB / 22.79MB 7.3s
+#7 extracting sha256:fbc0dcc63d771f80eaa9166cd1c40c8d8732d0a36520463a116cf3d700f8f612 0.2s done
+#7 sha256:2da24cd4b4cdc45eb7acfe991f6e3545565d4c924199f412cea311a76322a4cf 11.53MB / 12.47MB 7.5s
+#7 sha256:2da24cd4b4cdc45eb7acfe991f6e3545565d4c924199f412cea311a76322a4cf 12.47MB / 12.47MB 7.6s
+#7 sha256:07bbad0c9f2012fe1102fc534be4a764fd5e67ca9b9b64a7956941aa6fc11345 9.44MB / 22.79MB 7.6s
+#7 ...
+
+#8 [stage-1 2/6] RUN adduser --disabled-password --gecos '' appuser &&     mkdir -p /app && chown -R appuser:appuser /app
+#8 0.161 Adding user `appuser' ...
+#8 0.161 Adding new group `appuser' (1000) ...
+#8 0.179 Adding new user `appuser' (1000) with group `appuser (1000)' ...
+#8 0.211 Creating home directory `/home/appuser' ...
+#8 0.211 Copying files from `/etc/skel' ...
+#8 0.227 Adding new user `appuser' to supplemental / extra groups `users' ...
+#8 0.227 Adding user `appuser' to group `users' ...
+#8 DONE 0.3s
+
+#9 [stage-1 3/6] WORKDIR /app
+#9 DONE 0.0s
+
+#7 [builder 1/6] FROM ghcr.io/astral-sh/uv:python3.13-bookworm-slim@sha256:531f855bda2c73cd6ef67d56b733b357cea384185b3022bd09f05e002cd144ca
+#7 sha256:2da24cd4b4cdc45eb7acfe991f6e3545565d4c924199f412cea311a76322a4cf 12.47MB / 12.47MB 7.6s done
+#7 extracting sha256:2da24cd4b4cdc45eb7acfe991f6e3545565d4c924199f412cea311a76322a4cf 0.1s
+#7 sha256:07bbad0c9f2012fe1102fc534be4a764fd5e67ca9b9b64a7956941aa6fc11345 11.53MB / 22.79MB 8.0s
+#7 sha256:07bbad0c9f2012fe1102fc534be4a764fd5e67ca9b9b64a7956941aa6fc11345 13.63MB / 22.79MB 8.5s
+#7 extracting sha256:2da24cd4b4cdc45eb7acfe991f6e3545565d4c924199f412cea311a76322a4cf 1.0s done
+#7 extracting sha256:ec1a19ed825f35cd5ed0fdb5d11d71c6cf86342cbdac1c54bfb0d3446d5c5dd9 done
+#7 sha256:07bbad0c9f2012fe1102fc534be4a764fd5e67ca9b9b64a7956941aa6fc11345 15.73MB / 22.79MB 8.9s
+#7 sha256:07bbad0c9f2012fe1102fc534be4a764fd5e67ca9b9b64a7956941aa6fc11345 17.83MB / 22.79MB 9.3s
+#7 sha256:07bbad0c9f2012fe1102fc534be4a764fd5e67ca9b9b64a7956941aa6fc11345 20.97MB / 22.79MB 9.7s
+#7 sha256:07bbad0c9f2012fe1102fc534be4a764fd5e67ca9b9b64a7956941aa6fc11345 22.79MB / 22.79MB 10.1s done
+#7 extracting sha256:07bbad0c9f2012fe1102fc534be4a764fd5e67ca9b9b64a7956941aa6fc11345 0.1s
+#7 extracting sha256:07bbad0c9f2012fe1102fc534be4a764fd5e67ca9b9b64a7956941aa6fc11345 1.5s done
+#7 DONE 11.7s
+
+#10 [builder 2/6] WORKDIR /app
+#10 DONE 0.0s
+
+#11 [builder 3/6] COPY pyproject.toml uv.lock* ./
+#11 DONE 0.0s
+
+#12 [builder 4/6] RUN --mount=type=cache,target=/root/.cache/uv     uv sync --no-install-project --all-extras
+#12 0.418 Using CPython 3.13.11 interpreter at: /usr/local/bin/python3
+#12 0.418 Creating virtual environment at: .venv
+#12 1.922 Resolved 45 packages in 1.50s
+#12 2.250 Downloading pygments (1.2MiB)
+#12 2.252 Downloading psycopg2-binary (4.0MiB)
+#12 2.252 Downloading sqlalchemy (3.1MiB)
+#12 2.253 Downloading pydantic-core (2.0MiB)
+#12 2.254 Downloading black (1.7MiB)
+#12 2.254 Downloading botocore (13.9MiB)
+#12 3.367  Downloaded pygments
+#12 3.666  Downloaded black
+#12 3.760  Downloaded pydantic-core
+#12 4.177  Downloaded sqlalchemy
+#12 4.308  Downloaded psycopg2-binary
+#12 5.675  Downloaded botocore
+#12 5.676 Prepared 43 packages in 3.74s
+#12 6.313 Installed 43 packages in 636ms
+#12 7.836 Bytecode compiled 1634 files in 1.52s
+#12 7.836  + alembic==1.18.4
+#12 7.836  + annotated-doc==0.0.4
+#12 7.836  + annotated-types==0.7.0
+#12 7.836  + anyio==4.12.1
+#12 7.836  + black==26.1.0
+#12 7.836  + boto3==1.42.19
+#12 7.836  + botocore==1.42.19
+#12 7.836  + certifi==2026.1.4
+#12 7.836  + click==8.3.1
+#12 7.836  + coverage==7.13.4
+#12 7.836  + fastapi==0.128.0
+#12 7.837  + greenlet==3.3.0
+#12 7.837  + h11==0.16.0
+#12 7.837  + httpcore==1.0.9
+#12 7.837  + httpx==0.28.1
+#12 7.837  + idna==3.11
+#12 7.837  + iniconfig==2.3.0
+#12 7.837  + jmespath==1.0.1
+#12 7.837  + mako==1.3.10
+#12 7.837  + markupsafe==3.0.3
+#12 7.837  + mypy-extensions==1.1.0
+#12 7.837  + packaging==25.0
+#12 7.837  + pathspec==1.0.4
+#12 7.837  + platformdirs==4.9.2
+#12 7.837  + pluggy==1.6.0
+#12 7.837  + psycopg2-binary==2.9.11
+#12 7.837  + pydantic==2.12.5
+#12 7.837  + pydantic-core==2.41.5
+#12 7.837  + pygments==2.19.2
+#12 7.837  + pytest==9.0.2
+#12 7.837  + pytest-cov==7.0.0
+#12 7.837  + python-dateutil==2.9.0.post0
+#12 7.837  + python-dotenv==1.2.1
+#12 7.837  + python-multipart==0.0.21
+#12 7.837  + pytokens==0.4.1
+#12 7.837  + s3transfer==0.16.0
+#12 7.837  + six==1.17.0
+#12 7.837  + sqlalchemy==2.0.45
+#12 7.837  + starlette==0.50.0
+#12 7.837  + typing-extensions==4.15.0
+#12 7.837  + typing-inspection==0.4.2
+#12 7.837  + urllib3==2.6.3
+#12 7.837  + uvicorn==0.40.0
+#12 DONE 7.9s
+
+#13 [builder 5/6] COPY . .
+#13 DONE 0.1s
+
+#14 [builder 6/6] RUN --mount=type=cache,target=/root/.cache/uv     uv sync --all-extras
+#14 0.666 Resolved 45 packages in 3ms
+#14 1.045 Bytecode compiled 1558 files in 366ms
+#14 DONE 1.1s
+
+#15 [stage-1 4/6] COPY --from=builder --chown=appuser:appuser /app/.venv /.venv
+#15 DONE 2.4s
+
+#16 [stage-1 5/6] COPY --from=builder --chown=appuser:appuser /app /app
+#16 DONE 2.5s
+
+#17 [stage-1 6/6] RUN chown -R appuser:appuser /.venv
+#17 DONE 1.3s
+
+#18 exporting to image
+#18 exporting layers
+#18 exporting layers 4.5s done
+#18 writing image sha256:5a4078f25674cd4833f19dd5fddc59a97c3d4a831fe6b8a7308646f75f9117db done
+#18 naming to docker.io/library/admin-backend:test done
+#18 DONE 4.5s
+[8mha:////4FWJGZcmCuClETDAxCekX56/PWmVyyEBpe/FC6bQZoqGAAAAph+LCAAAAAAAAP9tjTEOwjAQBC9BFLSUPOKCBBIFSkVrueEFJjHGiXUXbAen4kV8jT9gEYmKLVY728zrDcvgoWZvsNPUWwqNxcGNJi9M7Pur44QdX7BhCuw0Sp0kt/o0o+SoYU5RwkLASlPjOFgyEdaiUw9VOUWmOkefv6OA0rZ3eEIhsjkqH78wedjcxjYw/Tx/BTANQ4Ryv821O3wAP3+A6L4AAAA=[0m[Pipeline] }
+[8mha:////4DpHdthTkveGpqArht5d+m63khiYa4/m9of104QFT/kNAAAApR+LCAAAAAAAAP9tjTEOwjAQBC9BFLSUPOIiBKJBqWgtN7zAJMY4se6C7eBUvIiv8QcsIlGxxWpnm3m9YRk81OwNdpp6S6GxOLjR5IWJfX91nLDjCzZMgZ1GqZPkVp9mlBw1zClKWAhYaWocB0smwlp06qEqp8hU5+jzdxRQ2vYOTyhENkfl4xcmD5vb2Aamn+evAKZhiFDut7l2hw8MnNtUvgAAAA==[0m[Pipeline] // script
+[8mha:////4AaT+gHI6wjrndpZIV4uNi1xz/WG5LcQ42YCaMcJaJUFAAAApR+LCAAAAAAAAP9tjTsOwjAQRDdBFLSUHGIj8alQKlrLDScwiTFOrN1gOzgVJ+Jq3AGLSFRMMZo3zXu9YRk81OwNdpp6S6GxOLjR5IWJfX91nLDjCzZMgZ1GqZPkVp9mlBw1zClKWAhYaWocB0smwlp06qEqp8hU5+jzdxRQ2vYOTyhENkfl4xcmD5vb2Aamn+evAKZhiFDut7l2hw8Yv0ZLvgAAAA==[0m[Pipeline] }
+[8mha:////4AEzWQ6WRWgfGL6Ci7mBbSB29lNda9y+uWRG8tmskTm7AAAApB+LCAAAAAAAAP9tjTEOwjAQBC9BFLSUPMIpkg5R0VppeIGJjXFi3Tn2haTiRXyNP2ARiYotVjvbzOsN2xThRNGK3uDgMHVOBD/ZvMRMcbh5mkVPV9ERJvJGtGZuSZvzii2xgTVFCRsJO4Odp+TQMuxlrx6q8gptdeGYv6OE0ukRnlDIbGYV+QtLhMN90onw5/krgCUEhrKpc9XNBytcHfe+AAAA[0m[Pipeline] // stage
+[8mha:////4FwCWGtW+TASFvz8CLrDSg9/wdy8N+ogNcwhFSsiMZqFAAAApx+LCAAAAAAAAP9tjTEOwjAUQ3+LOrAycohUSN0QE2uUhROENIS00f/lJ6WdOBFX4w4EKjHhwbItWe/5gioyHIid6Cz2HqPxYgijy0lMxP0l0CQ6OgtDGClYoeykqLXHpSpKFhYVJawkrC2aQNGjS7CRnb7rOmh09Slx3vYSSt/e4AGFzOSkOX3LzLC9jm0k/HH+AmAeEpS7JlvTfJ7VG5dsnG7CAAAA[0m[Pipeline] stage
+[8mha:////4Po4SCGGMG9Z2F3x6F0/z4NCn6iWvYNpx7N7HIPpv9pYAAAAph+LCAAAAAAAAP9tjTEOwjAUQ3+LOrAycoh0KRNiYo2ycILQhJA0+r9NUtKJE3E17kBLJSY8WLYl673eUMUAJwqGOY2dxdha1vvRzIllCt3NU2aOrqwljOQ1EzoLUvq8VkFJw6qihA2HrcbWU7RoEuy4kw9Ze4mmvqQwb0cOpVUDPKHgMznJkL5lCrC/jyoS/jh/ATD1CcqmWeywPKsPIshjPcIAAAA=[0m[Pipeline] { (Run tests)
+[8mha:////4Gu3cAdv3MkdnVMlwwjtVPdmUKazHtp4RFHd4NMxI7bjAAAApB+LCAAAAAAAAP9tjTEOwjAQBC9BFLSUPOLSAA2iSmu54QUmNsaJdWdsh6TiRXyNPxCIRMUWq51t5vmCZYpw5GixNdQ5So3D4Hs7LRw4dhfPA7Z8xoYpsTcozSBZm3pGydnAnKKEhYCVocZzcmQzrEWr7qryimx1ynH6DgJKp2/wgEJM5qxi/sIYYXPtdWL6ef4KYAwZyu3uU/vwBj0vY+u+AAAA[0m[Pipeline] sh
++ env
++ grep -E '(POSTGRES|MINIO)'
++ docker run --rm --env-file /tmp/envfile --network host admin-backend:test
+============================= test session starts ==============================
+platform linux -- Python 3.13.12, pytest-9.0.2, pluggy-1.6.0
+rootdir: /app
+configfile: pyproject.toml
+plugins: anyio-4.12.1, cov-7.0.0
+collected 26 items
+
+tests/test_dishes_api.py ...........                                     [ 42%]
+tests/test_tech_api.py ...............                                   [100%]
+
+=============================== warnings summary ===============================
+shared/database.py:14
+  /app/shared/database.py:14: MovedIn20Warning: The ``declarative_base()`` function is now available as sqlalchemy.orm.declarative_base(). (deprecated since: 2.0) (Background on SQLAlchemy 2.0 at: https://sqlalche.me/e/b8d9)
+    Base = declarative_base()
+
+api/dishes.py:16
+  /app/api/dishes.py:16: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class DishAdminListItem(BaseModel):
+
+api/tech.py:24
+  /app/api/tech.py:24: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class IngredientTechResponse(BaseModel):
+
+api/tech.py:33
+  /app/api/tech.py:33: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class DishTechResponse(BaseModel):
+
+tests/test_dishes_api.py::TestDishAdminAPI::test_update_dish_admin_success
+tests/test_dishes_api.py::TestDishAdminAPI::test_update_dish_admin_partial
+  /app/api/dishes.py:58: PydanticDeprecatedSince20: The `dict` method is deprecated; use `model_dump` instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    update_data = data.dict(exclude_unset=True)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+================================ tests coverage ================================
+_______________ coverage: platform linux, python 3.13.12-final-0 _______________
+
+Coverage XML written to file coverage.xml
+======================== 26 passed, 6 warnings in 6.94s ========================
+[8mha:////4JqSzSB0HpXDveaI6N67Q3BRfE9adIS6AW+VLqdbtDqKAAAApB+LCAAAAAAAAP9tjTEOwjAQBC9BFLSUPOLSgCgQVVrLDS8wsTFOrDtjOyQVL+Jr/IFAJCq2WO1sM88XLFOEI0eLraHOUWocBt/baeHAsbt4HrDlMzZMib1BaQbJ2tQzSs4G5hQlLASsDDWekyObYS1adVeVV2SrU47TdxBQOn2DBxRiMmcV8xfGCJtrrxPTz/NXAGMIGcrt/lO7N2y4ylS+AAAA[0m[Pipeline] }
+[8mha:////4LMsKwoqquqqHkff+D9EGZ7jo63UODuxq0byi8LUEQesAAAApB+LCAAAAAAAAP9tjTESwiAURH/iWNhaegjSpHDGsbJlaDwBJogQ5n8CRFJ5Iq/mHUQzY+UWO/u2ec8XrGOAIwXNrMLBYOwM827SZbFMYbg6yszShXWEkZxiQmVBvTotKCgpWFLVsOKwUdg5igZ1gi238i4bJ1E35xTKd+BQm36EB1S8mJMM6QtzgN1t6iPhz/NXALP3Cep2/6n2DS86m9K+AAAA[0m[Pipeline] // stage
+[8mha:////4NiG/Yhn9xNOlG3Oiq/SmOZLYTCJwlvpMgYIftiDls5hAAAAqB+LCAAAAAAAAP9tjTEOwjAUQ3+LOrAycohUSF0QYuoaZeEEIQkhbfR/SVLaiRNxNe5AoBITHizbkvWeL6higCMFyzqDvcOoHBv8aHNiE4X+4mliHZ2ZIozkDRNmEqRNu1RBycCiooQVh7VB5Sk6tAk2vJN3WXuJtj6lkLcDh9LpGzyg4JmcZEjfMgfYXkcdCX+cvwCYhwTlrsnW7D/P6g1JfwLSwgAAAA==[0m[Pipeline] stage
+[8mha:////4LyzbOz5agHkpUn2G/m3hqQWYchGXIyZUAS2zo+wANejAAAAqB+LCAAAAAAAAP9tjTEOwjAUQ3+LOrAycoiUAQaEOrFGXThBaEJIGv1fkpR04kRcjTsQqMSEB8u2ZL3nC6rgoSGvmVXYGwydYYMbdU4ske8vjhKzdGYdYSCnWKtSS1Id59pSVDCrKGHBYamwcxQM6ggrbsVd1E6grk/R5+3AoTTyBg8oeCZH4eO3TB7W11EGwh/nLwCmIUK53WfbbT7P6g0iH00AwgAAAA==[0m[Pipeline] { (SonarQube analysis)
+[8mha:////4LuZ5VHyh8XrDwgyTlv3e0jNV/Z5CFnXBoDR6ztaJx87AAAApx+LCAAAAAAAAP9tjTEOwjAUQ3+LOrAycogUBibE1DXKwglCE0La6P/yk9JOnIircQdaKjHhwbItWe/1hiIynIidaCy2HmPtRRd6NyUxELfXQINo6CJqwkjBCmUHRcZWS1WULCzKclhJWFusA0WPLsFGNvqhy6DRlefE03aUkHtzhydkciInzelbRobtrTeR8Mf5C4CxS5AfdrPt52fxAW2++SvCAAAA[0m[Pipeline] script
+[8mha:////4NitH56+wyMGgoRS3oO56UhMFUjpcCK2yDyiPEa2ZuV2AAAApx+LCAAAAAAAAP9tjTEOwjAUQ3+LOrAycohUIDEhpq5RFk4QmhDSRv+Xn5R24kRcjTvQUokJD5ZtyXqvNxSR4UTsRGOx9RhrL7rQuymJgbi9BhpEQxdRE0YKVig7KDK2WqqiZGFRlsNKwtpiHSh6dAk2stEPXQaNrjwnnrajhNybOzwhkxM5aU7fMjJsb72JhD/OXwCMXYL8sJttPz+LDwMT42zCAAAA[0m[Pipeline] {
+[8mha:////4LsPt9vrOD7/u+eag1OxWEtjYHzPo+xP2a3IVQzUix6uAAAApx+LCAAAAAAAAP9tjTEOwjAUQ3+LOrAycohUAjEhpq5RFk4QmhDSRv+Xn5R24kRcjTvQUokJD5ZtyXqvNxSR4UTsRGOx9RhrL7rQuymJgbi9BhpEQxdRE0YKVig7KDK2WqqiZGFRlsNKwtpiHSh6dAk2stEPXQaNrjwnnrajhNybOzwhkxM5aU7fMjJsb72JhD/OXwCMXYL8sJttPz+LD6emXT7CAAAA[0m[Pipeline] withSonarQubeEnv
+[8mha:////4IHQVDv2MxvsNoZUV51bt0aR9vJ+KRiYS5II1u3oxihGAAAApB+LCAAAAAAAAP9tjTEOwjAQBC9BFLSUPOJSABWiSmu54QUmNsaJdWdsh6TiRXyNPxCIRMUWq51t5vmCZYpw5GixNdQ5So3D4Hs7LRw4dhfPA7Z8xoYpsTcozSBZm3pGydnAnKKEhYCVocZzcmQzrEWr7qryimx1ynH6DgJKp2/wgEJM5qxi/sIYYXPtdWL6ef4KYAwhQ7nffWr7BgJVUYS+AAAA[0m[Pipeline] // withSonarQubeEnv
+[8mha:////4EHFWeefaTrSbzF/YmmEvfrliEQd1FJZmCAWCfPmqzYSAAAApB+LCAAAAAAAAP9tjTEOwjAQBC9BFLSUPOIiIaVCVLRWGl5gEmPsWHeO7eBUvIiv8QcCkajYYrWzzTxfsI4Bjhw0WkW9odga9G7U88LMob86zmj5gi1TZKewUbnhTp0WbDgpWFKUsBKwUdQ6joZ0gq2w8i4rJ0lX5xTm7yCgNN0ADyjEbE4ypC9MAXa3sYtMP89fAUzeJyjr+lP7NzG2Cji+AAAA[0m[Pipeline] }
+[8mha:////4A5JxBzp+jZdCMFVULk3WVDzNqnQcPDcBjwDO0jT/yXzAAAApB+LCAAAAAAAAP9tjTEOwjAQBC9BFLSUPOIiCmgQVVrLDS8wsTFOrDtjOyQVL+Jr/IFAJCq2WO1sM88XLFOEI0eLraHOUWocBt/baeHAsbt4HrDlMzZMib1BaQbJ2tQzSs4G5hQlLASsDDWekyObYS1adVeVV2SrU47TdxBQOn2DBxRiMmcV8xfGCJtrrxPTz/NXAGMIGcrd/lPbNyWVlye+AAAA[0m[Pipeline] // script
+[8mha:////4PzD+fdxu7Ytz11/6Abb0Eekp7zpCb4e6kSgT72JFuEQAAAApB+LCAAAAAAAAP9tjTEOwjAQBC9BFLSUPOJCgygQVVrLDS8wsTFOrDtjOyQVL+Jr/IFAJCq2WO1sM88XLFOEI0eLraHOUWocBt/baeHAsbt4HrDlMzZMib1BaQbJ2tQzSs4G5hQlLASsDDWekyObYS1adVeVV2SrU47TdxBQOn2DBxRiMmcV8xfGCJtrrxPTz/NXAGMIGcrd/lPbNxZ2zJu+AAAA[0m[Pipeline] }
+[8mha:////4OrmpIYGuTM5cBHi3bC1QVbuT1UrfNYrgp4Rns5Nfx5sAAAApR+LCAAAAAAAAP9tjTEOwjAQBC9BFLSUPOLSgARCqWgtN7zAJMY4se6C7eBUvIiv8QcsIlGxxWpnm3m9YRk81OwNdpp6S6GxOLjR5IWJfX91nLDjCzZMgZ1GqZPkVp9mlBw1zClKWAhYaWocB0smwlp06qEqp8hU5+jzdxRQ2vYOTyhENkfl4xcmD5vb2Aamn+evAKZhiFDu9rm2hw8mTV0KvgAAAA==[0m[Pipeline] // stage
+[8mha:////4FEtgRl9W28vttrGHbmXtL+vBhwLWGdyDtDcCNCRAvPAAAAAqB+LCAAAAAAAAP9tjTEOwjAUQ3+LOrAycohUSDAg1Ik16sIJQhNC0uj/kqSkEyfiatyBQCUmPFi2Jes9X1AFDw15zazC3mDoDBvcqHNiiXx/cZSYpTPrCAM5xVqVWpLqONeWooJZRQkLDkuFnaNgUEdYcSvuonYCdX2KPm8HDqWRN3hAwTM5Ch+/ZfKwvo4yEP44fwEwDRHKzTbbbv95Vm/9dHV0wgAAAA==[0m[Pipeline] stage
+[8mha:////4PPfm5glhUNWD/v4fmNB4ELYEd5iVegA6HkCfIfGehiXAAAAqB+LCAAAAAAAAP9tjTEOwjAUQ3+LOrAycoiUBSSEOrFGXThBaEJIGv1fkpR04kRcjTsQqMSEB8u2ZL3nC6rgoSGvmVXYGwydYYMbdU4ske8vjhKzdGYdYSCnWKtSS1Id59pSVDCrKGHBYamwcxQM6ggrbsVd1E6grk/R5+3AoTTyBg8oeCZH4eO3TB7W11EGwh/nLwCmIUK53WfbbT7P6g3QSQCqwgAAAA==[0m[Pipeline] { (Quality Gate)
+Stage "Quality Gate" skipped due to earlier failure(s)
+[8mha:////4CN6k4ete22t3N6qEE9zJO+IakCU7ihPKc2kPDKNlxfOAAAApB+LCAAAAAAAAP9tjTEOwjAQBC9BFLSUPOICDQ2iSmu54QUmNsaJdWdsh6TiRXyNPxCIRMUWq51t5vmCZYpw5GixNdQ5So3D4Hs7LRw4dhfPA7Z8xoYpsTcozSBZm3pGydnAnKKEhYCVocZzcmQzrEWr7qryimx1ynH6DgJKp2/wgEJM5qxi/sIYYXPtdWL6ef4KYAwZyv32U7vwBk5Fu7e+AAAA[0m[Pipeline] getContext
+[8mha:////4AmnLyLohSqo8r1iwu1K1bEVg6O8jmyuZKyXAebEU8meAAAApB+LCAAAAAAAAP9tjTEOwjAQBC9BFLSUPOKCKGgQVVrLDS8wsTFOrDtjOyQVL+Jr/IFAJCq2WO1sM88XLFOEI0eLraHOUWocBt/baeHAsbt4HrDlMzZMib1BaQbJ2tQzSs4G5hQlLASsDDWekyObYS1adVeVV2SrU47TdxBQOn2DBxRiMmcV8xfGCJtrrxPTz/NXAGMIGcr97lPbN/uuxNG+AAAA[0m[Pipeline] }
+[8mha:////4O+JgAiXSiuACmAAy7pZns6o2jcfOsC4cXAMhqByOKu8AAAAph+LCAAAAAAAAP9tjTEOwjAQBC9BFLSUPOJSIJAQSkVrueEFJjHGiXUXbAen4kV8jT9gEYmKLVY728zrDcvgoWZvsNPUWwqNxcGNJi9M7Pur44QdX7BhCuw0Sp0kt/o0o+SoYU5RwkLASlPjOFgyEdaiUw9VOUWmOkefv6OA0rZ3eEIhsjkqH78wedjcxjYw/Tx/BTANQ4Ryv821O3wAOZZpSL4AAAA=[0m[Pipeline] // stage
+[8mha:////4F6wNmk+PE1/mBBAbztpDEMTA7keu62aW/v4Ejse4cOyAAAAqB+LCAAAAAAAAP9tjTEOwjAUQ3+LOrAycohUSBULYuoaZeEEIQkhbfR/SVLaiRNxNe5AoBITHizbkvWeL6higCMFyzqDvcOoHBv8aHNiE4X+4mliHZ2ZIozkDRNmEqRNu1RBycCiooQVh7VB5Sk6tAk2vJN3WXuJtj6lkLcDh9LpGzyg4JmcZEjfMgfYXkcdCX+cvwCYhwTlrsm2bz7P6g2+fQP5wgAAAA==[0m[Pipeline] stage
+[8mha:////4Ml0cNyYh1UBD8n+H96ug3WcK+HhZK4ri6HMNKTWmg6VAAAApx+LCAAAAAAAAP9tjTEOwjAUQ3+LOrAycoh0ARbE1DXKwglCE0La6P/yk9JOnIircQdaKjHhwbItWe/1hiIynIidaCy2HmPtRRd6NyUxELfXQINo6CJqwkjBCmUHRcZWS1WULCzKclhJWFusA0WPLsFGNvqhy6DRlefE03aUkHtzhydkciInzelbRobtrTeR8Mf5C4CxS5AfdrPt52fxAZRHx0bCAAAA[0m[Pipeline] { (Build release image)
+Stage "Build release image" skipped due to earlier failure(s)
+[8mha:////4GQNYvJQ40MPWdFtlpr6isyRCRbenzu7jfm908EM6PLfAAAAox+LCAAAAAAAAP9tjTEOwjAQBC9BFLSUPOJSkQZR0VppeIFJjLFj3Tm2g1PxIr7GHwhEomKL1c4283zBOgY4ctBoFfWGYmvQu1HPCzOH/uo4o+ULtkyRncJG5YY7dVqw4aRgSVHCSsBGUes4GtIJtsLKu6ycJF2dU5i/g4DSdAM8oBCzOcmQvjAF2N3GLjL9PH8FMPkEZb3/VO3fLvzCqr4AAAA=[0m[Pipeline] getContext
+[8mha:////4JYNRHtXg3G1ZdvMG5cd6EAaBlDgie3vJgveYSGAblsVAAAApB+LCAAAAAAAAP9tjTEOwjAQBC9BFLSUPOJSAQWiSmu54QUmNsaJdWdsh6TiRXyNPxCIRMUWq51t5vmCZYpw5GixNdQ5So3D4Hs7LRw4dhfPA7Z8xoYpsTcozSBZm3pGydnAnKKEhYCVocZzcmQzrEWr7qryimx1ynH6DgJKp2/wgEJM5qxi/sIYYXPtdWL6ef4KYAwhQ7nbf2r7BsfLY/G+AAAA[0m[Pipeline] }
+[8mha:////4EQLmlEbGsT0GbM2vDXuMaKik7pJqQMonEahKoiZ2B3aAAAApR+LCAAAAAAAAP9tjTEOwjAQBC9BFLSUPOLSIISEqNJabniBiY1xYt0Z2yGpeBFf4w8EIlGxxWpnm3m+YJkiHDlabA11jlLjMPjeTgsHjt3F84Atn7FhSuwNSjNI1qaeUXI2MKcoYSFgZajxnBzZDGvRqruqvCJbnXKcvoOA0ukbPKAQkzmrmL8wRthce52Yfp6/AhhDyFDu9p/avgGESTJ3vgAAAA==[0m[Pipeline] // stage
+[8mha:////4OyZNpMOPR7s1JGTc/e0zh30o0iiGANheByv4wnUh8awAAAAqB+LCAAAAAAAAP9tjUEKwjAURH8rXbh16SFSBBFEunIbuvEEsYkxafi/JqnpyhN5Ne9gtODKWQwzA8N7vqAKHhrymlmFvcHQGTa4UefEEvn+4igxS2fWEQZyirUqtSTVca4tRQWzihIWHJYKO0fBoI6w4lbcRe0E6voUfd4OHEojb/CAgmdyFD5+y+RhfR1lIPxx/gJgGiKUm2223f7zrN5gbp1FwgAAAA==[0m[Pipeline] stage
+[8mha:////4JvAzyqNkrmuCsCa9bV5tIp8kuzhlX6uxKCXpyXugwZqAAAAqB+LCAAAAAAAAP9tjTEOwjAUQ3+LOrAycoiUCYRQJ9aoCycITQhJo/9LkpJOnIircQcClZjwYNmWrPd8QRU8NOQ1swp7g6EzbHCjzokl8v3FUWKWzqwjDOQUa1VqSarjXFuKCmYVJSw4LBV2joJBHWHFrbiL2gnU9Sn6vB04lEbe4AEFz+QofPyWycP6OspA+OP8BcA0RCi3+2y7zedZvQGUkOl7wgAAAA==[0m[Pipeline] { (Push to Nexus)
+Stage "Push to Nexus" skipped due to earlier failure(s)
+[8mha:////4AkmlvTasm978/PhdBk3I7viGjQLk+ShdEm6X4PzNLVfAAAApB+LCAAAAAAAAP9tjTEOwjAQBC9BFLSUPOICFQWiSmu54QUmNsaJdWdsh6TiRXyNPxCIRMUWq51t5vmCZYpw5GixNdQ5So3D4Hs7LRw4dhfPA7Z8xoYpsTcozSBZm3pGydnAnKKEhYCVocZzcmQzrEWr7qryimx1ynH6DgJKp2/wgEJM5qxi/sIYYXPtdWL6ef4KYAwZyv32U7vwBucv03q+AAAA[0m[Pipeline] getContext
+[8mha:////4NcqWl9T4EPMj2CjH+u3N6OypOkGCuTkrbBkldrtAZQKAAAApB+LCAAAAAAAAP9tjTEOwjAQBC9BFLSUPOKCaCgQVVrLDS8wsTFOrDtjOyQVL+Jr/IFAJCq2WO1sM88XLFOEI0eLraHOUWocBt/baeHAsbt4HrDlMzZMib1BaQbJ2tQzSs4G5hQlLASsDDWekyObYS1adVeVV2SrU47TdxBQOn2DBxRiMmcV8xfGCJtrrxPTz/NXAGMIGcr97lPbNw6UqG6+AAAA[0m[Pipeline] }
+[8mha:////4JidxXCApuC2tjmPMKl+Di9njs+n2UqRxGhiXk6lM/zBAAAAph+LCAAAAAAAAP9tjTEOwjAQBC9BFLSUPOJSIIEQSkVrueEFJjHGiXUXbAen4kV8jT9gEYmKLVY728zrDcvgoWZvsNPUWwqNxcGNJi9M7Pur44QdX7BhCuw0Sp0kt/o0o+SoYU5RwkLASlPjOFgyEdaiUw9VOUWmOkefv6OA0rZ3eEIhsjkqH78wedjcxjYw/Tx/BTANQ4Ryv821O3wATs4zxb4AAAA=[0m[Pipeline] // stage
+[8mha:////4DLDecbXHZQOgob812eQQGCDx9X3cQCJuJ4LyK2g+SfbAAAAqB+LCAAAAAAAAP9tjTEOwjAUQ3+LOrAycohUSJUYEFPXKAsnCEkIaaP/S5LSTpyIq3EHApWY8GDZlqz3fEEVAxwpWNYZ7B1G5djgR5sTmyj0F08T6+jMFGEkb5gwkyBt2qUKSgYWFSWsOKwNKk/RoU2w4Z28y9pLtPUphbwdOJRO3+ABBc/kJEP6ljnA9jrqSPjj/AXAPCQod022ffN5Vm8KdnRfwgAAAA==[0m[Pipeline] stage
+[8mha:////4BXADS4RzVTQy58wIDAsHpBnjpfvk2mrN9Y9Gwc9l5DhAAAApx+LCAAAAAAAAP9tjTEOwjAUQ3+LOrAycoh0ATEgpq5RFk4QmhDSRv+Xn5R24kRcjTvQUokJD5ZtyXqvNxSR4UTsRGOx9RhrL7rQuymJgbi9BhpEQxdRE0YKVig7KDK2WqqiZGFRlsNKwtpiHSh6dAk2stEPXQaNrjwnnrajhNybOzwhkxM5aU7fMjJsb72JhD/OXwCMXYL8sJttPz+LD08AFXvCAAAA[0m[Pipeline] { (Declarative: Post Actions)
+[8mha:////4JpQZHrPdSlZhrzWZSZplPFh77B5e5JQHA21C+qCb6Z5AAAApB+LCAAAAAAAAP9tjTEOwjAQBC9BFLSUPOJSAQWiSmu54QUmNsaJdWdsh6TiRXyNPxCIRMUWq51t5vmCZYpw5GixNdQ5So3D4Hs7LRw4dhfPA7Z8xoYpsTcozSBZm3pGydnAnKKEhYCVocZzcmQzrEWr7qryimx1ynH6DgJKp2/wgEJM5qxi/sIYYXPtdWL6ef4KYAwZyv32U7vwBoeWqme+AAAA[0m[Pipeline] cleanWs
+[WS-CLEANUP] Deleting project workspace...
+[WS-CLEANUP] Deferred wipeout is used...
+[WS-CLEANUP] done
+[8mha:////4Nugv0w0FtN0hbBMkdvjDCAiMNKkPdk7gllL3wHeYxOoAAAApB+LCAAAAAAAAP9tjTEOwjAQBC9BFLSUPOJSoRSIitZKwwtMYowd686xHZyKF/E1/kAgEhVbrHa2mecL1jHAkYNGq6g3FFuD3o16Xpg59FfHGS1fsGWK7BQ2KjfcqdOCDScFS4oSVgI2ilrH0ZBOsBVW3mXlJOnqnML8HQSUphvgAYWYzUmG9IUpwO42dpHp5/krgMn7BGVdf2r/BjLxD06+AAAA[0m[Pipeline] }
+[8mha:////4Hp9/BV2ly7jZauBy+mpUMo1gidEYn4Re12O+ML/A2DVAAAApR+LCAAAAAAAAP9tjTEOwjAQBC9BFLSUPOLSIIGEqNJabniBiY1xYt0Z2yGpeBFf4w8EIlGxxWpnm3m+YJkiHDlabA11jlLjMPjeTgsHjt3F84Atn7FhSuwNSjNI1qaeUXI2MKcoYSFgZajxnBzZDGvRqruqvCJbnXKcvoOA0ukbPKAQkzmrmL8wRthce52Yfp6/AhhDyFDu9p/avgFxc17IvgAAAA==[0m[Pipeline] // stage
+[8mha:////4Ml7zxzav0lpXREGIEhOssxutAYI0y7gE2MM58gj/qiJAAAAph+LCAAAAAAAAP9tjTEOwjAQBC9BFLSUPOIiJCSEUCpayw0vMIkxTqy7YDs4FS/ia/wBi0hUbLHa2WZeb1gGDzV7g52m3lJoLA5uNHlhYt9fHSfs+IINU2CnUeokudWnGSVHDXOKEhYCVpoax8GSibAWnXqoyiky1Tn6/B0FlLa9wxMKkc1R+fiFycPmNraB6ef5K4BpGCKU+0Ou7e4DUgdYVb4AAAA=[0m[Pipeline] }
+[8mha:////4OlG9Q7xh2kyTxnwUtzK2H9nNO58F3KgGj0qjU4GAz4lAAAApR+LCAAAAAAAAP9tjTEOwjAQBC9BFLSUPOICokFCqWgtN7zAJMY4se6C7eBUvIiv8QcsIlGxxWpnm3m9YRk81OwNdpp6S6GxOLjR5IWJfX91nLDjCzZMgZ1GqZPkVp9mlBw1zClKWAhYaWocB0smwlp06qEqp8hU5+jzdxRQ2vYOTyhENkfl4xcmD5vb2Aamn+evAKZhiFAetrl2+w/Qs3savgAAAA==[0m[Pipeline] // withEnv
+[8mha:////4CjsBirKf9De6CvnJmduphOwwYzsyT5txxIXrNN12JpvAAAApB+LCAAAAAAAAP9tjTEOwjAQBC9BFLSUPMJROiRERWu54QUmMcaOdWfsC0nFi/gaf8AiEhVbrHa2mdcb1jnBkZIV3uDgMHdOxDDassREabgGmoSni+gIMwUjlJkU9ea0oCI2sKSqYSVhY7ALlB1ahq30+qGboNE2Z07lO0ioXX+HJ1SymFkn/sKcYHcb+0z48/wVwBwjQ71vS7XtB1kBKT++AAAA[0m[Pipeline] }
+[8mha:////4EEPq7GR0RCiNBIioX2H9SgMjQo11ai56zV1jIghtjl7AAAApR+LCAAAAAAAAP9tjTEOwjAQBC9BFLSUPOICVEgoFa3lhheYxBgn1l2wHZyKF/E1/oBFJCq2WO1sM683LIOHmr3BTlNvKTQWBzeavDCx76+OE3Z8wYYpsNModZLc6tOMkqOGOUUJCwErTY3jYMlEWItOPVTlFJnqHH3+jgJK297hCYXI5qh8/MLkYXMb28D08/wVwDQMEcrDPtdu+wFhQ7rOvgAAAA==[0m[Pipeline] // withEnv
+[8mha:////4GF1OgokxY5nBXkkNT0GcIkcP4Qb4rboyschy0vpB4LJAAAApB+LCAAAAAAAAP9tjTEOwjAQBDdBFLSUPMIpoEBCVLRWGl5gEmOcWHfBvpBUvIiv8QciIlGx1c4083pjmSKOHJ1qLLWeUuVVF3o3PTVwbK+BB9XwRVVMiYNVpR1Kru1pxpLFYl6WY6GxslQFTp6cYK0b8zBFMOSKs8TJHTRyX9/xRKanspgoXxgjNre+Tky/zt8Axq4T5PutINt9AJ0A6rK9AAAA[0m[Pipeline] }
+[8mha:////4InUIE9RIL7zFZHJx6ZfaVz/2Fea05qrHBc4+sI7lqGOAAAApB+LCAAAAAAAAP9tjTEOwjAQBDdBFLSUPMIpoEBCVLRWGl5gEmOcWHfBvpBUvIiv8QciIlGx1c4083pjmSKOHJ1qLLWeUuVVF3o3PTVwbK+BB9XwRVVMiYNVpR1Kru1pxpLFYl6WY6GxslQFTp6cYK0b8zBFMOSKs8TJHTRyX9/xRKanspgoXxgjNre+Tky/zt8Axq4T5PudINt+AC5Jrp69AAAA[0m[Pipeline] // node
+[8mha:////4EeqLD1f8ayFZYSbuvqFQDGzT59Xc68/RS85fkI3u79MAAAApB+LCAAAAAAAAP9tjbEKwjAURW8rDq6OfkQKgiCIk2vo4hfENsa04b2avNpOfpG/5j9YLDh5p3vOcl5vLFPEkaNTjaXWU6q86kLvpqcGju018KAavqiKKXGwqrRDybU9zViyWMzLciw0VpaqwMmTE6x1Yx6mCIZccZY4uYNG7us7nsj0VBYT5QtjxObW14np1/kbwNh1gny/E2TbDwhQydS9AAAA[0m[Pipeline] End of Pipeline
+ERROR: SonarQube installation defined in this job (SonarQubeLocal) does not match any configured installation. Number of installations that can be configured: 0.
+If you want to reassign jobs to a different SonarQube installation, check the documentation under https://redirect.sonarsource.com/plugins/jenkins.html
+Finished: FAILURE

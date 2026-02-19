@@ -167,6 +167,9 @@ kubectl label namespace healthy-menu-dev istio-injection-
 
 kubectl rollout restart deployment -n healthy-menu-dev
 
+kubectl apply -f gateway.yaml
+kubectl apply -f virtualservice.yaml
+
 
 
 # TODO

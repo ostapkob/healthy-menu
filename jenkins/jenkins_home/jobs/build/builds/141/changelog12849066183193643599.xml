@@ -1,0 +1,12 @@
+commit 758f76fb7ab7163cbc0967e62e3e25de6210df6e
+tree df51072d16dfbf634023a1df3cbc6aabff1283e1
+parent ad20d56a4f1a757ef5b80ed9117fc025c044f50c
+author Ostapchenko A. <ostapkob@gmail.com> 2026-02-17 13:12:19 +0500
+committer Ostapchenko A. <ostapkob@gmail.com> 2026-02-17 13:12:19 +0500
+
+    /api/v1/courier 3
+
+
+:100644 100644 4911202e3aaac309cfc893fe55ffe66cf25824ba 4b85d069fc9cbe3c2449dd4949efc9299d9a5bee M	src/components/OrderCard.svelte
+:100644 100644 52d13f75887296aed39f9d1889cfc078b88eaabe 4aa54b08915db7a6f8613c1d8138270337a8d5c4 M	src/routes/my-deliveries/+page.svelte
+:100644 100644 26e51a7c0d1dae498beabfa60410332e9d5fe1f8 ec2d15848d60c2e1c9052c172149313b0543f30d M	src/routes/orders/+page.svelte
