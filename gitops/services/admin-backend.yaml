@@ -1,0 +1,4 @@
+name: admin-backend
+tag: "137"
+port: 8000
+targetPort: 8000

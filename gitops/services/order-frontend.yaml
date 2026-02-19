@@ -1,0 +1,4 @@
+name: order-frontend
+tag: "153"
+port: 80
+targetPort: 80

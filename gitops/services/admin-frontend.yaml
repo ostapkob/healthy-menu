@@ -1,0 +1,4 @@
+name: admin-frontend
+tag: "139"
+port: 80
+targetPort: 80

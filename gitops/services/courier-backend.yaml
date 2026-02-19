@@ -1,0 +1,4 @@
+name: courier-backend
+tag: "144"
+port: 8000
+targetPort: 8000

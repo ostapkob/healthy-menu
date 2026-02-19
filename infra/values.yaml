@@ -1,0 +1,32 @@
+# Реплики
+replicaCount: 1
+
+# Образ
+image:
+  repository: nexus:5000
+  tag: "latest"
+  pullPolicy: Always
+
+# Порт приложения
+service:
+  protocol: TCP
+  port: 8000
+  targetPort: 8000
+  type: ClusterIP
+
+# Конфигурации из ConfigMaps и Secrets
+config:
+  postgres:
+    configMap: postgres-config
+    secret: postgres-secret
+  minio:
+    configMap: minio-config
+    secret: minio-secret
+  kafka:
+    configMap: kafka-config
+
+# Переменные окружения (опционально, если хотите переопределить)
+env:
+  # Пример добавления дополнительных переменных:
+  # - name: LOG_LEVEL
+  #   value: "info"
