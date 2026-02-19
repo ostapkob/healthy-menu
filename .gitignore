@@ -21,6 +21,10 @@ node_modules/
 npm-debug.log
 yarn-error.log
 
+./admin-frontend/node_modules
+./order-frontend/node_modules
+./courier-frontend/node_modules
+
 # Python
 __pycache__/
 *.pyc
@@ -86,3 +90,4 @@ terraform.tfvars
 .idea/
 *.swp
 *.swo
+.qwenignore
