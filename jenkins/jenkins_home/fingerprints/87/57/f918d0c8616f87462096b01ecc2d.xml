@@ -1,0 +1,28 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<fingerprint>
+  <timestamp>2026-02-10 08:30:51.22 UTC</timestamp>
+  <md5sum>8757f918d0c8616f87462096b01ecc2d</md5sum>
+  <fileName>Credential id=gitlab-token name=ostapkob/****** (gitlab)</fileName>
+  <usages>
+    <entry>
+      <string>deploy</string>
+      <ranges>1-14</ranges>
+    </entry>
+    <entry>
+      <string>build</string>
+      <ranges>127</ranges>
+    </entry>
+  </usages>
+  <facets>
+    <com.cloudbees.plugins.credentials.fingerprints.ItemCredentialsFingerprintFacet plugin="credentials@1480.v2246fd131e83">
+      <timestamp>1770796214565</timestamp>
+      <itemFullName>deploy</itemFullName>
+      <timestamp0>1770796129023</timestamp0>
+    </com.cloudbees.plugins.credentials.fingerprints.ItemCredentialsFingerprintFacet>
+    <com.cloudbees.plugins.credentials.fingerprints.ItemCredentialsFingerprintFacet plugin="credentials@1480.v2246fd131e83">
+      <timestamp>1770813222364</timestamp>
+      <itemFullName>build</itemFullName>
+      <timestamp0>1770813222364</timestamp0>
+    </com.cloudbees.plugins.credentials.fingerprints.ItemCredentialsFingerprintFacet>
+  </facets>
+</fingerprint>

@@ -18,22 +18,26 @@ if project_root not in sys.path:
 
 config = context.config
 
-# Читаем DATABASE_URL из shared.database всех сервисов (или .env)
+# Читаем POSTGRES_DATABASE_URL из shared.database всех сервисов (или .env)
 def get_database_url():
     # Пробуем взять из admin-backend (или любого другого)
     try:
-        from admin_backend.shared.database import DATABASE_URL
-        return DATABASE_URL
+        from admin_backend.shared.database import POSTGRES_DATABASE_URL
+        return POSTGRES_DATABASE_URL
     except ImportError:
-        return os.getenv('DATABASE_URL')
+        return os.getenv('POSTGRES_DATABASE_URL')
 
 url = config.get_main_option("sqlalchemy.url")
-if url and 'DATABASE_URL' in url:
+if url and 'POSTGRES_DATABASE_URL' in url:
     db_url = get_database_url()
     if db_url:
         config.set_main_option("sqlalchemy.url", db_url)
     else:
-        raise ValueError("DATABASE_URL not found in environment variables")
+        raise ValueError("POSTGRES_DATABASE_URL not found in environment variables")
+
+print("---------------------")
+print(db_url)
+print("---------------------")
 
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)

@@ -1,4 +1,3 @@
-# courier-backend/tests/conftest.py
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
@@ -14,7 +13,7 @@ load_dotenv()
 # Настройки тестовой базы данных
 TEST_DB_HOST = os.getenv("POSTGRES_HOST", "localhost")
 TEST_DB_PORT = os.getenv("POSTGRES_PORT", "5432")
-TEST_DB_NAME = os.getenv("POSTGRES_TESTS_DB", "courier_db_tests")
+TEST_DB_NAME = os.getenv("POSTGRES_TESTS_DB", "food_db_tests")
 TEST_DB_USER = os.getenv("POSTGRES_TESTS_USER", "postgres")
 TEST_DB_PASSWORD = os.getenv("POSTGRES_TEST_PASSWORD", "postgres")
 
@@ -54,15 +53,15 @@ def clean_database(db_session: Session):
     """
     # Отключаем триггеры (для ускорения и избежания ошибок)
     db_session.execute(text("SET session_replication_role = 'replica'"))
-    
+
     # Очищаем каждую таблицу в правильном порядке из-за foreign keys
     tables = ["deliveries", "couriers", "orders"]
     for table in tables:
         db_session.execute(text(f'TRUNCATE TABLE "{table}" CASCADE'))
-    
+
     # Включаем триггеры обратно
     db_session.execute(text("SET session_replication_role = 'origin'"))
-    
+
     db_session.commit()
     yield
 
@@ -71,10 +70,10 @@ def clean_database(db_session: Session):
 def db_session():
     """Фикстура для тестовой сессии базы данных"""
     db = TestingSessionLocal()
-    
+
     # Начинаем транзакцию с использованием savepoint
     db.begin_nested()
-    
+
     try:
         yield db
     finally:
@@ -90,14 +89,14 @@ def client(db_session: Session):
         try:
             yield db_session
         finally:
-            pass
-    
+            print("not connect db")
+
     # Подменяем зависимость get_db
     app.dependency_overrides[get_db] = override_get_db
-    
+
     with TestClient(app) as test_client:
         yield test_client
-    
+
     # Очищаем переопределения после теста
     app.dependency_overrides.clear()
 

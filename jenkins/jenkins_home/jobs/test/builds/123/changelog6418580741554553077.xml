@@ -1,0 +1,10 @@
+commit 2cba05d72a099f7f8fe98c3abec74b3643ca0891
+tree 2a480ebd6a8e26109fbbc26a1c80de9790eb28d1
+parent 4e108579c0b97e9d1092c3f485a32e7b0bd212dc
+author Ostapchenko A. <ostapkob@gmail.com> 2026-02-08 23:47:39 +0500
+committer Ostapchenko A. <ostapkob@gmail.com> 2026-02-08 23:47:39 +0500
+
+    one
+
+
+:100644 100644 11ad11d241737eae504573591527b4b8b2db6a36 2c343866b0a31ba33b1beafb3dbeacb24f7d0d9d M	tests/conftest.py

@@ -1,5 +1,9 @@
 pipeline {
   agent { label 'docker' }
+  environment {
+    GIT_URL = 'gitlab:80/ostapkob/'
+  }
+
   stages {
     stage('Select Service') {
       steps {
@@ -10,7 +14,7 @@ pipeline {
                 '',
                 'admin-backend',
                 'admin-frontend',
-                'courier-backend', 
+                'courier-backend',
                 'courier-frontend',
                 'order-backend',
                 'order-frontend'
@@ -25,19 +29,30 @@ pipeline {
       steps {
         script {
           // Получаем теги и преобразуем в список
-          def tagsOutput = sh(
-            script: "curl -s 'http://nexus:5000/v2/${SERVICE}/tags/list' | jq -r '.tags[]'",
-            returnStdout: true
-          ).trim()
-          
+          // def tagsOutput = sh(
+          //   script: "curl -s 'http://nexus:5000/v2/${SERVICE}/tags/list' | jq -r '.tags[]'",
+          //   returnStdout: true
+          // ).trim()
+          def tagsOutput
+
+          withCredentials([usernamePassword(credentialsId: 'nexus-cred',
+                                  passwordVariable: 'NEXUS_PWD',
+                                  usernameVariable: 'NEXUS_USR')]) {
+            tagsOutput = sh(
+                script: "curl -s -u \$NEXUS_USR:\$NEXUS_PWD 'http://nexus:5000/v2/${SERVICE}/tags/list' | jq -r '.tags[]'",
+                returnStdout: true
+              ).trim()
+          }
+
           // Разбиваем по строкам и фильтруем пустые значения
-          def TAGS = tagsOutput.split('\n').findAll { it.trim() }
-          
+          def TAGS = tagsOutput.split('\n').findAll { it.trim() }.sort().reverse()
+
+
           // Если тегов нет, добавляем пустую строку
           if (TAGS.isEmpty()) {
             TAGS = ['']
           }
-          
+
           TAG = input message: 'Choose tag', parameters: [
             choice(choices: TAGS, name: 'TAG')
           ]
@@ -50,7 +65,7 @@ pipeline {
           // Работаем во временной директории
           def workspaceDir = pwd()
           def repoDir = "${workspaceDir}/gitops-repo-${BUILD_NUMBER}"
-          
+
           try {
             // Клонируем репозиторий
             withCredentials([usernamePassword(
@@ -60,18 +75,18 @@ pipeline {
             )]) {
               // Используем переменные окружения для безопасной передачи credentials
               sh """
-                GIT_URL="http://${GIT_USER}:${GIT_PASS}@gitlab:8060/ostapkob/healthy-menu-gitops.git"
-                git clone "\${GIT_URL}" "${repoDir}"
+                GIT_FULL_URL="http://${GIT_USER}:${GIT_PASS}@${GIT_URL}/gitops.git"
+                git clone "\${GIT_FULL_URL}" "${repoDir}"
               """
             }
-            
+
             dir(repoDir) {
               // Настраиваем git
               sh """
                 git config user.email "jenkins@${env.NODE_NAME}"
                 git config user.name "Jenkins CI"
               """
-              
+
               // Изменяем нужный файл
 
               println(">>> ${SERVICE}>>> ${TAG} ")

@@ -1,13 +1,14 @@
 <script>
   import { onMount } from 'svelte';
   import { base } from '$app/paths';
-  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8001';
+  // const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8001';
+  const API_BASE_URL = window.location.origin; // или с добавлением пути /api
   let dishes = [];
   let loading = true;
 
   onMount(async () => {
     try {
-      const res = await fetch(`${API_BASE_URL}/dishes/`);
+      const res = await fetch(`${API_BASE_URL}/api/v1/admin/dishes/`);
       dishes = await res.json();
     } catch (e) {
       console.error(e);
@@ -18,7 +19,7 @@
 
   const deleteDish = async (id) => {
     if (!confirm('Удалить блюдо? Это действие нельзя отменить.')) return;
-    await fetch(`${API_BASE_URL}/dishes/${id}`, { method: 'DELETE' });
+    await fetch(`${API_BASE_URL}/api/v1/admin/dishes/${id}`, { method: 'DELETE' });
     dishes = dishes.filter(d => d.id !== id);
   };
 </script>

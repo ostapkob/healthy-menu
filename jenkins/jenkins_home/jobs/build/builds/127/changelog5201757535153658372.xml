@@ -1,0 +1,61 @@
+commit e3b326f88098751b52d74bbc85a196ff217938e2
+tree c990db9a511255637d9cf978817984d131da60b0
+parent 3355d35528b6bd27026761f19c42ab094535e3c1
+author Ostapchenko A. <ostapkob@gmail.com> 2026-02-11 17:33:04 +0500
+committer Ostapchenko A. <ostapkob@gmail.com> 2026-02-11 17:33:04 +0500
+
+    node 22
+
+
+:100644 100644 608f8110b7a93de2d105a599379cf0d68d5ef036 979ac97f9784e0c4428f9c3b3ab11f0205818b22 M	.gitignore
+commit 3355d35528b6bd27026761f19c42ab094535e3c1
+tree d46d364337f8543ed066c96993d29280843f44cb
+parent 2e950642e45b37925833093b673bfc67d63a7d80
+author Ostapchenko A. <ostapkob@gmail.com> 2026-02-10 16:09:02 +0500
+committer Ostapchenko A. <ostapkob@gmail.com> 2026-02-10 16:09:02 +0500
+
+    nexus-cred 4
+
+
+:100644 100644 929ef6a5c70d1925faeb882b6e3258420f6a9778 1690401be51df16805ca99bf59505d69b7c7cfa1 M	deploy_gitops.groovy
+commit 2e950642e45b37925833093b673bfc67d63a7d80
+tree 5813c3607fc1df27f5261631c2ce320f3d741996
+parent 151416585e63b6057e3d799ee64fcf2056b00468
+author Ostapchenko A. <ostapkob@gmail.com> 2026-02-10 15:17:50 +0500
+committer Ostapchenko A. <ostapkob@gmail.com> 2026-02-10 15:17:50 +0500
+
+    nexus-cred 3
+
+
+:100644 100644 9a051f0635502236c9fdb9fd2eb99c589e492796 929ef6a5c70d1925faeb882b6e3258420f6a9778 M	deploy_gitops.groovy
+commit 151416585e63b6057e3d799ee64fcf2056b00468
+tree 6f07e08a5c1496df48a427166ee08952fd72301b
+parent 63ba4e8aa0082921a5ec955a4331e519c67866ba
+author Ostapchenko A. <ostapkob@gmail.com> 2026-02-10 15:14:58 +0500
+committer Ostapchenko A. <ostapkob@gmail.com> 2026-02-10 15:14:58 +0500
+
+    nexus-cred 2
+
+
+:100644 100644 73fedb3a540b608b84151896a093bd8691748232 9a051f0635502236c9fdb9fd2eb99c589e492796 M	deploy_gitops.groovy
+commit 63ba4e8aa0082921a5ec955a4331e519c67866ba
+tree 58547dcb18db493ec75669b1def9a4ce981eded4
+parent c30a386ec61b0f852efbdcb66d878213ba724200
+author Ostapchenko A. <ostapkob@gmail.com> 2026-02-10 15:11:13 +0500
+committer Ostapchenko A. <ostapkob@gmail.com> 2026-02-10 15:11:13 +0500
+
+    nexus-cred
+
+
+:100644 100644 7595d1fcb6c79f15e2b45b668b6eca85ac7f1350 73fedb3a540b608b84151896a093bd8691748232 M	deploy_gitops.groovy
+commit c30a386ec61b0f852efbdcb66d878213ba724200
+tree d7f70f033dcd17481a34ac75627ac9328832d18a
+parent 1bbe85b48dc87ec5b82a07be308cf3122f4a4620
+author Ostapchenko A. <ostapkob@gmail.com> 2026-02-10 14:08:48 +0500
+committer Ostapchenko A. <ostapkob@gmail.com> 2026-02-10 14:08:48 +0500
+
+    nexus-cred
+
+
+:100644 100644 782000183b604400279ef752a67908335190fb54 7595d1fcb6c79f15e2b45b668b6eca85ac7f1350 M	deploy_gitops.groovy
+:100644 100644 995f38691dcbe373b36bf42f9e227fdba6e40ddf 38303bc7eb51d74afa3a1fedb22bbbaef03aa596 M	docker.groovy

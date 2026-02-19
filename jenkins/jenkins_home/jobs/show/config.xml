@@ -17,18 +17,16 @@
       <rebuildDisabled>false</rebuildDisabled>
     </com.sonyericsson.rebuild.RebuildSettings>
   </properties>
-  <definition class="org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition" plugin="workflow-cps@4252.v465f588eb_52f">
+  <definition class="org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition" plugin="workflow-cps@4253.vc894cd5750c6">
     <script>pipeline {
     agent any
-    tools {
-        maven &quot;my_maven&quot;
-    }
+
     stages {
         stage(&apos;Preparation&apos;) {
             steps {
                 echo &quot;Preparing for build...&quot;
                 sh &quot;hostname&quot;
-                sh &quot;mvn --version&quot;
+         
             }
         }
     }

@@ -1,6 +1,7 @@
 <script>
 
-  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8001';
+  // const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8001';
+  const API_BASE_URL = window.location.origin;
   export let dishId = 0;            // id блюда (для маршрута /dishes/{id}/image)
   export let currentImageUrl = null; // уже сохранённый URL из базы
 
@@ -40,7 +41,7 @@
     form.append('file', file);
 
     try {
-    const res = await fetch(`${API_BASE_URL}/dishes/${dishId}/image`, {
+    const res = await fetch(`${API_BASE_URL}/api/v1/admin/dishes/${dishId}/image`, {
         method: 'POST',
         body: form
       });

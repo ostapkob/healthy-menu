@@ -1,20 +1,15 @@
 # Stage 1: Зависимости
-FROM node:20-alpine as deps
+FROM node:22-alpine AS deps
 WORKDIR /app
 COPY package*.json ./
 RUN npm ci
 
 # Stage 2: Сборка
-FROM node:20-alpine as builder
+FROM node:22-alpine AS builder
 
 # Объявляем ARG в Stage 2
-ARG API_BASE_URL='http://localhost:8002'
-ARG SVELTEKIT_BASEPATH=''
-ARG WEB_SOCKET_URL='ws://healthy-menu.local/api/courier'
-
-ENV VITE_API_BASE_URL=$API_BASE_URL
+ARG SVELTEKIT_BASEPATH="/order"
 ENV SVELTEKIT_BASEPATH=$SVELTEKIT_BASEPATH
-ENV VITE_WEB_SOCKET_URL=$WEB_SOCKET_URL
 
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
@@ -24,9 +19,6 @@ RUN npm run build
 # Stage 3: Production
 FROM nginx:alpine
 
-# Повторяем ARG в Stage 3
-ARG API_BASE_URL=http://localhost:8002
-ENV VITE_API_BASE_URL=$API_BASE_URL
 
 # Копируем статику из stage builder
 COPY --from=builder /app/build /usr/share/nginx/html

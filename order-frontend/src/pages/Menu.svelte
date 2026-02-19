@@ -1,13 +1,14 @@
 <script>
   import { onMount } from 'svelte';
   import DishCard from '../components/DishCard.svelte';
-  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8002';
+  // const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8002';
+  const API_BASE_URL = window.location.origin;
   let dishes = [];
   let loading = true;
 
   onMount(async () => {
     try {
-      const res = await fetch(`${API_BASE_URL}/menu/`);
+      const res = await fetch(`${API_BASE_URL}/api/v1/order/dishes/menu/`);
       dishes = await res.json();
     } catch (e) {
       console.error(e);

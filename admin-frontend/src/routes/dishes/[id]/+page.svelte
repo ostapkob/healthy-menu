@@ -2,10 +2,12 @@
   import { onMount } from 'svelte';
   import ImageUpload from '$lib/components/ImageUpload.svelte';
   import { base } from '$app/paths';
-  
+
   export let params;
-  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8001';
-  
+  // const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8001';
+  const API_BASE_URL = window.location.origin;
+
+
   let dish = {
     id: null,
     name: '',
@@ -13,14 +15,14 @@
     description: '',
     image_url: null
   };
-  
+
   let loading = true;
   let saving = false;
-  
+
   onMount(async () => {
     if (params.id !== 'new') {
       try {
-        const res = await fetch(`${API_BASE_URL}/dishes/${params.id}`);
+        const res = await fetch(`${API_BASE_URL}/api/v1/admin/dishes/${params.id}`);
         if (res.ok) {
           dish = await res.json();
         }
@@ -30,18 +32,18 @@
     }
     loading = false;
   });
-  
+
   const saveDish = async () => {
     if (!dish.name || dish.price <= 0) {
       alert('Заполните название и цену');
       return;
     }
-    
+
     saving = true;
     try {
       const method = dish.id ? 'PUT' : 'POST';
-      const url = dish.id ? `${API_BASE_URL}/dishes/${dish.id}` : `${API_BASE_URL}/admin/dishes/`;
-      
+      const url = dish.id ? `${API_BASE_URL}/api/v1/admin/dishes/${dish.id}` : `${API_BASE_URL}/api/v1/admin/admin/dishes/`;
+
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
@@ -51,7 +53,7 @@
           image_url: dish.image_url || null
         })
       });
-      
+
       if (res.ok) {
         alert('✅ Блюдо обновлено');
       } else {
@@ -63,7 +65,7 @@
       saving = false;
     }
   };
-  
+
   const handleImageUploaded = (event) => {
     dish.image_url = event.detail;
   };
@@ -85,7 +87,7 @@
       <div class="alert alert-info">
         <span>📝 Название: <strong>{dish.name}</strong> (задано технологом)</span>
       </div>
-      
+
       <!-- Фото -->
       <div>
         <h3 class="font-semibold mb-2">📸 Фото</h3>
@@ -95,13 +97,13 @@
           on:image-uploaded={handleImageUploaded}
         />
       </div>
-      
+
       <!-- Цена -->
       <div>
         <label class="label" for="price-input">
           <span class="label-text">💰 Цена (₽) *</span>
         </label>
-        <input 
+        <input
           id="price-input"
           type="number"
           class="input input-bordered w-full"
@@ -109,7 +111,7 @@
           required
         />
       </div>
-      
+
       <!-- Описание -->
       <div>
         <label class="label" for="description-textarea">
@@ -124,7 +126,7 @@
         >
         </textarea>
       </div>
-      
+
       <!-- Кнопки -->
       <div class="flex gap-3">
         <button

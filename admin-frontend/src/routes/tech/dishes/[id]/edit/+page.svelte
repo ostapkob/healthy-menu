@@ -1,26 +1,27 @@
 <script>
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
-  
+
   export let params;
-  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8001';
-  
+  // const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8001';
+  const API_BASE_URL = window.location.origin; // или с добавлением пути /api
+
   let dish = null;
   let allFood = [];
   let loading = true;
   let saving = false;
   let foodSearch = '';
-  
+
   onMount(async () => {
     await Promise.all([
       fetchDish(),
       fetchFoodList()
     ]);
   });
-  
+
   async function fetchDish() {
     try {
-      const res = await fetch(`${API_BASE_URL}/tech/dishes/${params.id}`);
+      const res = await fetch(`${API_BASE_URL}/api/v1/admin/tech/dishes/${params.id}`);
       if (res.ok) {
         dish = await res.json();
       }
@@ -28,10 +29,10 @@
       alert('Ошибка загрузки карты');
     }
   }
-  
+
   async function fetchFoodList() {
     try {
-      const res = await fetch(`${API_BASE_URL}/foods/?limit=100`);
+      const res = await fetch(`${API_BASE_URL}/api/v1/admin/foods/?limit=100`);
       if (res.ok) {
         const data = await res.json();
         allFood = data.items;
@@ -42,11 +43,11 @@
       loading = false;
     }
   }
-  
+
   async function updateIngredients() {
     saving = true;
     try {
-      const res = await fetch(`${API_BASE_URL}/tech/dishes/${params.id}/ingredients`, {
+      const res = await fetch(`${API_BASE_URL}/api/v1/admin/tech/dishes/${params.id}/ingredients`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -56,7 +57,7 @@
           }))
         })
       });
-      
+
       if (res.ok) {
         alert('✅ Состав обновлен');
         goto('/tech');
@@ -67,16 +68,16 @@
       saving = false;
     }
   }
-  
+
   function addIngredient() {
     // Здесь можно добавить интерфейс для добавления новых ингредиентов
   }
-  
+
   function updateIngredientGrams(index, value) {
     dish.ingredients[index].amount_grams = +value;
     dish.ingredients = [...dish.ingredients];
   }
-  
+
   function removeIngredient(index) {
     dish.ingredients = dish.ingredients.filter((_, i) => i !== index);
   }
@@ -89,7 +90,7 @@
       <h2 class="text-2xl font-bold">✏️ Редактирование состава: {dish?.name}</h2>
     </div>
   </div>
-  
+
   {#if loading}
     <div class="flex justify-center py-12">
       <span class="loading loading-spinner loading-lg"></span>
@@ -99,7 +100,7 @@
       <div class="card bg-base-100 shadow-md">
         <div class="card-body">
           <h3 class="card-title">📦 Состав блюда</h3>
-          
+
           <div class="overflow-x-auto">
             <table class="table table-zebra w-full">
               <thead>
@@ -135,7 +136,7 @@
                       />
                     </td>
                     <td>
-                      <button 
+                      <button
                         class="btn btn-xs btn-ghost text-error"
                         on:click={() => removeIngredient(i)}
                       >
@@ -147,7 +148,7 @@
               </tbody>
             </table>
           </div>
-          
+
           <div class="bg-base-200 p-4 rounded-lg mt-4">
             <div class="flex justify-between items-center">
               <div class="text-lg">
@@ -158,9 +159,9 @@
               </div>
             </div>
           </div>
-          
+
           <div class="card-actions justify-end mt-6">
-            <button 
+            <button
               class="btn btn-primary"
               on:click={updateIngredients}
               disabled={saving}

@@ -1,7 +1,8 @@
 <script>
   import { onMount } from 'svelte';
 
-  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8003';
+  // const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8003';
+  const API_BASE_URL = window.location.origin;
   const courierId = 1;
 
   let courier = null;
@@ -12,8 +13,8 @@
   onMount(async () => {
     try {
       const [courierRes, deliveriesRes] = await Promise.all([
-        fetch(`${API_BASE_URL}/couriers/${courierId}`),  // Добавь в бэкенд: GET /couriers/{id}
-        fetch(`${API_BASE_URL}/my-deliveries/${courierId}?history=true`)  // Добавь фильтр на завершённые
+        fetch(`${API_BASE_URL}/api/v1/courier/couriers/${courierId}`),  // Добавь в бэкенд: GET /couriers/{id}
+        fetch(`${API_BASE_URL}/api/v1/courier/deliveries/my-deliveries/${courierId}?history=true`)  // Добавь фильтр на завершённые
       ]);
 
       if (courierRes.ok) {
@@ -32,7 +33,7 @@
   });
 
   const updateStatus = async (newStatus) => {
-    const res = await fetch(`${API_BASE_URL}/couriers/${courierId}/status`, {
+    const res = await fetch(`${API_BASE_URL}/api/v1/courier/couriers/${courierId}/status`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status: newStatus })
