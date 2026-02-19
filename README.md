@@ -10,6 +10,7 @@
 - **Инфраструктуры**: PostgreSQL, Kafka, MinIO
 - **CI/CD**: GitLab, Jenkins, SonarQube, Nexus, ArgoCD
 - **Kubernetes**: развёртывание через Helm + ArgoCD GitOps
+- **IaC**: Terraform для управления инфраструктурой
 
 ## 🏗️ Архитектура
 
@@ -50,13 +51,16 @@
 └─────────────────────────────────────────────────────────────────┘
 ```
 
+---
+
 ## 🚀 Быстрый старт
 
 ### Предварительные требования
 
 - Docker & Docker Compose
+- Terraform >= 1.0.0 с провайдерами `docker` и `null`
 - Python 3.13+ с `uv` или `pip`
-- Для Kubernetes: `kubectl`, `helm`, `argocd` `istioctl` CLI
+- Для Kubernetes: `kubectl`, `helm`, `argocd`, `istioctl` CLI
 
 ### 1. Клонирование и настройка
 
@@ -69,9 +73,14 @@ cp env_example .env
 cp env_example admin-backend/.env
 cp env_example order-backend/.env
 cp env_example courier-backend/.env
+cp env_example terraform/.env
 ```
 
-### 2. Запуск локально (Docker Compose)
+---
+
+## 🐳 Вариант 1: Docker Compose (локальная разработка)
+
+### Запуск инфраструктуры
 
 ```bash
 # Запуск инфраструктуры (PostgreSQL, Kafka, MinIO)
@@ -84,27 +93,189 @@ docker-compose --profile back_front up -d
 docker-compose logs -f
 ```
 
-### 3. Доступ к сервисам
-
-| Сервис | Порт | URL |
-|--------|------|-----|
-| Admin Backend | 8001 | http://localhost:8001 |
-| Order Backend | 8002 | http://localhost:8002 |
-| Courier Backend | 8003 | http://localhost:8003 |
-| Admin Frontend | 3001 | http://localhost:3001 |
-| Order Frontend | 3002 | http://localhost:3002 |
-| Courier Frontend | 3003 | http://localhost:3003 |
-| PostgreSQL | 5432 | localhost:5432 |
-| Kafka | 9092 | localhost:9092 |
-| MinIO UI | 9001 | http://localhost:9001 |
-
-### 4. Остановка
+### Остановка
 
 ```bash
 docker-compose --profile infra down
 # или полностью очистить всё
 docker-compose --profile infra down -v
 ```
+
+---
+
+## 🏗️ Вариант 2: Terraform (продакшен-подобное окружение)
+
+**Это основной способ развёртывания инфраструктуры.** Вся инфраструктура управляется через Terraform, что обеспечивает идемпотентность, версионирование состояния и автоматическую настройку всех сервисов.
+
+### Предварительные требования
+
+```bash
+cd terraform
+terraform init
+```
+
+### Развёртывание
+
+```bash
+# Применение всей конфигурации
+terraform apply -auto-approve
+
+# Применение с просмотром плана
+terraform plan
+terraform apply
+```
+
+### Работа с отдельными ресурсами
+
+```bash
+# Перезапуск конкретного контейнера (например, Jenkins Agent)
+terraform apply -target=docker_container.jenkins_agent -auto-approve
+
+# Пересоздание ресурса
+terraform apply -target=docker_container.jenkins_agent \
+  -replace=docker_container.jenkins_agent \
+  -auto-approve
+
+# Удаление ресурса
+terraform destroy -target=docker_container.jenkins_agent -auto-approve
+```
+
+### Очистка и пересоздание Nexus
+
+```bash
+# Удаление состояния Nexus
+terraform state rm null_resource.nexus_init
+
+# Остановка и удаление контейнера
+docker stop nexus
+docker rm nexus
+docker volume rm nexus_data
+
+# Применение заново
+terraform apply -auto-approve
+```
+
+### Полезные команды Terraform
+
+```bash
+# Просмотр состояния
+terraform state list
+
+# Просмотр конкретного ресурса
+terraform state show docker_container.postgres
+
+# Импорт существующего ресурса
+terraform import docker_volume.postgres_data postgres_data
+
+# Форматирование
+terraform fmt -recursive
+
+# Валидация
+terraform validate
+```
+
+### Выходные данные (Outputs)
+
+После применения Terraform выведет информацию о подключении:
+
+```bash
+# MinIO
+terraform output minio_connection
+
+# Kafka
+terraform output kafka_connection
+
+# GitLab
+terraform output gitlab_connection
+
+# Nexus
+terraform output nexus_connection
+
+# SonarQube
+terraform output sonarqube_connection
+```
+
+### Автоматическая инициализация
+
+После развёртывания инфраструктуры Terraform автоматически выполнит:
+- Ожидание готовности всех сервисов
+- Инициализацию моделей БД (`make setup-models`)
+- Загрузку тестовых данных (`make load-data`)
+- Настройку Nexus (`make setup-nexus`)
+- Настройку SonarQube (`make setup-sonar`)
+- Настройку GitLab (`make setup-gitlab`)
+
+---
+
+## 🔀 Сравнение подходов
+
+| Характеристика | Docker Compose | Terraform |
+|----------------|----------------|-----------|
+| **Назначение** | Локальная разработка | Продакшен-подобное окружение |
+| **Управление состоянием** | Нет | Есть (state file) |
+| **Идемпотентность** | Частичная | Полная |
+| **Автоматическая настройка** | Нет | Да (bootstrap) |
+| **Работа с отдельными сервисами** | `docker-compose up -d <service>` | `-target` флаг |
+| **Сложность** | Низкая | Средняя |
+
+> 💡 **Рекомендация**: Используйте Docker Compose для быстрой локальной разработки и Terraform для развёртывания полноценного CI/CD окружения.
+
+---
+
+## ⚠️ Важные замечания
+
+### Конфликты портов
+
+Docker Compose и Terraform используют **одинаковые порты**, поэтому **нельзя запускать одновременно**:
+
+```bash
+# Остановите Docker Compose перед запуском Terraform
+docker-compose --profile infra down
+
+# Или остановите Terraform перед запуском Docker Compose
+terraform destroy -auto-approve
+```
+
+### Совместимость данных
+
+✅ **Docker Compose и Terraform используют одинаковые имена volume** — данные будут общими при переключении между подходами.
+
+| Ресурс | Volume имя |
+|--------|------------|
+| PostgreSQL | `postgres_data` |
+| MinIO | `minio_data` |
+| Nexus | `nexus_data` |
+| Jenkins | `jenkins_home` |
+| SonarQube | `sonarqube_data` |
+| Sonar PostgreSQL | `postgres_sonar_data` |
+
+### Сетевые алиасы
+
+Оба подхода используют сеть `app-network` с алиасами для сервисов (`postgres`, `kafka`, `minio`), 
+что позволяет сервисам обращаться друг к другу по имени.
+
+---
+
+## 📍 Доступ к сервисам
+
+| Сервис | Порт | URL | Описание |
+|--------|------|-----|----------|
+| Admin Backend | 8001 | http://localhost:8001 | FastAPI админка |
+| Order Backend | 8002 | http://localhost:8002 | FastAPI заказы |
+| Courier Backend | 8003 | http://localhost:8003 | FastAPI курьеры |
+| Admin Frontend | 3001 | http://localhost:3001 | UI админки |
+| Order Frontend | 3002 | http://localhost:3002 | UI заказов |
+| Courier Frontend | 3003 | http://localhost:3003 | UI курьеров |
+| PostgreSQL | 5432 | localhost:5432 | База данных |
+| Kafka | 9092 | localhost:9092 | Message broker |
+| MinIO UI | 9001 | http://localhost:9001 | S3-хранилище |
+| GitLab | 8060 | http://localhost:8060 | Git repository |
+| Jenkins | 8080 | http://localhost:8080 | CI/CD пайплайны |
+| SonarQube | 9009 | http://localhost:9009 | Code analysis |
+| Nexus | 8081 | http://localhost:8081 | Artifact registry |
+| Nexus Registry | 5000 | localhost:5000 | Docker registry |
+
+---
 
 ## 🛠️ Разработка
 
@@ -190,6 +361,8 @@ http://localhost:9001
 # Bucket создаётся автоматически при запуске
 ```
 
+---
+
 ## 📦 CI/CD
 
 ### Компоненты
@@ -247,6 +420,8 @@ curl -v \
 3. Добавьте токен в Jenkins credentials
 4. Настройте webhook: Administration → Configuration → Webhooks
    - URL: `http://jenkins:8080/sonarqube-webhook/`
+
+---
 
 ## ☸️ Kubernetes
 
@@ -334,14 +509,10 @@ kubectl create secret docker-registry nexus-creds \
   --docker-username=ostapkob \
   --docker-password=superpass123 \
   --docker-email=any@example.com \
-  -o yaml > k8s/nexus-secret.yaml
+  -o yaml > nexus-secret.yaml
 ```
 
-```bash
-# Создание secret для pull образов
-kubectl apply -f k8s/nexus-secret.yaml
-```
-
+---
 
 ## 📂 Структура проекта
 
@@ -373,11 +544,17 @@ healthy-menu/
 ├── jenkins/                # Jenkins агент
 │   ├── Dockerfile          # Образ агента с Docker-in-Docker
 │   └── jenkins_home/       # Домашняя директория Jenkins
-├── terraform/              # Terraform конфигурация (legacy)
+├── terraform/              # Terraform конфигурация
+│   ├── main.tf             # Основные ресурсы
+│   ├── variables.tf        # Переменные
+│   ├── outputs.tf          # Выходные данные
+│   └── secrets.auto.tfvars # Секреты (в .gitignore)
 ├── docker-compose.yml      # Docker Compose для локальной разработки
 ├── Makefile                # Команды автоматизации
 └── env_example             # Шаблон переменных окружения
 ```
+
+---
 
 ## 🔧 Конфигурация
 
@@ -425,11 +602,15 @@ NEXUS_PORT=8081
 NEXUS_REGISTRY_PORT=5000
 ```
 
+---
+
 ## 🔐 Безопасность
 
 - Пароли по умолчанию измените в `.env` перед запуском
 - Не коммитьте `.env` в репозиторий (добавлен в `.gitignore`)
 - Для продакшена используйте Secrets Management (Vault, K8s Secrets)
+
+---
 
 ## 📝 TODO
 
@@ -438,6 +619,8 @@ NEXUS_REGISTRY_PORT=5000
 - [ ] FluentBit — централизованное логирование
 - [ ] Prometheus + Grafana — мониторинг и алертинг
 - [ ] HTTPS — TLS termination
+
+---
 
 ## 📄 Лицензия
 
