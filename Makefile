@@ -1,4 +1,7 @@
-.PHONY: load-data publish push-gitlab setup-gitlab setup-models setup-nexus setup-sonar tmux
+.PHONY: load-data publish push-gitlab setup-gitlab setup-models setup-nexus setup-sonar tmux jenkins-backup
+
+jenkins-backup:
+	bash scripts/cleanup_jenkins_backup.sh jenkins/jenkins_home
 
 load-data:
 	bash scripts/load-data.sh
