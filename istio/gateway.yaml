@@ -1,3 +1,21 @@
+# Порт 8080 используется потому, что istio-ingressgateway слушает на 8080
+# Внешний порт мапится на 8080 внутри кластера
+apiVersion: networking.istio.io/v1
+kind: Gateway
+metadata:
+  name: healthy-menu-gateway
+  namespace: healthy-menu-dev
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+  - port:
+      number: 8080
+      name: http
+      protocol: HTTP
+    hosts:
+    - healthy-menu.local
+---
 apiVersion: networking.istio.io/v1
 kind: VirtualService
 metadata:
@@ -10,7 +28,7 @@ spec:
   - healthy-menu-gateway
   http:
 
-  # admin-frontend
+  # Frontend маршруты
   - match:
     - uri:
         prefix: /admin
@@ -22,7 +40,6 @@ spec:
         port:
           number: 80
 
-  # order-frontend
   - match:
     - uri:
         prefix: /order
@@ -34,7 +51,6 @@ spec:
         port:
           number: 80
 
-  # courier-frontend
   - match:
     - uri:
         prefix: /courier
@@ -46,7 +62,7 @@ spec:
         port:
           number: 80
 
-  # admin-backend
+  # Backend маршруты
   - match:
     - uri:
         prefix: /api/v1/admin
@@ -56,7 +72,6 @@ spec:
         port:
           number: 8000
 
-  # order-backend
   - match:
     - uri:
         prefix: /api/v1/order
@@ -66,7 +81,6 @@ spec:
         port:
           number: 8000
 
-  # courier-backend
   - match:
     - uri:
         prefix: /api/v1/courier

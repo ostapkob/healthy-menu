@@ -112,6 +112,8 @@ docker-compose --profile infra down -v
 ```bash
 cd terraform
 terraform init
+
+⚠️ в России 🇷🇺 проблемма с установкой поэтому используем [ссылку]( https://yandex.cloud/ru/docs/tutorials/infrastructure-management/terraform-quickstart#linux_1 ) на yandex
 ```
 
 ### Развёртывание
@@ -420,6 +422,52 @@ curl -v \
 3. Добавьте токен в Jenkins credentials
 4. Настройте webhook: Administration → Configuration → Webhooks
    - URL: `http://jenkins:8080/sonarqube-webhook/`
+
+---
+
+## 🌐 Istio Service Mesh
+
+### Компоненты
+
+| Компонент | Файл | Описание |
+|-----------|------|----------|
+| Gateway | `istio/gateway.yaml` | Входная точка для внешнего трафика |
+| PeerAuthentication | `istio/peer-authentication.yaml` | Настройки mTLS (PERMISSIVE режим) |
+| AuthorizationPolicy | `istio/authorization-policy.yaml` | Правила доступа между сервисами |
+
+### Применение конфигурации Istio
+
+```bash
+# Применить все конфигурации Istio
+kubectl apply -f istio/peer-authentication.yaml
+kubectl apply -f istio/gateway.yaml
+kubectl apply -f istio/authorization-policy.yaml
+
+# Или всё сразу
+kubectl apply -f istio/
+```
+
+### Проверка работы
+
+```bash
+# Проверка статуса proxy
+istioctl proxy-status
+
+# Проверка Gateway
+kubectl get gateway -n healthy-menu-dev
+
+# Проверка VirtualService
+kubectl get virtualservice -n healthy-menu-dev
+
+# Анализ конфигурации
+istioctl analyze -n healthy-menu-dev
+```
+
+
+### Включение строгого mTLS (опционально)
+
+Для продакшена рекомендуется включить mode STRICT для PeerAuthentication
+
 
 ---
 

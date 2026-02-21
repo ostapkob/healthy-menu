@@ -33,7 +33,7 @@ tmux rename-window db🗄️
 tmux new-window -t "$session_name" -n "new"
 tmux send-keys -t "$session_name":new "cd $directory/k8s" C-m
 tmux send-keys -t "$session_name":new "hx" C-m
-tmux rename-window k8s🧭
+tmux rename-window k8s☸️
 
 tmux new-window -t "$session_name" -n "new"
 tmux send-keys -t "$session_name":new "k9s" C-m
