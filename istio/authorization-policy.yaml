@@ -15,12 +15,12 @@ spec:
   rules:
   - from:
     - source:
-        principals:
+        principalsa:    # Идентификатор отправителя (mTLS)
         - "cluster.local/ns/istio-system/sa/istio-ingressgateway-service-account"
   - from:
     - source:
         principals:
-        - "cluster.local/ns/healthy-menu-dev/sa/default"
+        - "cluster.local/ns/healthy-menu-dev/sa/default" # Любые поды из namespace
 
 ---
 # Order Backend

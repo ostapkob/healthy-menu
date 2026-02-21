@@ -416,7 +416,11 @@ curl -v \
 ```
 
 ### SonarQube
+Скрипт ./scripts/setup-sonar.sh
 
+пока убрать Coverage on New Code до 0%
+
+Ручная настройка 
 1. Логин: `admin` / `admin`
 2. Создайте токен: My Account → Security → Global Analysis Token
 3. Добавьте токен в Jenkins credentials

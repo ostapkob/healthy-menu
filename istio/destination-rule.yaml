@@ -7,15 +7,16 @@ metadata:
 spec:
   host: admin-backend.healthy-menu-dev.svc.cluster.local
   trafficPolicy:
-    connectionPool:
+    connectionPool:           # Ограничения подключений
       http:
         http1MaxPendingRequests: 100
         maxRequestsPerConnection: 100
-    outlierDetection:
-      consecutive5xxErrors: 5
-      interval: 10s
-      baseEjectionTime: 30s
-      maxEjectionPercent: 50
+    outlierDetection:         # Circuit Breaker
+      consecutive5xxErrors: 5  # 5 ошибок подряд 5xx
+      interval: 10s           # проверять каждые 10 сек
+      baseEjectionTime: 30s   # исключить из пула на 30 сек
+      maxEjectionPercent: 50  # максимум 50% подов
+
 ---
 apiVersion: networking.istio.io/v1
 kind: DestinationRule

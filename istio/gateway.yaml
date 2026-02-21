@@ -7,14 +7,14 @@ metadata:
   namespace: healthy-menu-dev
 spec:
   selector:
-    istio: ingressgateway
+    istio: ingressgateway # Только для istio-ingressgateway подов
   servers:
   - port:
-      number: 8080
+      number: 8080  # Внешний порт (NodePort)
       name: http
       protocol: HTTP
     hosts:
-    - healthy-menu.local
+    - healthy-menu.local # Только запросы с этим Host заголовком
 ---
 apiVersion: networking.istio.io/v1
 kind: VirtualService
@@ -29,6 +29,7 @@ spec:
   http:
 
   # Frontend маршруты
+  # SvelteKit ожидает корне (/), а не в /admin.
   - match:
     - uri:
         prefix: /admin
