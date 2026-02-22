@@ -1,0 +1,39 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: healthy-menu-dev
+  namespace: argocd
+spec:
+  generators:
+  - git:
+      repoURL: http://gitlab:8060/ostapkob/gitops.git
+      revision: master
+      files:
+      - path: "services/*.yaml"  # <-- Все .yaml в services/
+  template:
+    metadata:
+      name: "{{name}}"
+    spec:
+      project: default
+      source:
+        repoURL: http://gitlab:8060/ostapkob/infra.git
+        targetRevision: master
+        path: .
+        helm:
+          releaseName: "{{name}}"
+          parameters:
+          - name: image.tag
+            value: "{{tag}}"
+          - name: service.port
+            value: "{{port}}"
+          - name: service.targetPort
+            value: "{{targetPort}}"
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: healthy-menu-dev
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+
+

@@ -1,0 +1,15 @@
+# Courier Frontend Service
+name: courier-frontend
+tag: "145"
+
+# Service port
+port: 80
+targetPort: 80
+
+# Istio configuration
+istio:
+  enabled: true
+  peerAuthentication:
+    mode: "PERMISSIVE"
+  authorizationPolicy:
+    allowInternal: false

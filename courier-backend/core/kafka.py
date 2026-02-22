@@ -3,15 +3,15 @@ import json
 import os
 import threading
 import time
-from typing import Dict
+from typing import Dict, Optional
 
-from confluent_kafka import Consumer
+from confluent_kafka import Consumer, KafkaException
 from fastapi import WebSocket, WebSocketDisconnect
 
 from core.config import settings
 from shared.models import Courier as CourierModel
 from shared.database import get_db  # если нужно внутри websocket
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 
 class ConnectionManager:
@@ -77,6 +77,9 @@ def process_kafka_message(msg) -> Optional[dict]:
 
 
 def kafka_listener():
+    """Kafka consumer в отдельном потоке"""
+    global kafka_queue
+    
     while True:
         try:
             consumer = create_kafka_consumer()
@@ -87,13 +90,17 @@ def kafka_listener():
             while True:
                 msg = consumer.poll(1.0)
                 data = process_kafka_message(msg)
-                if data is not None and event_loop is not None:
-                    event_loop.call_soon_threadsafe(
-                        app.kafka_queue.put_nowait,
-                        data,
-                    )
-                elif data is not None:
-                    print("⚠️ event_loop is None, не могу положить сообщение в очередь")
+                if data is not None:
+                    # Используем asyncio.run_coroutine_threadsafe для безопасной отправки в асинхронную очередь
+                    try:
+                        loop = asyncio.get_event_loop()
+                        asyncio.run_coroutine_threadsafe(
+                            kafka_queue.put(data),
+                            loop
+                        )
+                    except RuntimeError:
+                        # Event loop ещё не создан, пробуем получить или создать новый
+                        print("⚠️ Event loop не доступен, пропускаем сообщение")
 
         except (KafkaException, json.JSONDecodeError) as e:
             print(f"Ошибка консьюмера: {e}")

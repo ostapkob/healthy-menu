@@ -18,20 +18,20 @@ provider "docker" {
 }
 
 # Общая сеть для всех сервисов
-# resource "docker_network" "app_network" {
-#   name   = "app-network"
-#   driver = "bridge"
+resource "docker_network" "app_network" {
+  name   = "app-network"
+  driver = "bridge"
 
-#   ipam_config {
-#     subnet = "172.21.0.0/24" # Изменён подсеть для избежания конфликтов
-#   }
+  ipam_config {
+    subnet = "172.21.0.0/24" # Изменён подсеть для избежания конфликтов
+  }
 
-#   # Не давать сети удаляться, пока есть контейнеры
-#   lifecycle {
-#     create_before_destroy = true
-#     prevent_destroy       = false # Можно временно поставить true для отладки
-#   }
-# }
+  # Не давать сети удаляться, пока есть контейнеры
+  lifecycle {
+    create_before_destroy = true
+    prevent_destroy       = false # Можно временно поставить true для отладки
+  }
+}
 
 
 # ==================== PostgreSQL ====================
@@ -617,7 +617,7 @@ resource "docker_container" "jenkins_agent" {
     "POSTGRES_IP=${docker_container.postgres.network_data[0].ip_address}",
     "KAFKA_IP=${docker_container.kafka.network_data[0].ip_address}",
     "SONAR_IP=${docker_container.sonarqube.network_data[0].ip_address}",
-    "NEXUS_REGISTRY_URL=${docker_container.nexus.network_data[0].ip_address}:${var.nexus_registry_port}"
+    "NEXUS_REGISTRY_URL=${docker_container.nexus.name}:${var.nexus_registry_port}"
   ]
 
   # FIX: after https rm insecure
@@ -625,11 +625,13 @@ resource "docker_container" "jenkins_agent" {
     "sh", "-c",
     <<-EOT
     if ! command -v docker >/dev/null; then
-      apk add --no-cache docker fuse-overlayfs jq
+      apk add --no-cache docker fuse-overlayfs jq curl
       rm -f /var/run/docker.pid /var/run/docker.sock
     fi
     (dockerd --storage-driver=fuse-overlayfs \
       --host=unix:///var/run/docker.sock \
+      --insecure-registry nexus:5000 \
+      --insecure-registry localhost:5000 \
       --insecure-registry ${docker_container.nexus.network_data[0].ip_address}:${var.nexus_registry_port} &) && \
     sleep 5
     /usr/local/bin/jenkins-agent

@@ -1,0 +1,160 @@
+---
+# Source: healthy-menu/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: admin-backend
+spec:
+  selector:
+    app: admin-backend
+  ports:
+    - name: http
+      protocol: TCP
+      port: 8000
+      targetPort: 8000
+  type: ClusterIP
+---
+# Source: healthy-menu/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: admin-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: admin-backend
+  template:
+    metadata:
+      labels:
+        app: admin-backend
+    spec:
+      imagePullSecrets: 
+         - name: nexus-creds 
+      containers:
+      - name: admin-backend
+        image: "nexus:5000/admin-backend:latest"
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8000
+        env:
+        # Postgres
+        # Загружаем переменные из ConfigMap
+        - name: POSTGRES_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: postgres-config
+              key: POSTGRES_HOST
+        - name: POSTGRES_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: postgres-config
+              key: POSTGRES_PORT
+        - name: POSTGRES_DB
+          valueFrom:
+            configMapKeyRef:
+              name: postgres-config
+              key: POSTGRES_DB
+        # Загружаем чувствительные переменные из Secret
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secret
+              key: POSTGRES_USER
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secret
+              key: POSTGRES_PASSWORD
+        # Формируем DATABASE_URL через args
+        - name: DATABASE_URL
+          value: "postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@$(POSTGRES_HOST):$(POSTGRES_PORT)/$(POSTGRES_DB)"
+
+        # MINIO
+        - name: MINIO_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: minio-config
+              key: MINIO_HOST
+        - name: MINIO_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: minio-config
+              key: MINIO_PORT
+        - name: MINIO_ROOT_USER
+          valueFrom:
+            secretKeyRef:
+              name: minio-secret
+              key: MINIO_ROOT_USER
+        - name: MINIO_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: minio-secret
+              key: MINIO_ROOT_PASSWORD
+
+        # KAFKA
+        - name: KAFKA_BOOTSTRAP_SERVERS
+          valueFrom:
+            configMapKeyRef:
+              name: kafka-config
+              key: KAFKA_BOOTSTRAP_SERVERS
+---
+# Source: healthy-menu/templates/authorization-policy.yaml
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: admin-backend
+  namespace: default
+  labels:
+    app: admin-backend
+spec:
+  selector:
+    matchLabels:
+      app: admin-backend
+  rules:
+  # Default rules - allow traffic from ingress gateway and same namespace
+  - from:
+    - source:
+        principals:
+        - "cluster.local/ns/istio-system/sa/istio-ingressgateway-service-account"
+  - from:
+    - source:
+        namespaces:
+        - default
+---
+# Source: healthy-menu/templates/destination-rule.yaml
+apiVersion: networking.istio.io/v1
+kind: DestinationRule
+metadata:
+  name: admin-backend
+  namespace: default
+  labels:
+    app: admin-backend
+    chart: healthy-menu-1.0.0
+spec:
+  host: admin-backend.default.svc.cluster.local
+  trafficPolicy:
+    connectionPool:
+      http:
+        http1MaxPendingRequests: 100
+        maxRequestsPerConnection: 100
+    outlierDetection:
+      consecutive5xxErrors: 5
+      interval: 10s
+      baseEjectionTime: 30s
+      maxEjectionPercent: 50
+---
+# Source: healthy-menu/templates/peer-authentication.yaml
+apiVersion: security.istio.io/v1
+kind: PeerAuthentication
+metadata:
+  name: admin-backend-mtls
+  namespace: default
+  labels:
+    app: admin-backend
+spec:
+  selector:
+    matchLabels:
+      app: admin-backend
+  mtls:
+    mode: PERMISSIVE

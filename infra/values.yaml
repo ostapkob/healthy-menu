@@ -1,0 +1,71 @@
+# Реплики
+replicaCount: 1
+
+# Образ
+image:
+  repository: nexus:5000
+  tag: "latest"
+  pullPolicy: Always
+
+# Порт приложения
+service:
+  protocol: TCP
+  port: 8000
+  targetPort: 8000
+  type: ClusterIP
+
+# Конфигурации из ConfigMaps и Secrets
+config:
+  postgres:
+    configMap: postgres-config
+    secret: postgres-secret
+  minio:
+    configMap: minio-config
+    secret: minio-secret
+  kafka:
+    configMap: kafka-config
+
+# Переменные окружения (опционально, если хотите переопределить)
+env:
+  # Пример добавления дополнительных переменных:
+  # - name: LOG_LEVEL
+  #   value: "info"
+
+# ============================================
+# Istio конфигурация
+# ============================================
+istio:
+  # Включить генерацию Istio ресурсов
+  enabled: false
+
+  # DestinationRule - управление трафиком
+  destinationRule:
+    trafficPolicy:
+      connectionPool:
+        http1MaxPendingRequests: 100
+        maxRequestsPerConnection: 100
+      outlierDetection:
+        consecutive5xxErrors: 5
+        interval: "10s"
+        baseEjectionTime: "30s"
+        maxEjectionPercent: 50
+
+  # PeerAuthentication - mTLS настройки
+  peerAuthentication:
+    # Режим: DISABLE, PERMISSIVE, STRICT
+    mode: "PERMISSIVE"
+
+  # AuthorizationPolicy - правила доступа
+  authorizationPolicy:
+    # Разрешить трафик изнутри namespace
+    allowInternal: true
+    # Кастомные правила (кол-во строк не влияет)
+    # rules:
+    #   - from:
+    #     - source:
+    #         principals:
+    #         - "cluster.local/ns/istio-system/sa/istio-ingressgateway-service-account"
+    #     to:
+    #     - operation:
+    #         methods: ["GET", "POST"]
+    #         paths: ["/api/*"]

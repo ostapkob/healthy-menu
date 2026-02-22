@@ -1,5 +1,5 @@
 <?xml version='1.1' encoding='UTF-8'?>
-<flow-definition plugin="workflow-job@1559.va_a_533730b_ea_d">
+<flow-definition plugin="workflow-job@1571.vb_423c255d6d9">
   <actions>
     <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobAction plugin="pipeline-model-definition@2.2277.v00573e73ddf1"/>
     <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction plugin="pipeline-model-definition@2.2277.v00573e73ddf1">
@@ -16,10 +16,25 @@
   <description></description>
   <keepDependencies>false</keepDependencies>
   <properties>
-    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@338.va_0a_b_50e29397">
-      <autoRebuild>false</autoRebuild>
-      <rebuildDisabled>false</rebuildDisabled>
-    </com.sonyericsson.rebuild.RebuildSettings>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>PARAM_SERVICE</name>
+          <description>Выберите сервис для сборки</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string></string>
+              <string>admin-backend</string>
+              <string>admin-frontend</string>
+              <string>courier-backend</string>
+              <string>courier-frontend</string>
+              <string>order-backend</string>
+              <string>order-frontend</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
     <org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
       <triggers>
         <org.jenkinsci.plugins.gwt.GenericTrigger plugin="generic-webhook-trigger@2.4.1">
@@ -55,30 +70,13 @@
         </org.jenkinsci.plugins.gwt.GenericTrigger>
       </triggers>
     </org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
-    <hudson.model.ParametersDefinitionProperty>
-      <parameterDefinitions>
-        <hudson.model.ChoiceParameterDefinition>
-          <name>PARAM_SERVICE</name>
-          <description>Выберите сервис для сборки</description>
-          <choices>
-            <string></string>
-            <string>admin-backend</string>
-            <string>admin-frontend</string>
-            <string>courier-backend</string>
-            <string>courier-frontend</string>
-            <string>order-backend</string>
-            <string>order-frontend</string>
-          </choices>
-        </hudson.model.ChoiceParameterDefinition>
-      </parameterDefinitions>
-    </hudson.model.ParametersDefinitionProperty>
   </properties>
-  <definition class="org.jenkinsci.plugins.workflow.cps.CpsScmFlowDefinition" plugin="workflow-cps@4253.vc894cd5750c6">
-    <scm class="hudson.plugins.git.GitSCM" plugin="git@5.8.1">
+  <definition class="org.jenkinsci.plugins.workflow.cps.CpsScmFlowDefinition" plugin="workflow-cps@4255.vd9c37f80fd8a_">
+    <scm class="hudson.plugins.git.GitSCM" plugin="git@5.10.0">
       <configVersion>2</configVersion>
       <userRemoteConfigs>
         <hudson.plugins.git.UserRemoteConfig>
-          <url>http://gitlab:8060/ostapkob/ci-pipelines</url>
+          <url>http://gitlab:80/ostapkob/ci-pipelines</url>
           <credentialsId>gitlab-token</credentialsId>
         </hudson.plugins.git.UserRemoteConfig>
       </userRemoteConfigs>

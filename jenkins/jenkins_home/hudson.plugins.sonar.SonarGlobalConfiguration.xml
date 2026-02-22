@@ -3,7 +3,7 @@
   <installations>
     <hudson.plugins.sonar.SonarInstallation>
       <name>SonarQubeLocal</name>
-      <serverUrl>http://sonarqube:9000</serverUrl>
+      <serverUrl> http://sonarqube:9000</serverUrl>
       <credentialsId>sonar-token</credentialsId>
       <webhookSecretId></webhookSecretId>
       <mojoVersion></mojoVersion>
@@ -16,7 +16,7 @@
       </triggers>
     </hudson.plugins.sonar.SonarInstallation>
   </installations>
-  <buildWrapperEnabled>true</buildWrapperEnabled>
+  <buildWrapperEnabled>false</buildWrapperEnabled>
   <dataMigrated>true</dataMigrated>
   <credentialsMigrated>true</credentialsMigrated>
 </hudson.plugins.sonar.SonarGlobalConfiguration>

@@ -1,0 +1,16 @@
+{{- if .Values.istio.enabled }}
+---
+apiVersion: security.istio.io/v1
+kind: PeerAuthentication
+metadata:
+  name: {{ .Release.Name }}-mtls
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ .Release.Name }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}
+  mtls:
+    mode: {{ .Values.istio.peerAuthentication.mode | default "PERMISSIVE" }}
+{{- end }}

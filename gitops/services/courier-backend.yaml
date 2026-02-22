@@ -1,0 +1,25 @@
+# Courier Backend Service
+name: courier-backend
+tag: "158"
+
+# Service port
+port: 8000
+targetPort: 8000
+
+# Istio configuration
+istio:
+  enabled: true
+  peerAuthentication:
+    mode: "PERMISSIVE"
+  destinationRule:
+    trafficPolicy:
+      connectionPool:
+        http1MaxPendingRequests: 100
+        maxRequestsPerConnection: 100
+      outlierDetection:
+        consecutive5xxErrors: 5
+        interval: "10s"
+        baseEjectionTime: "30s"
+        maxEjectionPercent: 50
+  authorizationPolicy:
+    allowInternal: true
