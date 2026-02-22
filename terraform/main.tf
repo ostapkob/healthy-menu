@@ -18,20 +18,20 @@ provider "docker" {
 }
 
 # Общая сеть для всех сервисов
-# resource "docker_network" "app_network" {
-#   name   = "app-network"
-#   driver = "bridge"
+resource "docker_network" "app_network" {
+  name   = "app-network"
+  driver = "bridge"
 
-#   ipam_config {
-#     subnet = "172.21.0.0/24" # Изменён подсеть для избежания конфликтов
-#   }
+  ipam_config {
+    subnet = "172.21.0.0/24" # Изменён подсеть для избежания конфликтов
+  }
 
-#   # Не давать сети удаляться, пока есть контейнеры
-#   lifecycle {
-#     create_before_destroy = true
-#     prevent_destroy       = false # Можно временно поставить true для отладки
-#   }
-# }
+  # Не давать сети удаляться, пока есть контейнеры
+  lifecycle {
+    create_before_destroy = true
+    prevent_destroy       = false # Можно временно поставить true для отладки
+  }
+}
 
 
 # ==================== PostgreSQL ====================

@@ -431,24 +431,24 @@ curl -v \
 
 ## 🌐 Istio Service Mesh
 
-### Компоненты
+### Интеграция с Helm и ArgoCD
 
-| Компонент | Файл | Описание |
-|-----------|------|----------|
-| Gateway | `istio/gateway.yaml` | Входная точка для внешнего трафика |
-| PeerAuthentication | `istio/peer-authentication.yaml` | Настройки mTLS (PERMISSIVE режим) |
-| AuthorizationPolicy | `istio/authorization-policy.yaml` | Правила доступа между сервисами |
+Istio ресурсы генерируются автоматически через Helm chart при развёртывании через ArgoCD.
 
-### Применение конфигурации Istio
+#### Какие Istio ресурсы создаются автоматически
+
+| Ресурс | Шаблон | Описание |
+|--------|--------|----------|
+| DestinationRule | `infra/templates/destination-rule.yaml` | Circuit breaker, connection pool |
+| PeerAuthentication | `infra/templates/peer-authentication.yaml` | mTLS настройки (PERMISSIVE/STRICT) |
+| AuthorizationPolicy | `infra/templates/authorization-policy.yaml` | Правила доступа между сервисами |
+
+#### Ручное применение (только Gateway)
+
+Gateway и VirtualService применяются вручную, так как они глобальные для всех сервисов:
 
 ```bash
-# Применить все конфигурации Istio
-kubectl apply -f istio/peer-authentication.yaml
 kubectl apply -f istio/gateway.yaml
-kubectl apply -f istio/authorization-policy.yaml
-
-# Или всё сразу
-kubectl apply -f istio/
 ```
 
 ### Проверка работы
@@ -507,6 +507,9 @@ argocd admin initial-password -n argocd
 # Логин
 argocd login localhost:18080 --username admin --password $ARGO_PASSWORD --insecure
 ```
+
+# Проверка 
+helm template admin-backend ./infra --set istio.enabled=true -f gitops/services/admin-backend.yaml
 
 ### Добавление репозиториев в ArgoCD
 
@@ -581,18 +584,25 @@ healthy-menu/
 │   ├── argocd-appsets/     # ApplicationSet определения
 │   └── services/           # Application для каждого сервиса
 ├── infra/                  # Helm чарты
-│   ├── templates/          # Шаблоны Kubernetes
+│   ├── templates/          # Шаблоны Kubernetes + Istio
+│   │   ├── deployment.yaml
+│   │   ├── service.yaml
+│   │   ├── destination-rule.yaml    # Istio DestinationRule
+│   │   ├── peer-authentication.yaml # Istio PeerAuthentication
+│   │   └── authorization-policy.yaml # Istio AuthorizationPolicy
 │   ├── Chart.yaml          # Метаданные чарта
-│   └── values.yaml         # Значения по умолчанию
+│   └── values.yaml         # Значения по умолчанию (вкл. Istio)
 ├── k8s/                    # Kubernetes манифесты (legacy)
-│   ├── gateway.yaml        # Istio Gateway
-│   └── virtualservice.yaml # Istio VirtualService
+│   ├── gateway.yaml        # Istio Gateway (устарело)
+│   └── virtualservice.yaml # Istio VirtualService (устарело)
 ├── scripts/                # Скрипты автоматизации
 │   ├── cleanup_jenkins_backup.sh
 │   ├── load-data.sh
 │   ├── setup-gitlab.sh
 │   └── ...
 ├── csv_data/               # CSV данные для загрузки в БД
+├── istio/                  # Istio конфигурация (только Gateway)
+│   └── gateway.yaml        # Gateway + VirtualService (маршрутизация)
 ├── jenkins/                # Jenkins агент
 │   ├── Dockerfile          # Образ агента с Docker-in-Docker
 │   └── jenkins_home/       # Домашняя директория Jenkins

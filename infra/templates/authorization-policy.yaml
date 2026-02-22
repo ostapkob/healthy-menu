@@ -1,0 +1,30 @@
+{{- if .Values.istio.enabled }}
+---
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: {{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ .Release.Name }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}
+  rules:
+  {{- if .Values.istio.authorizationPolicy.rules }}
+  {{- toYaml .Values.istio.authorizationPolicy.rules | nindent 2 }}
+  {{- else }}
+  # Default rules - allow traffic from ingress gateway and same namespace
+  - from:
+    - source:
+        principals:
+        - "cluster.local/ns/istio-system/sa/istio-ingressgateway-service-account"
+  {{- if .Values.istio.authorizationPolicy.allowInternal }}
+  - from:
+    - source:
+        namespaces:
+        - {{ .Release.Namespace }}
+  {{- end }}
+  {{- end }}
+{{- end }}

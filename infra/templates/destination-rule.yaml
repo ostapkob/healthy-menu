@@ -1,0 +1,41 @@
+{{- if .Values.istio.enabled }}
+---
+apiVersion: networking.istio.io/v1
+kind: DestinationRule
+metadata:
+  name: {{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ .Release.Name }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+spec:
+  host: {{ .Release.Name }}.{{ .Release.Namespace }}.svc.cluster.local
+  {{- if .Values.istio.destinationRule.trafficPolicy }}
+  trafficPolicy:
+    {{- if .Values.istio.destinationRule.trafficPolicy.connectionPool }}
+    connectionPool:
+      http:
+        http1MaxPendingRequests: {{ .Values.istio.destinationRule.trafficPolicy.connectionPool.http1MaxPendingRequests | default 100 }}
+        maxRequestsPerConnection: {{ .Values.istio.destinationRule.trafficPolicy.connectionPool.maxRequestsPerConnection | default 100 }}
+    {{- end }}
+    {{- if .Values.istio.destinationRule.trafficPolicy.outlierDetection }}
+    outlierDetection:
+      consecutive5xxErrors: {{ .Values.istio.destinationRule.trafficPolicy.outlierDetection.consecutive5xxErrors | default 5 }}
+      interval: {{ .Values.istio.destinationRule.trafficPolicy.outlierDetection.interval | default "10s" }}
+      baseEjectionTime: {{ .Values.istio.destinationRule.trafficPolicy.outlierDetection.baseEjectionTime | default "30s" }}
+      maxEjectionPercent: {{ .Values.istio.destinationRule.trafficPolicy.outlierDetection.maxEjectionPercent | default 50 }}
+    {{- end }}
+  {{- else }}
+  # Default traffic policy
+  trafficPolicy:
+    connectionPool:
+      http:
+        http1MaxPendingRequests: 100
+        maxRequestsPerConnection: 100
+    outlierDetection:
+      consecutive5xxErrors: 5
+      interval: 10s
+      baseEjectionTime: 30s
+      maxEjectionPercent: 50
+  {{- end }}
+{{- end }}

@@ -1,9 +1,0 @@
-# PERMISSIVE принимает mTLS и plain text трафик
-apiVersion: security.istio.io/v1
-kind: PeerAuthentication
-metadata:
-  name: healthy-menu-default
-  namespace: healthy-menu-dev
-spec:
-  mtls:
-    mode: PERMISSIVE
