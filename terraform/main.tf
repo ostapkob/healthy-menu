@@ -600,8 +600,8 @@ resource "docker_container" "jenkins_agent" {
   # FIX: use hashicorp vault
   env = [
     "JENKINS_URL=http://jenkins:8080",
-    "JENKINS_SECRET=3001527dbd2b351f03f6327ca215ac9752816a219b24322dcfbf8d706d3ef25d",
-    "JENKINS_AGENT_NAME=agent-1",
+    "JENKINS_SECRET=${var.jenkins_secret}",
+    "JENKINS_AGENT_NAME=${var.jenkins_agent_name}",
     "JENKINS_WEB_SOCKET=true",
     "POSTGRES_HOST=${var.postgres_host}",
     "POSTGRES_PORT=${var.postgres_port}",
