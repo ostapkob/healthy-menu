@@ -94,6 +94,11 @@ SONAR_USER_TOKEN=sqa_5fbabed883da6028d729f42153359f999a618c97
 # argo
 ARGO_PASSWORD=M4jtlopYrP3xoUb!m4ePoTpas!+1
 
+# Vault
+VAULT_TOKEN=vault-root-token
+VAULT_ADDR=http://nixos:8200
+
+
 # redis
 REDIS_URL=redis://redis:6379
 

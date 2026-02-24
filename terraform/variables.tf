@@ -78,19 +78,19 @@ variable "nexus_registry_port" {
   default = 5000
 }
 
-variable "nexus_admin_password" {
-  type      = string
-  sensitive = true
-}
+# variable "nexus_admin_password" {
+#   type      = string
+#   sensitive = true
+# }
 
-variable "nexus_user_name" {
-  type = string
-}
+# variable "nexus_user_name" {
+#   type = string
+# }
 
-variable "nexus_user_password" {
-  type      = string
-  sensitive = true
-}
+# variable "nexus_user_password" {
+#   type      = string
+#   sensitive = true
+# }
 
 
 # == gitlab ==
@@ -124,22 +124,22 @@ variable "gitlab_memory_limit" {
   default     = 4096 # 4GB
 }
 
-variable "gitlab_root_password" {
-  description = "GitLab root password"
-  type        = string
-  sensitive   = true
-}
+# variable "gitlab_root_password" {
+#   description = "GitLab root password"
+#   type        = string
+#   sensitive   = true
+# }
 
-variable "gitlab_user_name" {
-  description = "GitLab username for the new user"
-  type        = string
-}
+# variable "gitlab_user_name" {
+#   description = "GitLab username for the new user"
+#   type        = string
+# }
 
-variable "gitlab_user_password" {
-  description = "GitLab user password (for the new user)"
-  type        = string
-  sensitive   = true
-}
+# variable "gitlab_user_password" {
+#   description = "GitLab user password (for the new user)"
+#   type        = string
+#   sensitive   = true
+# }
 
 variable "gitlab_root_email" {
   description = "GitLab root email"
