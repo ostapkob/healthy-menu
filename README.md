@@ -253,7 +253,7 @@ terraform destroy -auto-approve
 
 ### Сетевые алиасы
 
-Оба подхода используют сеть `app-network` с алиасами для сервисов (`postgres`, `kafka`, `minio`), 
+Оба подхода используют сеть `app-network` с алиасами для сервисов (`postgres`, `kafka`, `minio`),
 что позволяет сервисам обращаться друг к другу по имени.
 
 ---
@@ -420,7 +420,7 @@ curl -v \
 
 пока убрать Coverage on New Code до 0%
 
-Ручная настройка 
+Ручная настройка
 1. Логин: `admin` / `admin`
 2. Создайте токен: My Account → Security → Global Analysis Token
 3. Добавьте токен в Jenkins credentials
@@ -475,6 +475,147 @@ istioctl analyze -n healthy-menu-dev
 
 ---
 
+## 🔐 HashiCorp Vault
+
+Vault используется для централизованного хранения и управления секретами.
+
+### Запуск Vault
+
+```bash
+# Через Terraform
+cd terraform
+terraform apply -target=docker_container.vault -auto-approve
+
+# Или через docker-compose (если добавлен)
+docker-compose up -d vault
+```
+
+### Доступ к Vault
+
+| Параметр | Значение |
+|----------|----------|
+| **UI** | http://localhost:8200 |
+| **API** | http://localhost:8200 |
+| **Root Token** | vault-root-token |
+| **Secrets Path** | secret/ |
+
+### Использование через CLI
+
+```bash
+# Проверка статуса
+make vault status
+
+# Список секретов
+make vault list
+
+# Получить секрет
+make vault get postgres
+
+# Создать/обновить секрет
+make vault put myapp api_key=secret123
+
+# Получить в JSON формате
+make vault json postgres
+
+# Экспорт в переменные окружения
+eval "$(make vault export postgres)"
+
+# Инициализация (загрузка из .env)
+make vault-init
+```
+
+### Прямые команды Vault
+
+```bash
+# Установка переменных
+export VAULT_ADDR=http://localhost:8200
+export VAULT_TOKEN=vault-root-token
+
+# Чтение секрета
+vault kv get secret/postgres
+
+# Запись секрета
+vault kv put secret/myapp key=value
+
+# Удаление секрета
+vault kv delete secret/myapp
+
+# Список секретов
+vault kv list secret/
+```
+
+### Хранимые секреты
+
+| Секрет | Путь | Описание |
+|--------|------|----------|
+| PostgreSQL | `secret/postgres` | Подключение к БД |
+| MinIO | `secret/minio` | S3-хранилище |
+| Kafka | `secret/kafka` | Message broker |
+| Nexus | `secret/nexus` | Docker registry |
+| GitLab | `secret/gitlab` | Git repository |
+| SonarQube | `secret/sonarqube` | Code analysis |
+| JWT | `secret/jwt` | JWT настройки |
+
+### Интеграция с приложениями
+
+#### Python (FastAPI)
+
+```python
+from hvac import Client
+
+client = Client(
+    url=os.getenv('VAULT_ADDR'),
+    token=os.getenv('VAULT_TOKEN')
+)
+
+# Получить секрет
+secrets = client.secrets.kv.v2.read_secret_version(path='postgres')
+db_config = secrets['data']['data']
+
+# Использование
+DATABASE_URL = f"postgresql://{db_config['username']}:{db_config['password']}@{db_config['host']}:{db_config['port']}/{db_config['database']}"
+```
+
+#### Kubernetes (через Vault Agent Injector)
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: admin-backend
+spec:
+  template:
+    metadata:
+      annotations:
+        vault.hashicorp.com/agent-inject: "true"
+        vault.hashicorp.com/agent-inject-secret-postgres: "secret/postgres"
+        vault.hashicorp.com/agent-inject-type-postgres: "env"
+```
+
+### Инициализация из .env
+
+```bash
+# Вариант 1: Локально (требуется vault CLI)
+# Установка: brew install vault (macOS) или скачать с hashicorp.com
+make vault-init
+
+# Вариант 2: Внутри контейнера (не требует vault CLI)
+make vault-init-docker
+```
+
+### Безопасность
+
+> ⚠️ **Внимание**: Текущая конфигурация использует dev-режим Vault (не для продакшена!)
+
+Для продакшена:
+1. Отключите dev-режим в `terraform/vault.tf`
+2. Используйте production storage backend (Consul, Raft)
+3. Настройте unseal ключи
+4. Включите audit logging
+5. Используйте AppRole или Kubernetes auth method
+
+---
+
 ## ☸️ Kubernetes
 
 ### Установка ArgoCD
@@ -508,7 +649,7 @@ argocd admin initial-password -n argocd
 argocd login localhost:18080 --username admin --password $ARGO_PASSWORD --insecure
 ```
 
-# Проверка 
+# Проверка
 helm template admin-backend ./infra --set istio.enabled=true -f gitops/services/admin-backend.yaml
 
 ### Добавление репозиториев в ArgoCD
@@ -609,7 +750,8 @@ healthy-menu/
 ├── terraform/              # Terraform конфигурация
 │   ├── main.tf             # Основные ресурсы
 │   ├── variables.tf        # Переменные
-│   ├── outputs.tf          # Выходные данные
+│   ├── outputs.tf          # Выходные данные (вкл. Vault)
+│   ├── vault.tf            # HashiCorp Vault
 │   └── secrets.auto.tfvars # Секреты (в .gitignore)
 ├── docker-compose.yml      # Docker Compose для локальной разработки
 ├── Makefile                # Команды автоматизации
@@ -676,11 +818,12 @@ NEXUS_REGISTRY_PORT=5000
 
 ## 📝 TODO
 
-- [ ] HashiCorp Vault — управление секретами
-- [ ] Istio — service mesh (частично реализован)
+- [x] Istio — service mesh
+- [x] HashiCorp Vault — управление секретами
 - [ ] FluentBit — централизованное логирование
 - [ ] Prometheus + Grafana — мониторинг и алертинг
 - [ ] HTTPS — TLS termination
+- [ ] tfstate in S3
 
 ---
 

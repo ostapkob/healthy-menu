@@ -24,3 +24,6 @@ jenkins_secret = "3001527dbd2b351f03f6327ca215ac9752816a219b24322dcfbf8d706d3ef2
 # Sonar
 sonar_postgres_user     = "sonar"
 sonar_postgres_password = "sonar"
+
+# Vault
+vault_token = "vault-root-token"

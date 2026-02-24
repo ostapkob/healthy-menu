@@ -209,6 +209,17 @@ variable "sonar_es_disable_bootstrap_checks" {
   default     = "true"
 }
 
+# == Vault ==
+variable "vault_addr" {
+  type      = string
+  sensitive = true
+  default   = "http://localhost:8200"
+}
+
+variable "vault_token" {
+  type      = string
+  sensitive = true
+}
 
 # variable "jenkins_plugins" {
 #   description = "List of Jenkins plugins to pre-install"

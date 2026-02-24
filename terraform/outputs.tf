@@ -64,6 +64,17 @@ output "sonarqube_connection" {
   sensitive = true
 }
 
+output "vault_connection" {
+  description = "HashiCorp Vault connection details"
+  value = {
+    web_url      = "http://localhost:8200"
+    api_url      = "http://localhost:8200"
+    root_token   = "vault-root-token"
+    secrets_path = "secret/"
+  }
+  sensitive = true
+}
+
 
 
 locals {

@@ -18,20 +18,20 @@ provider "docker" {
 }
 
 # Общая сеть для всех сервисов
-resource "docker_network" "app_network" {
-  name   = "app-network"
-  driver = "bridge"
+# resource "docker_network" "app_network" {
+#   name   = "app-network"
+#   driver = "bridge"
 
-  ipam_config {
-    subnet = "172.21.0.0/24" # Изменён подсеть для избежания конфликтов
-  }
+#   ipam_config {
+#     subnet = "172.21.0.0/24" # Изменён подсеть для избежания конфликтов
+#   }
 
-  # Не давать сети удаляться, пока есть контейнеры
-  lifecycle {
-    create_before_destroy = true
-    prevent_destroy       = false # Можно временно поставить true для отладки
-  }
-}
+#   # Не давать сети удаляться, пока есть контейнеры
+#   lifecycle {
+#     create_before_destroy = true
+#     prevent_destroy       = false # Можно временно поставить true для отладки
+#   }
+# }
 
 
 # ==================== PostgreSQL ====================
@@ -665,6 +665,73 @@ resource "docker_container" "jenkins_agent" {
 }
 
 
+# ==================== HashiCorp Vault ====================
+resource "docker_volume" "vault_data" {
+  name = "vault_data"
+}
+
+resource "docker_volume" "vault_config" {
+  name = "vault_config"
+}
+
+resource "docker_image" "vault" {
+  name         = "hashicorp/vault:latest"
+  keep_locally = true
+}
+
+resource "docker_container" "vault" {
+  name    = "vault"
+  image   = docker_image.vault.image_id
+  restart = "unless-stopped"
+
+  # WARN: Dev режим для разработки (не использовать в продакшене!)
+  # В продакшене нужен production режим с storage backend
+  command = ["server", "-dev", "-dev-root-token-id=vault-root-token", "-dev-listen-address=0.0.0.0:8200"]
+
+  env = [
+    "VAULT_ADDR=${var.vault_addr}",
+    "VAULT_TOKEN=${var.vault_token}"
+  ]
+
+  ports {
+    internal = 8200
+    external = 8200
+    ip       = "0.0.0.0"
+  }
+
+  volumes {
+    volume_name    = docker_volume.vault_data.name
+    container_path = "/vault/data"
+    read_only      = false
+  }
+
+  volumes {
+    volume_name    = docker_volume.vault_config.name
+    container_path = "/vault/config"
+    read_only      = false
+  }
+
+  networks_advanced {
+    name    = "app-network"
+    aliases = ["vault"]
+  }
+
+  # Vault требует дополнительных capabilities
+  # cap_add = ["IPC_LOCK"]
+
+  healthcheck {
+    test     = ["CMD", "vault", "status", "-format=json"]
+    interval = "10s"
+    timeout  = "5s"
+    retries  = 5
+  }
+
+  cpu_shares = 512
+  memory     = 512 # 512MB достаточно для dev
+}
+
+
+# ==================== Scripts ====================
 resource "terraform_data" "bootstrap" {
   # Список зависимостей
   depends_on = [
@@ -673,7 +740,8 @@ resource "terraform_data" "bootstrap" {
     docker_container.nexus,
     docker_container.minio,
     docker_container.gitlab,
-    docker_container.sonarqube
+    docker_container.sonarqube,
+    docker_container.vault
   ]
 
   provisioner "local-exec" {
@@ -693,6 +761,7 @@ resource "terraform_data" "bootstrap" {
       wait_for_healthy "${docker_container.gitlab.name}"
       wait_for_healthy "${docker_container.nexus.name}"
       wait_for_healthy "${docker_container.sonarqube.name}"
+      wait_for_healthy "${docker_container.vault.name}"
 
       # Запуск основной логики
       make setup-models
@@ -700,6 +769,7 @@ resource "terraform_data" "bootstrap" {
       make setup-nexus
       make setup-sonar
       make setup-gitlab
+      make vault-init
       echo "Done 🍾🍾🍾"
     EOT
   }
