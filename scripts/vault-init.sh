@@ -23,7 +23,7 @@ export VAULT_ADDR
 export VAULT_TOKEN
 
 echo -e "${BLUE}╔════════════════════════════════════════╗"
-echo -e "║  HashiCorp Vault Initialization Script  ║"
+echo -e "║  HashiCorp Vault Initialization Script ║"
 echo -e "╚════════════════════════════════════════╝${NC}"
 echo ""
 

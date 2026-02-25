@@ -640,7 +640,7 @@ rm applicationset-crd.yaml
 kubectl get crd | grep argoproj.io
 
 # Порт-форвардинг
-kubectl port-forward --address localhost,192.168.1.163 svc/argocd-server -n argocd 18080:443
+kubectl port-forward  svc/argocd-server -n argocd 18080:443
 
 # Получение пароля
 argocd admin initial-password -n argocd
@@ -654,19 +654,22 @@ helm template admin-backend ./infra --set istio.enabled=true -f gitops/services/
 
 ### Добавление репозиториев в ArgoCD
 
+
 ```bash
 # Infra репозиторий
-argocd repo add http://gitlab:80/ostapkob/infra.git \
+argocd repo add http://gitlab:8060/ostapkob/infra.git \
   --username git \
   --password $GITLAB_ACCESS_TOKEN \
   --name infra
 
 # GitOps репозиторий
-argocd repo add http://gitlab:80/ostapkob/gitops.git \
+argocd repo add http://gitlab:8060/ostapkob/gitops.git \
   --username git \
   --password $GITLAB_ACCESS_TOKEN \
   --name gitops
 ```
+
+⚠️ Если ошибка проверить контейнеры Argo
 
 ### Деплой приложений
 
