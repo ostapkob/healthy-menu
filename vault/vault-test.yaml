@@ -1,0 +1,73 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: vault-test
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: vault
+  namespace: vault-test
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: test-key-secret
+  namespace: vault-test
+  annotations:
+    vault.security.banzaicloud.io/vault-addr: "http://vault.vault.svc:8200"
+    vault.security.banzaicloud.io/vault-skip-verify: "true"
+    vault.security.banzaicloud.io/vault-path: "kubernetes"
+    vault.security.banzaicloud.io/vault-role: "test"
+    vault.security.banzaicloud.io/vault-serviceaccount: "vault"
+type: Opaque
+stringData:
+  PASS: vault:kv/data/myenvs#PASS
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: test-key-configmap
+  namespace: vault-test
+  annotations:
+    vault.security.banzaicloud.io/vault-addr: "http://vault.vault.svc:8200"
+    vault.security.banzaicloud.io/vault-skip-verify: "true"
+    vault.security.banzaicloud.io/vault-path: "kubernetes"
+    vault.security.banzaicloud.io/vault-role: "test"
+    vault.security.banzaicloud.io/vault-serviceaccount: "vault"
+data:
+  NAME: vault:kv/data/myenvs#NAME
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vault-test
+  namespace: vault-test
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vault-test
+  template:
+    metadata:
+      labels:
+        app: vault-test
+      annotations:
+        vault.security.banzaicloud.io/vault-addr: "http://vault.vault.svc:8200"
+        vault.security.banzaicloud.io/vault-skip-verify: "true"
+        vault.security.banzaicloud.io/vault-path: "kubernetes"
+        vault.security.banzaicloud.io/vault-role: "test"
+        # загрузить все
+        vault.security.banzaicloud.io/vault-env-from-path: "kv/data/myenvs"
+    spec:
+      serviceAccountName: vault
+      containers:
+        - name: alpine
+          image: alpine
+          command:
+            ["sh", "-c", 'echo "NAME=$NAME" && echo "PASS=$PASS" && sleep 3600']
+          env:
+            - name: NAME
+              value: "vault:kv/data/myenvs#NAME"
+            - name: PASS
+              value: "vault:kv/data/myenvs#PASS"

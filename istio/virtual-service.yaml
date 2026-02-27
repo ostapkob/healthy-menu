@@ -1,0 +1,73 @@
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: healthy-menu
+  namespace: healthy-menu-dev
+spec:
+  hosts:
+    - healthy-menu.local
+  gateways:
+    - healthy-menu-gateway
+  http:
+    # Frontend маршруты
+    # SvelteKit ожидает корне (/), а не в /admin.
+    - match:
+        - uri:
+            prefix: /admin
+      rewrite:
+        uri: /
+      route:
+        - destination:
+            host: admin-frontend.healthy-menu-dev.svc.cluster.local
+            port:
+              number: 80
+
+    - match:
+        - uri:
+            prefix: /order
+      rewrite:
+        uri: /
+      route:
+        - destination:
+            host: order-frontend.healthy-menu-dev.svc.cluster.local
+            port:
+              number: 80
+
+    - match:
+        - uri:
+            prefix: /courier
+      rewrite:
+        uri: /
+      route:
+        - destination:
+            host: courier-frontend.healthy-menu-dev.svc.cluster.local
+            port:
+              number: 80
+
+    # Backend маршруты
+    - match:
+        - uri:
+            prefix: /api/v1/admin
+      route:
+        - destination:
+            host: admin-backend.healthy-menu-dev.svc.cluster.local
+            port:
+              number: 8000
+
+    - match:
+        - uri:
+            prefix: /api/v1/order
+      route:
+        - destination:
+            host: order-backend.healthy-menu-dev.svc.cluster.local
+            port:
+              number: 8000
+
+    - match:
+        - uri:
+            prefix: /api/v1/courier
+      route:
+        - destination:
+            host: courier-backend.healthy-menu-dev.svc.cluster.local
+            port:
+              number: 8000

@@ -238,19 +238,6 @@ docker-compose --profile infra down
 terraform destroy -auto-approve
 ```
 
-### Совместимость данных
-
-✅ **Docker Compose и Terraform используют одинаковые имена volume** — данные будут общими при переключении между подходами.
-
-| Ресурс | Volume имя |
-|--------|------------|
-| PostgreSQL | `postgres_data` |
-| MinIO | `minio_data` |
-| Nexus | `nexus_data` |
-| Jenkins | `jenkins_home` |
-| SonarQube | `sonarqube_data` |
-| Sonar PostgreSQL | `postgres_sonar_data` |
-
 ### Сетевые алиасы
 
 Оба подхода используют сеть `app-network` с алиасами для сервисов (`postgres`, `kafka`, `minio`),
@@ -319,6 +306,9 @@ make push-gitlab        # Push кода в GitLab
 make setup-gitlab       # Настройка GitLab
 make setup-nexus        # Настройка Nexus
 make setup-sonar        # Настройка SonarQube
+make vault-init         # Настройка Vault
+make jenkins_backup     # Отчистить jenkins_home после $ docker cp jenkins:/var/jenkins_home/ jenkins
+make vault-k8s-init     # Создаёт K8s auth method и роли для ServiceAccount
 ```
 
 ### Работа с базой данных
@@ -418,7 +408,7 @@ curl -v \
 ### SonarQube
 Скрипт ./scripts/setup-sonar.sh
 
-пока убрать Coverage on New Code до 0%
+‼️ пока убрать Coverage on New Code до 0%
 
 Ручная настройка
 1. Логин: `admin` / `admin`
@@ -429,11 +419,119 @@ curl -v \
 
 ---
 
+# ☸️ Kubernetes
+
+
+
+## 🔐 HashiCorp Vault
+
+Vault используется для централизованного хранения и управления секретами.
+
+### 🚀 Быстрый старт в Kubernetes
+
+#### 1. Установка Vault Agent Injector
+
+в России 🇷🇺 проблемма с установкой поэтому
+
+```bash
+git clone https://github.com/hashicorp/vault-helm.git && cd vault-helm
+
+kubectl create namespace vault
+helm install vault . --namespace vault
+
+kubectl port-forward --address localhost,192.168.1.163 svc/vault -n vault 18200:8200
+export VAULT_ADDR=http://localhost:18200
+
+#get Unseal Key 1
+vault operator init -key-shares=1 -key-threshold=1
+vault operator unseal <Unseal Key 1>
+
+----
+# в поде vault-0
+kubectl exec -it vault-0 -n vault -- sh
+export VAULT_TOKEN="hvs.wwwwwwwwwwwwwwwwww"
+vault login $VAULT_TOKEN
+
+# Включаем KV v2
+vault secrets enable -path=kv -version=2 kv
+
+# Создаём тестовый секрет
+vault kv put kv/myenvs NAME=ostapkob PASS=superpass123
+
+# Kubernetes Auth БЕЗ audience
+vault auth enable kubernetes
+vault write auth/kubernetes/config \
+  token_reviewer_jwt="$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)" \
+  kubernetes_host="https://${KUBERNETES_SERVICE_HOST}:${KUBERNETES_SERVICE_PORT}" \
+  kubernetes_ca_cert=@/var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+
+# Policy для чтения секрета
+vault policy write test - <<EOF
+path "kv/data/myenvs" {
+  capabilities = ["read"]
+}
+EOF
+
+# Роли (БЕЗ audience)
+vault write auth/kubernetes/role/test \
+  bound_service_account_names="vault" \
+  bound_service_account_namespaces="vault-test" \
+  policies="test" \
+  ttl=1h
+
+vault write auth/kubernetes/role/default \
+  bound_service_account_names="*" \
+  bound_service_account_namespaces="*" \
+  policies="test" \
+  ttl=1h
+
+vault kv get kv/myenvs
+vault read auth/kubernetes/role/test  # НЕ должно быть audience!
+
+
+## BankVaults
+
+```bash
+https://bank-vaults.dev/docs/
+
+# Устанавливаем vault-secrets-webhook
+kubectl create namespace vault-infra
+helm upgrade --install vault-secrets-webhook \
+  oci://ghcr.io/bank-vaults/helm-charts/vault-secrets-webhook \
+  --namespace vault-infra \
+  --set configMapMutation=true \
+  --set secretsMutation=true \
+  --set vaultAddr="http://vault.vault.svc:8200"
+
+kubectl get mutatingwebhookconfigurations | grep vault-secrets  # должен быть
+kubectl kustomize https://github.com/bank-vaults/vault-operator/deploy/rbac | kubectl apply -f -
+
+```
+
+#### 3. Настройка Kubernetes Auth Method
+
+
 ## 🌐 Istio Service Mesh
 
 ### Интеграция с Helm и ArgoCD
 
 Istio ресурсы генерируются автоматически через Helm chart при развёртывании через ArgoCD.
+
+```bash
+# Установка Istio
+curl -L https://istio.io/downloadIstio | sh -
+istioctl install --set profile=default --skip-confirmation
+
+# Включение injection для namespace
+kubectl label namespace healthy-menu-dev istio-injection=enabled --overwrite
+
+# Рестарт deployment'ов
+kubectl rollout restart deployment -n healthy-menu-dev
+
+# Применение Gateway и VirtualService
+kubectl apply -f k8s/gateway.yaml
+kubectl apply -f k8s/virtualservice.yaml
+```
 
 #### Какие Istio ресурсы создаются автоматически
 
@@ -473,156 +571,40 @@ istioctl analyze -n healthy-menu-dev
 Для продакшена рекомендуется включить mode STRICT для PeerAuthentication
 
 
----
+#### 2. Настройка Istio Egress
 
-## 🔐 HashiCorp Vault
-
-Vault используется для централизованного хранения и управления секретами.
-
-### Запуск Vault
+Istio блокирует весь внешний трафик по умолчанию. Для доступа к Vault примени конфигурацию:
 
 ```bash
-# Через Terraform
-cd terraform
-terraform apply -target=docker_container.vault -auto-approve
+# Применить Istio конфигурацию для обхода egress блокировки
+kubectl apply -f istio/vault-egress.yaml -n healthy-menu-dev
 
-# Или через docker-compose (если добавлен)
-docker-compose up -d vault
+# Проверить ServiceEntry
+kubectl get serviceentry -n healthy-menu-dev
+
+# Тест доступа к Vault из namespace с Istio
+kubectl run test-vault -n healthy-menu-dev \
+  --image=curlimages/curl \
+  --restart=Never \
+  --overrides='{
+    "metadata": {"annotations": {"sidecar.istio.io/inject": "true"}},
+    "spec": {"containers": [{"name": "curl", "image": "curlimages/curl", "command": ["sleep", "3600"]}]}}'
+
+
+kubectl exec test-vault -n healthy-menu-dev -c curl -- \
+  curl -s http://192.168.1.163:8200/v1/sys/health | jq '.initialized'
+
+# Очистка
+kubectl delete pod test-vault -n healthy-menu-dev
 ```
 
-### Доступ к Vault
 
-| Параметр | Значение |
-|----------|----------|
-| **UI** | http://localhost:8200 |
-| **API** | http://localhost:8200 |
-| **Root Token** | vault-root-token |
-| **Secrets Path** | secret/ |
-
-### Использование через CLI
-
-```bash
-# Проверка статуса
-make vault status
-
-# Список секретов
-make vault list
-
-# Получить секрет
-make vault get postgres
-
-# Создать/обновить секрет
-make vault put myapp api_key=secret123
-
-# Получить в JSON формате
-make vault json postgres
-
-# Экспорт в переменные окружения
-eval "$(make vault export postgres)"
-
-# Инициализация (загрузка из .env)
-make vault-init
-```
-
-### Прямые команды Vault
-
-```bash
-# Установка переменных
-export VAULT_ADDR=http://localhost:8200
-export VAULT_TOKEN=vault-root-token
-
-# Чтение секрета
-vault kv get secret/postgres
-
-# Запись секрета
-vault kv put secret/myapp key=value
-
-# Удаление секрета
-vault kv delete secret/myapp
-
-# Список секретов
-vault kv list secret/
-```
-
-### Хранимые секреты
-
-| Секрет | Путь | Описание |
-|--------|------|----------|
-| PostgreSQL | `secret/postgres` | Подключение к БД |
-| MinIO | `secret/minio` | S3-хранилище |
-| Kafka | `secret/kafka` | Message broker |
-| Nexus | `secret/nexus` | Docker registry |
-| GitLab | `secret/gitlab` | Git repository |
-| SonarQube | `secret/sonarqube` | Code analysis |
-| JWT | `secret/jwt` | JWT настройки |
-
-### Интеграция с приложениями
-
-#### Python (FastAPI)
-
-```python
-from hvac import Client
-
-client = Client(
-    url=os.getenv('VAULT_ADDR'),
-    token=os.getenv('VAULT_TOKEN')
-)
-
-# Получить секрет
-secrets = client.secrets.kv.v2.read_secret_version(path='postgres')
-db_config = secrets['data']['data']
-
-# Использование
-DATABASE_URL = f"postgresql://{db_config['username']}:{db_config['password']}@{db_config['host']}:{db_config['port']}/{db_config['database']}"
-```
-
-#### Kubernetes (через Vault Agent Injector)
-
-```yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: admin-backend
-spec:
-  template:
-    metadata:
-      annotations:
-        vault.hashicorp.com/agent-inject: "true"
-        vault.hashicorp.com/agent-inject-secret-postgres: "secret/postgres"
-        vault.hashicorp.com/agent-inject-type-postgres: "env"
-```
-
-### Инициализация из .env
-
-```bash
-# Вариант 1: Локально (требуется vault CLI)
-# Установка: brew install vault (macOS) или скачать с hashicorp.com
-make vault-init
-
-# Вариант 2: Внутри контейнера (не требует vault CLI)
-make vault-init-docker
-```
-
-### Безопасность
-
-> ⚠️ **Внимание**: Текущая конфигурация использует dev-режим Vault (не для продакшена!)
-
-Для продакшена:
-1. Отключите dev-режим в `terraform/vault.tf`
-2. Используйте production storage backend (Consul, Raft)
-3. Настройте unseal ключи
-4. Включите audit logging
-5. Используйте AppRole или Kubernetes auth method
-
----
-
-## ☸️ Kubernetes
 
 ### Установка ArgoCD
 
 ```bash
 # Запуск Minikube
-minikube start --insecure-registry="nexus:5000"
+minikube start --driver=docker --network=host --insecure-registry="nexus:5000" --insecure-registry="nixos:5000" --insecure-registry="192.168.1.163:5000"
 
 # Создание namespace
 kubectl create namespace argocd
@@ -654,7 +636,6 @@ helm template admin-backend ./infra --set istio.enabled=true -f gitops/services/
 
 ### Добавление репозиториев в ArgoCD
 
-
 ```bash
 # Infra репозиторий
 argocd repo add http://gitlab:8060/ostapkob/infra.git \
@@ -681,23 +662,7 @@ kubectl apply -f gitops/argocd-appsets/dev-appset.yaml -n argocd
 kubectl delete appset healthy-menu-dev -n argocd
 ```
 
-### Istio (опционально)
 
-```bash
-# Установка Istio
-curl -L https://istio.io/downloadIstio | sh -
-istioctl install --set profile=default --skip-confirmation
-
-# Включение injection для namespace
-kubectl label namespace healthy-menu-dev istio-injection=enabled --overwrite
-
-# Рестарт deployment'ов
-kubectl rollout restart deployment -n healthy-menu-dev
-
-# Применение Gateway и VirtualService
-kubectl apply -f k8s/gateway.yaml
-kubectl apply -f k8s/virtualservice.yaml
-```
 
 ### Nexus в K8s
 
@@ -769,45 +734,6 @@ healthy-menu/
 
 Файл `.env` содержит настройки для всех сервисов:
 
-```bash
-# PostgreSQL
-POSTGRES_USER=postgres
-POSTGRES_PASSWORD=postgres
-POSTGRES_DB=food_db
-POSTGRES_HOST=localhost
-POSTGRES_PORT=5432
-
-# MinIO (S3-compatible storage)
-MINIO_HOST=localhost
-MINIO_PORT=9000
-MINIO_ROOT_USER=admin
-MINIO_ROOT_PASSWORD=password
-MINIO_BUCKET=healthy-menu-dishes
-
-# Kafka
-KAFKA_BOOTSTRAP_SERVERS=localhost:9092
-KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://localhost:9092
-
-# GitLab
-GITLAB_HOST=localhost
-GITLAB_PORT=8060
-GITLAB_ACCESS_TOKEN=<your-token>
-
-# Jenkins
-JENKINS_HOST=localhost
-JENKINS_PORT=8080
-JENKINS_SECRET=<agent-secret>
-
-# SonarQube
-SONAR_HOST=localhost
-SONAR_PORT=9009
-SONAR_TOKEN=<analysis-token>
-
-# Nexus
-NEXUS_HOST=localhost
-NEXUS_PORT=8081
-NEXUS_REGISTRY_PORT=5000
-```
 
 ---
 
@@ -821,8 +747,7 @@ NEXUS_REGISTRY_PORT=5000
 
 ## 📝 TODO
 
-- [x] Istio — service mesh
-- [x] HashiCorp Vault — управление секретами
+- [x] HashiCorp Vault
 - [ ] FluentBit — централизованное логирование
 - [ ] Prometheus + Grafana — мониторинг и алертинг
 - [ ] HTTPS — TLS termination

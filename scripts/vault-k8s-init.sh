@@ -23,7 +23,7 @@ if [ -f "$ENV_FILE" ]; then
 fi
 
 # Переменные (окружение > .env > default)
-VAULT_ADDR="${VAULT_ADDR:-http://localhost:8200}"
+VAULT_ADDR="${VAULT_ADDR:-http://localhost:18200}"
 VAULT_TOKEN="${VAULT_TOKEN:-vault-root-token}"
 K8S_CONTEXT="${K8S_CONTEXT:-}"
 
