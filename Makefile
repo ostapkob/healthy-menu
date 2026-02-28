@@ -1,4 +1,7 @@
-.PHONY: load-data publish push-gitlab setup-gitlab setup-models setup-nexus setup-sonar tmux jenkins-backup vault-init
+.PHONY: tmux load-data publish push-gitlab setup-gitlab setup-models setup-nexus setup-sonar jenkins-backup vault-init
+
+tmux:
+	bash scripts/tmux.sh
 
 jenkins-backup:
 	bash scripts/cleanup_jenkins_backup.sh jenkins/jenkins_home
@@ -26,10 +29,3 @@ setup-sonar:
 
 vault-init:
 	bash scripts/vault-init.sh
-
-vault-init-docker:
-	bash scripts/vault-init-docker.sh
-
-tmux:
-	bash scripts/tmux.sh
-

@@ -1,7 +1,9 @@
 #!/bin/bash
 #
-# Скрипт инициализации HashiCorp Vault
-# Загружает секреты из .env файла в Vault
+# Скрипт полной инициализации HashiCorp Vault
+# - Загружает секреты из .env файла
+# - Создаёт policies для доступа к секретам
+# - Настраивает Kubernetes auth method и роли
 #
 
 set -e
@@ -22,12 +24,15 @@ ENV_FILE="${1:-./.env}"
 export VAULT_ADDR
 export VAULT_TOKEN
 
-echo -e "${BLUE}╔════════════════════════════════════════╗"
-echo -e "║  HashiCorp Vault Initialization Script ║"
-echo -e "╚════════════════════════════════════════╝${NC}"
+echo -e "${BLUE}╔════════════════════════════════════════════════╗"
+echo -e "║     HashiCorp Vault Full Initialization        ║"
+echo -e "╚════════════════════════════════════════════════╝${NC}"
 echo ""
 
-# Проверка .env файла
+# =============================================================================
+# Проверка .env файла и загрузка переменных
+# =============================================================================
+
 if [ ! -f "$ENV_FILE" ]; then
     echo -e "${RED}❌ Файл $ENV_FILE не найден${NC}"
     exit 1
@@ -35,12 +40,14 @@ fi
 
 echo -e "${GREEN}📄 Загрузка переменных из $ENV_FILE${NC}"
 
-# Загрузка переменных из .env
 set -a
 source "$ENV_FILE"
 set +a
 
+# =============================================================================
 # Проверка доступности Vault
+# =============================================================================
+
 echo -e "${GREEN}⏳ Проверка доступности Vault...${NC}"
 max_wait=60
 counter=0
@@ -60,7 +67,10 @@ done
 echo -e "${GREEN}✅ Vault доступен${NC}"
 echo ""
 
+# =============================================================================
 # Включение KV secrets engine v2
+# =============================================================================
+
 echo -e "${GREEN}📦 Включение KV secrets engine v2...${NC}"
 if vault secrets enable -path=secret kv-v2 2>/dev/null; then
     echo -e "${GREEN}   ✅ KV engine включён${NC}"
@@ -69,7 +79,10 @@ else
 fi
 echo ""
 
-# Создание секретов
+# =============================================================================
+# Создание секретов из .env файла
+# =============================================================================
+
 echo -e "${GREEN}🔑 Создание секретов...${NC}"
 echo ""
 
@@ -174,22 +187,162 @@ vault kv put secret/jwt \
     echo -e "${GREEN}     ✅ Создан${NC}" || echo -e "${YELLOW}     ⚠️  Ошибка${NC}"
 
 echo ""
-echo -e "${GREEN}╔════════════════════════════════════════╗"
-echo -e "║  ✅  Инициализация завершена!          ║"
-echo -e "╚════════════════════════════════════════╝${NC}"
+
+# =============================================================================
+# Создание Vault Policies
+# =============================================================================
+
+echo -e "${GREEN}📜 Создание Vault policies...${NC}"
 echo ""
-echo -e "${BLUE}📊 Vault UI:${NC} http://localhost:8200"
-echo -e "${BLUE}🔑 Token:${NC} $VAULT_TOKEN"
+
+# Policy для External Secrets Operator
+echo -e "${BLUE}  📦 External Secrets Policy${NC}"
+vault policy write external-secrets-policy - <<EOT >/dev/null 2>&1
+# Чтение всех секретов в dev окружении
+path "secret/data/*" {
+  capabilities = ["read", "list"]
+}
+
+# Чтение метаданных (для проверки версий)
+path "secret/metadata/*" {
+  capabilities = ["read", "list"]
+}
+EOT
+echo -e "${GREEN}     ✅ external-secrets-policy создан${NC}" || echo -e "${YELLOW}     ⚠️  Ошибка${NC}"
+
+# Общая политика для всех Backend'ов (admin, order, courier)
+echo -e "${BLUE}  📦 Backend Policy (общая для всех backend'ов)${NC}"
+vault policy write backend-policy - <<EOT >/dev/null 2>&1
+# PostgreSQL
+path "secret/data/postgres" {
+  capabilities = ["read"]
+}
+
+# Kafka
+path "secret/data/kafka" {
+  capabilities = ["read"]
+}
+
+# MinIO
+path "secret/data/minio" {
+  capabilities = ["read"]
+}
+
+# JWT
+path "secret/data/jwt" {
+  capabilities = ["read"]
+}
+EOT
+echo -e "${GREEN}     ✅ backend-policy создан${NC}" || echo -e "${YELLOW}     ⚠️  Ошибка${NC}"
+
+# Policy для Jenkins
+echo -e "${BLUE}  📦 Jenkins Policy${NC}"
+vault policy write jenkins-policy - <<EOT >/dev/null 2>&1
+# Nexus
+path "secret/data/nexus" {
+  capabilities = ["read"]
+}
+
+# GitLab
+path "secret/data/gitlab" {
+  capabilities = ["read"]
+}
+
+# ArgoCD
+path "secret/data/argocd" {
+  capabilities = ["read"]
+}
+
+# SonarQube
+path "secret/data/sonarqube" {
+  capabilities = ["read"]
+}
+EOT
+echo -e "${GREEN}     ✅ jenkins-policy создан${NC}" || echo -e "${YELLOW}     ⚠️  Ошибка${NC}"
+
 echo ""
-echo -e "${BLUE}📝 Примеры использования:${NC}"
-echo -e "  ${YELLOW}# Получить секрет:${NC}"
-echo -e "  vault kv get secret/postgres"
+
+# =============================================================================
+# Настройка Kubernetes Authentication
+# =============================================================================
+
+echo -e "${GREEN}🔐 Настройка Kubernetes Authentication...${NC}"
 echo ""
-echo -e "  ${YELLOW}# Использовать в приложении:${NC}"
-echo -e "  export VAULT_ADDR=$VAULT_ADDR"
-echo -e "  export VAULT_TOKEN=$VAULT_TOKEN"
-echo -e "  vault kv get secret/postgres"
+
+# Получение K8s API server URL
+echo -e "${GREEN}📊 Получение K8s API server URL...${NC}"
+K8S_HOST=$(kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}')
+echo -e "${BLUE}   K8s API: ${YELLOW}$K8S_HOST${NC}"
 echo ""
-echo -e "  ${YELLOW}# Экспорт переменных:${NC}"
-echo -e "  eval \"\$(vault kv get -format=json secret/postgres | jq -r '.data.data | to_entries | .[] | \"export \\(.key | ascii_upcase)=\\(.value)\"')\""
+
+# Получение CA сертификата K8s
+echo -e "${GREEN}📊 Получение K8s CA сертификата...${NC}"
+K8S_CA_CERT=$(kubectl config view --raw --minify --flatten -o jsonpath='{.clusters[0].cluster.certificate-authority-data}' 2>/dev/null)
+
+# Включение Kubernetes auth method
+echo -e "${GREEN}🔐 Включение Kubernetes auth method...${NC}"
+if vault auth list | grep -q kubernetes; then
+    echo -e "${YELLOW}   ⚠️  Kubernetes auth уже включён${NC}"
+else
+    vault auth enable kubernetes
+    echo -e "${GREEN}   ✅ Kubernetes auth включён${NC}"
+fi
 echo ""
+
+# Настройка Kubernetes auth backend
+echo -e "${GREEN}⚙️  Настройка Kubernetes auth backend...${NC}"
+vault write auth/kubernetes/config \
+    kubernetes_host="$K8S_HOST" \
+    kubernetes_ca_cert="$(echo "$K8S_CA_CERT" | base64 -d)" \
+    issuer="kubernetes/serviceaccount" \
+    >/dev/null 2>&1
+
+echo -e "${GREEN}   ✅ Backend настроен${NC}"
+echo ""
+
+# =============================================================================
+# Создание Vault Roles для Kubernetes Authentication
+# =============================================================================
+
+echo -e "${GREEN}🔑 Создание Vault roles для Kubernetes...${NC}"
+echo ""
+
+# ==================== Backend Roles ====================
+
+# Общая роль для всех Backend'ов (admin, order, courier)
+# Используем wildcard pattern для всех сервисов в namespace
+echo -e "${BLUE}  📦 Backend Role (wildcard для *-backend)${NC}"
+vault write auth/kubernetes/role/backend-role \
+    bound_service_account_names="*-backend" \
+    bound_service_account_namespaces=healthy-menu-dev \
+    policies=backend-policy \
+    ttl=1h \
+    >/dev/null 2>&1 && \
+    echo -e "${GREEN}     ✅ Role создана${NC}" || echo -e "${YELLOW}     ⚠️  Ошибка (возможно уже существует)${NC}"
+
+# ==================== External Secrets & Jenkins ====================
+
+# Role для External Secrets Operator
+echo -e "${BLUE}  📦 External Secrets Role${NC}"
+vault write auth/kubernetes/role/external-secrets-role \
+    bound_service_account_names=external-secrets-sa \
+    bound_service_account_namespaces=external-secrets \
+    policies=external-secrets-policy \
+    ttl=1h \
+    >/dev/null 2>&1 && \
+    echo -e "${GREEN}     ✅ Role создана${NC}" || echo -e "${YELLOW}     ⚠️  Ошибка (возможно уже существует)${NC}"
+
+# Role для Jenkins
+echo -e "${BLUE}  📦 Jenkins Role${NC}"
+vault write auth/kubernetes/role/jenkins-role \
+    bound_service_account_names=jenkins \
+    bound_service_account_namespaces=default \
+    policies=jenkins-policy \
+    ttl=1h \
+    >/dev/null 2>&1 && \
+    echo -e "${GREEN}     ✅ Role создана${NC}" || echo -e "${YELLOW}     ⚠️  Ошибка (возможно уже существует)${NC}"
+
+echo ""
+echo -e "${GREEN}╔════════════════════════════════════════════════╗"
+echo -e "║  ✅  Полная инициализация Vault завершена!     ║"
+echo -e "╚════════════════════════════════════════════════╝${NC}"

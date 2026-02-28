@@ -6,6 +6,10 @@ tag: "153"
 port: 80
 targetPort: 80
 
+# Vault configuration (frontend не требует доступа к секретам)
+vault:
+  enabled: false
+
 # Istio configuration
 istio:
   enabled: true

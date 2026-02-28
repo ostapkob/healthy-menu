@@ -440,7 +440,7 @@ kubectl create namespace vault
 helm install vault . --namespace vault
 
 kubectl port-forward --address localhost,192.168.1.163 svc/vault -n vault 18200:8200
-export VAULT_ADDR=http://localhost:18200
+export VAULT_ADDR=http://localhost:8200
 
 #get Unseal Key 1
 vault operator init -key-shares=1 -key-threshold=1
@@ -475,7 +475,7 @@ EOF
 # Роли (БЕЗ audience)
 vault write auth/kubernetes/role/test \
   bound_service_account_names="vault" \
-  bound_service_account_namespaces="vault-test" \
+  bound_service_account_namespaces="vault-test,healthy-menu-dev" \
   policies="test" \
   ttl=1h
 
@@ -492,8 +492,6 @@ vault read auth/kubernetes/role/test  # НЕ должно быть audience!
 ## BankVaults
 
 ```bash
-https://bank-vaults.dev/docs/
-
 # Устанавливаем vault-secrets-webhook
 kubectl create namespace vault-infra
 helm upgrade --install vault-secrets-webhook \
@@ -503,8 +501,7 @@ helm upgrade --install vault-secrets-webhook \
   --set secretsMutation=true \
   --set vaultAddr="http://vault.vault.svc:8200"
 
-kubectl get mutatingwebhookconfigurations | grep vault-secrets  # должен быть
-kubectl kustomize https://github.com/bank-vaults/vault-operator/deploy/rbac | kubectl apply -f -
+#kubectl kustomize https://github.com/bank-vaults/vault-operator/deploy/rbac | kubectl apply -f -
 
 ```
 
@@ -658,7 +655,7 @@ argocd repo add http://gitlab:8060/ostapkob/gitops.git \
 # Применение ApplicationSet
 kubectl apply -f gitops/argocd-appsets/dev-appset.yaml -n argocd
 
-# Удаление (если нужно)
+# Удаление
 kubectl delete appset healthy-menu-dev -n argocd
 ```
 

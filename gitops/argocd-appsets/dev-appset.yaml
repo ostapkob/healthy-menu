@@ -28,6 +28,8 @@ spec:
             value: "{{port}}"
           - name: service.targetPort
             value: "{{targetPort}}"
+          - name: vault.enabled
+            value: "{{vault.enabled}}"
       destination:
         server: https://kubernetes.default.svc
         namespace: healthy-menu-dev

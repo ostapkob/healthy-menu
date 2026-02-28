@@ -6,6 +6,10 @@ tag: "137"
 port: 8000
 targetPort: 8000
 
+# Vault configuration
+vault:
+  enabled: true
+
 # Istio configuration
 istio:
   enabled: true

@@ -25,15 +25,17 @@ config:
   kafka:
     configMap: kafka-config
 
-# Переменные окружения (опционально, если хотите переопределить)
+# Vault конфигурация
+vault:
+  enabled: true
+  role: "backend-role"
+  envFromPath: "secret/data/minio"
+
 env:
   # Пример добавления дополнительных переменных:
   # - name: LOG_LEVEL
   #   value: "info"
 
-# ============================================
-# Istio конфигурация
-# ============================================
 istio:
   # Включить генерацию Istio ресурсов
   enabled: false
@@ -59,7 +61,7 @@ istio:
   authorizationPolicy:
     # Разрешить трафик изнутри namespace
     allowInternal: true
-    # Кастомные правила (кол-во строк не влияет)
+    # Кастомные правила (опционально)
     # rules:
     #   - from:
     #     - source:

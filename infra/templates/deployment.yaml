@@ -12,13 +12,25 @@ spec:
     metadata:
       labels:
         app: {{ .Release.Name }}
+      {{- if .Values.vault.enabled }}
+      annotations:
+        vault.security.banzaicloud.io/vault-addr: "http://vault.vault.svc:8200"
+        vault.security.banzaicloud.io/vault-skip-verify: "true"
+        vault.security.banzaicloud.io/vault-path: "kubernetes"
+        vault.security.banzaicloud.io/vault-role: {{ .Values.vault.role }}
+        vault.security.banzaicloud.io/vault-serviceaccount: {{ .Release.Name }}
+        vault.security.banzaicloud.io/vault-env-from-path: {{ .Values.vault.envFromPath }}
+      {{- end }}
     spec:
-      imagePullSecrets: 
-         - name: nexus-creds 
+      serviceAccountName: {{ .Release.Name }}
+      imagePullSecrets:
+         - name: nexus-creds
       containers:
       - name: {{ .Release.Name }}
         image: "{{ .Values.image.repository }}/{{ .Release.Name }}:{{ .Values.image.tag }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
+        command:
+          ["sh", "-c", 'echo ">>>>$bucket" && sleep 3600']
         ports:
         - containerPort: {{ .Values.service.port }}
         env:
