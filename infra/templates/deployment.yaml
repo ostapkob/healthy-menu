@@ -24,7 +24,7 @@ spec:
     spec:
       serviceAccountName: {{ .Release.Name }}
       imagePullSecrets:
-         - name: nexus-creds
+        - name: {{ .Values.imagePullSecretName }}
       containers:
       - name: {{ .Release.Name }}
         image: "{{ .Values.image.repository }}/{{ .Release.Name }}:{{ .Values.image.tag }}"

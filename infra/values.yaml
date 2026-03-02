@@ -31,6 +31,9 @@ vault:
   role: "backend-role"
   envFromPath: "secret/data/minio"
 
+# Docker registry credentials (создаётся отдельно в namespace)
+imagePullSecretName: "nexus-creds"
+
 env:
   # Пример добавления дополнительных переменных:
   # - name: LOG_LEVEL

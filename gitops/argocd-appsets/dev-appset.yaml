@@ -30,6 +30,8 @@ spec:
             value: "{{targetPort}}"
           - name: vault.enabled
             value: "{{vault.enabled}}"
+          - name: imagePullSecretName
+            value: "nexus-creds"
       destination:
         server: https://kubernetes.default.svc
         namespace: healthy-menu-dev
