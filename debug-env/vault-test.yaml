@@ -1,0 +1,54 @@
+# Тестовый манифест для проверки работы BankVaults Vault Agent Injector
+# Применяется: kubectl apply -f vault/vault-test.yaml
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: admin-backend
+  namespace: healthy-menu-dev
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: eee
+  namespace: healthy-menu-dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: eee
+  template:
+    metadata:
+      labels:
+        app: eee
+      annotations:
+        # Vault конфигурация (только на Pod!)
+        vault.security.banzaicloud.io/vault-addr: "http://vault.vault.svc:8200"
+        vault.security.banzaicloud.io/vault-skip-verify: "true"
+        vault.security.banzaicloud.io/vault-path: "kubernetes"
+        vault.security.banzaicloud.io/vault-role: "backend-role"
+        vault.security.banzaicloud.io/vault-serviceaccount: "admin-backend"
+        vault.security.banzaicloud.io/vault-auth-method: "kubernetes"
+        vault.security.banzaicloud.io/vault-env-from-path: "secret/data/minio"
+    spec:
+      serviceAccountName: admin-backend
+      containers:
+        - name: www
+          image: ghcr.io/bank-vaults/vault-env:v1.22.1
+          command:
+            - sh
+            - -c
+            - |
+              echo "=== Переменные окружения ==="
+              env | grep -i minio || true
+              echo "=== Sleep forever ==="
+              sleep infinity
+          env:
+          - name: MINIO_HOST
+            value: vault:secret/data/minio#MINIO_HOST
+          - name: MINIO_PORT
+            value: vault:secret/data/minio#MINIO_PORT
+          - name: MINIO_ROOT_USER
+            value: vault:secret/data/minio#MINIO_ROOT_USER
+          - name: MINIO_ROOT_PASSWORD
+            value: vault:secret/data/minio#MINIO_ROOT_PASSWORD

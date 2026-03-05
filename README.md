@@ -1,4 +1,4 @@
-# Healthy Menu 🍽️
+Healthy Menu 🍽️
 
 Микросервисная платформа для управления меню с полноценным CI/CD циклом и GitOps подходом.
 
@@ -425,12 +425,43 @@ curl -v \
 
 ## 🔐 HashiCorp Vault
 
-Vault используется для централизованного хранения и управления секретами.
+Vault используется для централизованного хранения и управления секретами (PostgreSQL, Kafka, MinIO, JWT).
 
-### 🚀 Быстрый старт в Kubernetes
+### 🏗️ Архитектура
 
-#### 1. Установка Vault Agent Injector
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    healthy-menu-dev namespace               │
+│                                                             │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐         │
+│  │admin-backend│  │order-backend│  │courier-bg   │         │
+│  │     SA      │  │     SA      │  │     SA      │         │
+│  └──────┬──────┘  └──────┬──────┘  └──────┬──────┘         │
+│         │                │                │                 │
+│         └────────────────┼────────────────┘                 │
+│                          │                                  │
+│                          ▼                                  │
+│              ┌───────────────────┐                          │
+│              │  backend-role     │                          │
+│              │  (wildcard *-bg)  │                          │
+│              └─────────┬─────────┘                          │
+│                        │                                    │
+│                        ▼                                    │
+│              ┌───────────────────┐                          │
+│              │  backend-policy   │                          │
+│              └─────────┬─────────┘                          │
+│                        │                                    │
+│                        ▼                                    │
+│         ┌──────────────────────────────┐                    │
+│         │  Vault: postgres, kafka,     │                    │
+│         │  minio, jwt секреты          │                    │
+│         └──────────────────────────────┘                    │
+│                                                             │
+│  Frontend'ы (*-frontend) НЕ имеют доступа к Vault          │
+└─────────────────────────────────────────────────────────────┘
+```
 
+#### 1. Установка Vault
 в России 🇷🇺 проблемма с установкой поэтому
 
 ```bash
@@ -442,54 +473,54 @@ helm install vault . --namespace vault
 kubectl port-forward --address localhost,192.168.1.163 svc/vault -n vault 18200:8200
 export VAULT_ADDR=http://localhost:8200
 
-#get Unseal Key 1
+# Получить Unseal Key
 vault operator init -key-shares=1 -key-threshold=1
 vault operator unseal <Unseal Key 1>
 
-----
-# в поде vault-0
+# Войти в Vault
 kubectl exec -it vault-0 -n vault -- sh
-export VAULT_TOKEN="hvs.wwwwwwwwwwwwwwwwww"
+export VAULT_TOKEN="hvs.xxxxxxxxxxxxxxxxxxxx"
 vault login $VAULT_TOKEN
+```
 
+#### 2. Инициализация Vault (секреты, политики, роли)
+
+```bash
+# Вернуться в корень проекта
+cd /path/to/healthy-menu
+
+# Запустить скрипт инициализации
+./scripts/vault-init.sh
+```
+#### 3. Ручная настройка (если нужно)
+
+```bash
 # Включаем KV v2
-vault secrets enable -path=kv -version=2 kv
+vault secrets enable -path=secret kv-v2
 
-# Создаём тестовый секрет
-vault kv put kv/myenvs NAME=ostapkob PASS=superpass123
-
-# Kubernetes Auth БЕЗ audience
+# Kubernetes Auth
 vault auth enable kubernetes
 vault write auth/kubernetes/config \
-  token_reviewer_jwt="$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)" \
   kubernetes_host="https://${KUBERNETES_SERVICE_HOST}:${KUBERNETES_SERVICE_PORT}" \
   kubernetes_ca_cert=@/var/run/secrets/kubernetes.io/serviceaccount/ca.crt
 
-# Policy для чтения секрета
-vault policy write test - <<EOF
-path "kv/data/myenvs" {
-  capabilities = ["read"]
-}
+# Policy для backend'ов
+vault policy write backend-policy - <<EOF
+path "secret/data/postgres" { capabilities = ["read"] }
+path "secret/data/kafka" { capabilities = ["read"] }
+path "secret/data/minio" { capabilities = ["read"] }
+path "secret/data/jwt" { capabilities = ["read"] }
 EOF
 
-# Роли (БЕЗ audience)
-vault write auth/kubernetes/role/test \
-  bound_service_account_names="vault" \
-  bound_service_account_namespaces="vault-test,healthy-menu-dev" \
-  policies="test" \
+# Role для backend'ов (wildcard для всех *-backend)
+vault write auth/kubernetes/role/backend-role \
+  bound_service_account_names="*-backend" \
+  bound_service_account_namespaces=healthy-menu-dev \
+  policies=backend-policy \
   ttl=1h
+```
 
-vault write auth/kubernetes/role/default \
-  bound_service_account_names="*" \
-  bound_service_account_namespaces="*" \
-  policies="test" \
-  ttl=1h
-
-vault kv get kv/myenvs
-vault read auth/kubernetes/role/test  # НЕ должно быть audience!
-
-
-## BankVaults
+### 📦 BankVaults (Vault Agent Injector)
 
 ```bash
 # Устанавливаем vault-secrets-webhook
@@ -500,12 +531,65 @@ helm upgrade --install vault-secrets-webhook \
   --set configMapMutation=true \
   --set secretsMutation=true \
   --set vaultAddr="http://vault.vault.svc:8200"
-
-#kubectl kustomize https://github.com/bank-vaults/vault-operator/deploy/rbac | kubectl apply -f -
-
 ```
 
-#### 3. Настройка Kubernetes Auth Method
+### 🔧 Конфигурация в Helm chart
+
+| Параметр | Описание | Значение по умолчанию |
+|----------|----------|----------------------|
+| `vault.enabled` | Включить Vault аннотации | `true` |
+| `vault.role` | Vault роль для Kubernetes auth | `backend-role` |
+| `vault.envFromPath` | Путь к секретам в Vault | `secret/data/minio` |
+| `imagePullSecretName` | Имя Secret для Docker registry | `nexus-creds` |
+
+### 🔐 Docker Registry Credentials
+
+Secret должен быть создан **до деплоя**, чтобы kubelet мог скачать образы из Nexus.
+
+#### Создание через Makefile
+
+```bash
+# Переменные берутся из .env (NEXUS_USER_NAME, NEXUS_USER_PASSWORD, NEXUS_REGISTRY_URL)
+make create-image-pull-secret
+```
+### 📋 Структура секретов в Vault
+
+Ключи в Vault называются **точно так же**, как переменные в `.env`:
+
+### 🔄 Как использовать
+
+#### 1. Vault Agent Injector (BankVaults)
+
+Vault Agent автоматически подменяет переменные окружения в Pod'ах:
+
+```yaml
+# deployment.yaml
+annotations:
+  vault.security.banzaicloud.io/vault-env-from-path: "secret/data/postgres"
+```
+
+Приложение получит переменные:
+```bash
+POSTGRES_USER=...      # Из Vault
+POSTGRES_PASSWORD=...  # Из Vault
+```
+
+####  Ручное чтение из Vault
+
+```bash
+# Прочитать секрет
+vault kv get secret/postgres
+
+# Получить конкретное значение
+vault kv get -field=POSTGRES_USER secret/postgres
+```
+
+### 🎯 Best Practices
+
+1. **Backend'ы** имеют доступ к секретам через Vault Agent Injector
+2. **Frontend'ы** НЕ имеют доступа к Vault (vault.enabled: false)
+3. Используется **wildcard роль** `*-backend` для упрощения управления
+4. Все секреты хранятся в **KV v2** engine с версионированием
 
 
 ## 🌐 Istio Service Mesh
@@ -749,6 +833,7 @@ healthy-menu/
 - [ ] Prometheus + Grafana — мониторинг и алертинг
 - [ ] HTTPS — TLS termination
 - [ ] tfstate in S3
+- [ ] Описание скриптов
 
 ---
 

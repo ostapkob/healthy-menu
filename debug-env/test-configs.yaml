@@ -1,0 +1,46 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-config
+  namespace: healthy-menu-dev
+data:
+  POSTGRES_HOST: "nixos"
+  POSTGRES_PORT: "5432"
+  POSTGRES_DB: "food_db"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: minio-config
+  namespace: healthy-menu-dev
+data:
+  MINIO_HOST: "nixos"
+  MINIO_PORT: "9000"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kafka-config
+  namespace: healthy-menu-dev
+data:
+  KAFKA_BOOTSTRAP_SERVERS: "nixos:9092"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: postgres-secret
+  namespace: healthy-menu-dev
+type: Opaque
+stringData:
+  POSTGRES_USER: "postgres"
+  POSTGRES_PASSWORD: "postgres"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: minio-secret
+  namespace: healthy-menu-dev
+type: Opaque
+stringData:
+  MINIO_ROOT_USER: "ostapkob"
+  MINIO_ROOT_PASSWORD: "superpass123"
