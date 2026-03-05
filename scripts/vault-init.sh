@@ -89,101 +89,102 @@ echo ""
 # PostgreSQL
 echo -e "${BLUE}  📦 PostgreSQL${NC}"
 vault kv put secret/postgres \
-    username="${POSTGRES_USER}" \
-    password="${POSTGRES_PASSWORD}" \
-    database="${POSTGRES_DB}" \
-    host="${POSTGRES_HOST:-postgres}" \
-    port="${POSTGRES_PORT:-5432}" \
-    connection_url="${POSTGRES_DATABASE_URL}" \
-    test_url="${POSTGRES_DATABASE_TEST_URL:-}" 2>/dev/null && \
+    POSTGRES_USER="${POSTGRES_USER}" \
+    POSTGRES_PASSWORD="${POSTGRES_PASSWORD}" \
+    POSTGRES_DB="${POSTGRES_DB}" \
+    POSTGRES_HOST="${POSTGRES_HOST:-postgres}" \
+    POSTGRES_PORT="${POSTGRES_PORT:-5432}" \
+    POSTGRES_DATABASE_URL="${POSTGRES_DATABASE_URL}" \
+    POSTGRES_DATABASE_TEST_URL="${POSTGRES_DATABASE_TEST_URL:-}" 2>/dev/null && \
     echo -e "${GREEN}     ✅ Создан${NC}" || echo -e "${YELLOW}     ⚠️  Ошибка${NC}"
 
 # MinIO
 echo -e "${BLUE}  📦 MinIO${NC}"
 vault kv put secret/minio \
-    root_user="${MINIO_ROOT_USER}" \
-    root_password="${MINIO_ROOT_PASSWORD}" \
-    bucket="${MINIO_BUCKET}" \
-    host="${MINIO_HOST:-minio}" \
-    port="${MINIO_PORT:-9000}" \
-    url="${MINIO_URL:-http://$MINIO_HOST:$MINIO_PORT}" 2>/dev/null && \
+    MINIO_HOST="${MINIO_HOST:-minio}" \
+    MINIO_PORT="${MINIO_PORT:-9000}" \
+    MINIO_ROOT_USER="${MINIO_ROOT_USER}" \
+    MINIO_ROOT_PASSWORD="${MINIO_ROOT_PASSWORD}" \
+    MINIO_BUCKET="${MINIO_BUCKET}" \
+    MINIO_URL="${MINIO_URL:-http://$MINIO_HOST:$MINIO_PORT}" 2>/dev/null && \
     echo -e "${GREEN}     ✅ Создан${NC}" || echo -e "${YELLOW}     ⚠️  Ошибка${NC}"
 
 # Kafka
 echo -e "${BLUE}  📦 Kafka${NC}"
 vault kv put secret/kafka \
-    bootstrap_servers="${KAFKA_BOOTSTRAP_SERVERS}" \
-    advertised_listeners="${KAFKA_ADVERTISED_LISTENERS}" \
-    zookeeper_connect="${KAFKA_ZOOKEEPER_CONNECT:-zookeeper:2181}" \
-    topics="new_orders,orders,events,notifications" 2>/dev/null && \
+    KAFKA_BOOTSTRAP_SERVERS="${KAFKA_BOOTSTRAP_SERVERS}" \
+    KAFKA_ADVERTISED_LISTENERS="${KAFKA_ADVERTISED_LISTENERS}" \
+    KAFKA_ZOOKEEPER_CONNECT="${KAFKA_ZOOKEEPER_CONNECT:-zookeeper:2181}" 2>/dev/null && \
     echo -e "${GREEN}     ✅ Создан${NC}" || echo -e "${YELLOW}     ⚠️  Ошибка${NC}"
 
 # Nexus
 echo -e "${BLUE}  📦 Nexus${NC}"
 vault kv put secret/nexus \
-    host="${NEXUS_HOST:-nexus}" \
-    port="${NEXUS_PORT:-8081}" \
-    registry_port="${NEXUS_REGISTRY_PORT:-5000}" \
-    username="${NEXUS_USER_NAME}" \
-    password="${NEXUS_USER_PASSWORD}" \
-    admin_password="${NEXUS_ADMIN_NEW_PASS}" \
-    url="${NEXUS_URL:-http://$NEXUS_HOST:$NEXUS_PORT}" \
-    registry_url="${NEXUS_HOST}:${NEXUS_REGISTRY_PORT}" 2>/dev/null && \
+    NEXUS_HOST="${NEXUS_HOST:-nexus}" \
+    NEXUS_PORT="${NEXUS_PORT:-8081}" \
+    NEXUS_REGISTRY_PORT="${NEXUS_REGISTRY_PORT:-5000}" \
+    NEXUS_USER_NAME="${NEXUS_USER_NAME}" \
+    NEXUS_USER_PASSWORD="${NEXUS_USER_PASSWORD}" \
+    NEXUS_ADMIN_NEW_PASS="${NEXUS_ADMIN_NEW_PASS}" \
+    NEXUS_URL="${NEXUS_URL:-http://$NEXUS_HOST:$NEXUS_PORT}" \
+    NEXUS_REGISTRY_URL="${NEXUS_REGISTRY_URL:-$NEXUS_HOST:$NEXUS_REGISTRY_PORT}" 2>/dev/null && \
     echo -e "${GREEN}     ✅ Создан${NC}" || echo -e "${YELLOW}     ⚠️  Ошибка${NC}"
 
 # GitLab
 echo -e "${BLUE}  📦 GitLab${NC}"
 vault kv put secret/gitlab \
-    host="${GITLAB_HOST:-gitlab}" \
-    port="${GITLAB_PORT:-8060}" \
-    root_password="${GITLAB_ROOT_PASSWORD}" \
-    root_token="${GITLAB_ROOT_TOKEN}" \
-    access_token="${GITLAB_ACCESS_TOKEN}" \
-    user="${GITLAB_USER}" \
-    user_password="${GITLAB_PASSWORD}" \
-    url="${GITLAB_URL:-http://$GITLAB_HOST:$GITLAB_PORT}" 2>/dev/null && \
+    GITLAB_HOST="${GITLAB_HOST:-gitlab}" \
+    GITLAB_PORT="${GITLAB_PORT:-8060}" \
+    GITLAB_URL="${GITLAB_URL:-http://$GITLAB_HOST:$GITLAB_PORT}" \
+    GITLAB_ROOT_PASSWORD="${GITLAB_ROOT_PASSWORD}" \
+    GITLAB_ROOT_TOKEN="${GITLAB_ROOT_TOKEN}" \
+    GITLAB_ACCESS_TOKEN="${GITLAB_ACCESS_TOKEN}" \
+    GITLAB_USER="${GITLAB_USER}" \
+    GITLAB_PASSWORD="${GITLAB_PASSWORD}" \
+    GITLAB_EMAIL="${GITLAB_EMAIL:-}" 2>/dev/null && \
     echo -e "${GREEN}     ✅ Создан${NC}" || echo -e "${YELLOW}     ⚠️  Ошибка${NC}"
 
 # SonarQube
 echo -e "${BLUE}  📦 SonarQube${NC}"
 vault kv put secret/sonarqube \
-    host="${SONAR_HOST:-sonarqube}" \
-    port="${SONAR_PORT:-9000}" \
-    admin_password="${SONAR_ADMIN_NEW_PASS:-admin}" \
-    admin_token="${SONAR_ADMIN_TOKEN}" \
-    user_token="${SONAR_USER_TOKEN}" \
-    jdbc_url="${SONAR_JDBC_URL}" \
-    jdbc_user="${SONAR_JDBC_USERNAME}" \
-    jdbc_password="${SONAR_JDBC_PASSWORD}" \
-    webhook_url="${SONAR_JENKINS_WEBHOOK_URL}" \
-    url="${SONAR_URL:-http://$SONAR_HOST:$SONAR_PORT}" 2>/dev/null && \
+    SONAR_HOST="${SONAR_HOST:-sonarqube}" \
+    SONAR_PORT="${SONAR_PORT:-9000}" \
+    SONAR_URL="${SONAR_URL:-http://$SONAR_HOST:$SONAR_PORT}" \
+    SONAR_ADMIN="${SONAR_ADMIN:-admin}" \
+    SONAR_ADMIN_PASSWORD="${SONAR_ADMIN_NEW_PASS:-admin}" \
+    SONAR_ADMIN_TOKEN="${SONAR_ADMIN_TOKEN}" \
+    SONAR_USER_TOKEN="${SONAR_USER_TOKEN}" \
+    SONAR_JDBC_URL="${SONAR_JDBC_URL}" \
+    SONAR_JDBC_USERNAME="${SONAR_JDBC_USERNAME}" \
+    SONAR_JDBC_PASSWORD="${SONAR_JDBC_PASSWORD}" \
+    SONAR_JENKINS_WEBHOOK_URL="${SONAR_JENKINS_WEBHOOK_URL}" 2>/dev/null && \
     echo -e "${GREEN}     ✅ Создан${NC}" || echo -e "${YELLOW}     ⚠️  Ошибка${NC}"
 
 # Jenkins
 echo -e "${BLUE}  📦 Jenkins${NC}"
 vault kv put secret/jenkins \
-    host="${JENKINS_HOST:-jenkins}" \
-    port="${JENKINS_PORT:-8080}" \
-    secret="${JENKINS_SECRET}" \
-    agent_name="${JENKINS_AGENT_NAME}" \
-    agent_workdir="${JENKINS_AGENT_WORKDIR}" \
-    url="${JENKINS_URL:-http://$JENKINS_HOST:$JENKINS_PORT}" 2>/dev/null && \
+    JENKINS_HOST="${JENKINS_HOST:-jenkins}" \
+    JENKINS_PORT="${JENKINS_PORT:-8080}" \
+    JENKINS_URL="${JENKINS_URL:-http://$JENKINS_HOST:$JENKINS_PORT}" \
+    JENKINS_SECRET="${JENKINS_SECRET}" \
+    JENKINS_AGENT_NAME="${JENKINS_AGENT_NAME}" \
+    JENKINS_AGENT_WORKDIR="${JENKINS_AGENT_WORKDIR}" 2>/dev/null && \
     echo -e "${GREEN}     ✅ Создан${NC}" || echo -e "${YELLOW}     ⚠️  Ошибка${NC}"
 
 # ArgoCD
 echo -e "${BLUE}  📦 ArgoCD${NC}"
 vault kv put secret/argocd \
-    password="${ARGO_PASSWORD}" \
-    admin_username="admin" 2>/dev/null && \
+    ARGO_PASSWORD="${ARGO_PASSWORD}" \
+    ARGO_ADMIN_USERNAME="admin" 2>/dev/null && \
     echo -e "${GREEN}     ✅ Создан${NC}" || echo -e "${YELLOW}     ⚠️  Ошибка${NC}"
 
 # JWT (генерируем случайный ключ если не задан)
 echo -e "${BLUE}  📦 JWT${NC}"
 JWT_SECRET="${JWT_SECRET:-$(openssl rand -hex 32)}"
 vault kv put secret/jwt \
-    secret_key="$JWT_SECRET" \
-    algorithm="HS256" \
-    expiration="3600" 2>/dev/null && \
+    JWT_SECRET="$JWT_SECRET" \
+    JWT_ALGORITHM="HS256" \
+    JWT_EXPIRATION="3600" 2>/dev/null && \
     echo -e "${GREEN}     ✅ Создан${NC}" || echo -e "${YELLOW}     ⚠️  Ошибка${NC}"
 
 echo ""
