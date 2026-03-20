@@ -211,9 +211,24 @@ path "secret/metadata/*" {
 EOT
 echo -e "${GREEN}     ✅ external-secrets-policy создан${NC}" || echo -e "${YELLOW}     ⚠️  Ошибка${NC}"
 
-# Общая политика для всех Backend'ов (admin, order, courier)
-echo -e "${BLUE}  📦 Backend Policy (общая для всех backend'ов)${NC}"
-vault policy write backend-policy - <<EOT >/dev/null 2>&1
+# Policy для Admin Backend
+echo -e "${BLUE}  📦 Admin Backend Policy${NC}"
+vault policy write admin-backend-policy - <<EOT >/dev/null 2>&1
+# PostgreSQL
+path "secret/data/postgres" {
+  capabilities = ["read"]
+}
+
+# MinIO
+path "secret/data/minio" {
+  capabilities = ["read"]
+}
+EOT
+echo -e "${GREEN}     ✅ admin-backend-policy создан${NC}" || echo -e "${YELLOW}     ⚠️  Ошибка${NC}"
+
+# Policy для Courier Backend
+echo -e "${BLUE}  📦 Courier Backend Policy${NC}"
+vault policy write courier-backend-policy - <<EOT >/dev/null 2>&1
 # PostgreSQL
 path "secret/data/postgres" {
   capabilities = ["read"]
@@ -228,13 +243,28 @@ path "secret/data/kafka" {
 path "secret/data/minio" {
   capabilities = ["read"]
 }
+EOT
+echo -e "${GREEN}     ✅ courier-backend-policy создан${NC}" || echo -e "${YELLOW}     ⚠️  Ошибка${NC}"
 
-# JWT
-path "secret/data/jwt" {
+# Policy для Order Backend
+echo -e "${BLUE}  📦 Order Backend Policy${NC}"
+vault policy write order-backend-policy - <<EOT >/dev/null 2>&1
+# PostgreSQL
+path "secret/data/postgres" {
+  capabilities = ["read"]
+}
+
+# Kafka
+path "secret/data/kafka" {
+  capabilities = ["read"]
+}
+
+# MinIO
+path "secret/data/minio" {
   capabilities = ["read"]
 }
 EOT
-echo -e "${GREEN}     ✅ backend-policy создан${NC}" || echo -e "${YELLOW}     ⚠️  Ошибка${NC}"
+echo -e "${GREEN}     ✅ order-backend-policy создан${NC}" || echo -e "${YELLOW}     ⚠️  Ошибка${NC}"
 
 # Policy для Jenkins
 echo -e "${BLUE}  📦 Jenkins Policy${NC}"
@@ -310,13 +340,32 @@ echo ""
 
 # ==================== Backend Roles ====================
 
-# Общая роль для всех Backend'ов (admin, order, courier)
-# Используем wildcard pattern для всех сервисов в namespace
-echo -e "${BLUE}  📦 Backend Role (wildcard для *-backend)${NC}"
-vault write auth/kubernetes/role/backend-role \
-    bound_service_account_names="*-backend" \
+# Role для Admin Backend
+echo -e "${BLUE}  📦 Admin Backend Role${NC}"
+vault write auth/kubernetes/role/admin-backend-role \
+    bound_service_account_names=admin-backend \
     bound_service_account_namespaces=healthy-menu-dev \
-    policies=backend-policy \
+    policies=admin-backend-policy \
+    ttl=1h \
+    >/dev/null 2>&1 && \
+    echo -e "${GREEN}     ✅ Role создана${NC}" || echo -e "${YELLOW}     ⚠️  Ошибка (возможно уже существует)${NC}"
+
+# Role для Courier Backend
+echo -e "${BLUE}  📦 Courier Backend Role${NC}"
+vault write auth/kubernetes/role/courier-backend-role \
+    bound_service_account_names=courier-backend \
+    bound_service_account_namespaces=healthy-menu-dev \
+    policies=courier-backend-policy \
+    ttl=1h \
+    >/dev/null 2>&1 && \
+    echo -e "${GREEN}     ✅ Role создана${NC}" || echo -e "${YELLOW}     ⚠️  Ошибка (возможно уже существует)${NC}"
+
+# Role для Order Backend
+echo -e "${BLUE}  📦 Order Backend Role${NC}"
+vault write auth/kubernetes/role/order-backend-role \
+    bound_service_account_names=order-backend \
+    bound_service_account_namespaces=healthy-menu-dev \
+    policies=order-backend-policy \
     ttl=1h \
     >/dev/null 2>&1 && \
     echo -e "${GREEN}     ✅ Role создана${NC}" || echo -e "${YELLOW}     ⚠️  Ошибка (возможно уже существует)${NC}"

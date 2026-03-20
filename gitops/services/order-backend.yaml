@@ -1,16 +1,31 @@
 # Order Backend Service
 name: order-backend
-tag: "137"
+tag: "164"
 
 # Service port
 port: 8000
 targetPort: 8000
 
 # Vault configuration
-vaultEnabled: "true"
-vaultRole: "backend-role"
+vault:
+  enabled: true
+  role: order-backend-role
+  envFromPath: "secret/data/minio,secret/data/postgres,secret/data/kafka"
 
 # Istio configuration
-istioEnabled: "true"
-istioPeerAuthMode: "PERMISSIVE"
-istioAllowInternal: "true"
+istio:
+  enabled: true
+  peerAuthentication:
+    mode: "PERMISSIVE"
+  destinationRule:
+    trafficPolicy:
+      connectionPool:
+        http1MaxPendingRequests: 100
+        maxRequestsPerConnection: 100
+      outlierDetection:
+        consecutive5xxErrors: 5
+        interval: "10s"
+        baseEjectionTime: "30s"
+        maxEjectionPercent: 50
+  authorizationPolicy:
+    allowInternal: true

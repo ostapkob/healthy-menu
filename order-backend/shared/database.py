@@ -3,7 +3,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 
 SQLALCHEMY_DATABASE_URL = os.getenv(
-    "DATABASE_URL",
+    "POSTGRES_DATABASE_URL",
     "postgresql://postgres:postgres@localhost:5432/food_db"
 )
 

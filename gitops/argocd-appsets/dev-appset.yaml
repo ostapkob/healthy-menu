@@ -22,6 +22,7 @@ spec:
         helm:
           releaseName: "{{name}}"
           parameters:
+          # Базовые параметры
           - name: image.tag
             value: "{{tag}}"
           - name: service.port
@@ -30,42 +31,21 @@ spec:
             value: "{{targetPort}}"
           - name: imagePullSecretName
             value: "nexus-creds"
+          # Vault - просто список сервисов
           - name: vault.enabled
-            value: "{{vaultEnabled}}"
+            value: "{{vault.enabled}}"
           - name: vault.role
-            value: "{{vaultRole}}"
-          - name: vault.creds[0].credPath
-            value: "secret/data/postgres"
-          - name: vault.creds[0].secretKeys[0]
-            value: "POSTGRES_USER"
-          - name: vault.creds[0].secretKeys[1]
-            value: "POSTGRES_PASSWORD"
-          - name: vault.creds[0].configKeys[0]
-            value: "POSTGRES_HOST"
-          - name: vault.creds[0].configKeys[1]
-            value: "POSTGRES_PORT"
-          - name: vault.creds[0].configKeys[2]
-            value: "POSTGRES_DB"
-          - name: vault.creds[1].credPath
-            value: "secret/data/minio"
-          - name: vault.creds[1].secretKeys[0]
-            value: "MINIO_ROOT_USER"
-          - name: vault.creds[1].secretKeys[1]
-            value: "MINIO_ROOT_PASSWORD"
-          - name: vault.creds[1].configKeys[0]
-            value: "MINIO_HOST"
-          - name: vault.creds[1].configKeys[1]
-            value: "MINIO_PORT"
-          - name: vault.creds[1].configKeys[2]
-            value: "MINIO_BUCKET"
-          # Istio configuration
-          - name: istio.enabled
-            value: "{{istioEnabled}}"
-          - name: istio.peerAuthentication.mode
-            value: "{{istioPeerAuthMode}}"
-          - name: istio.authorizationPolicy.allowInternal
-            value: "{{istioAllowInternal}}"
+            value: "{{vault.role}}"
+          - name: vault.envFromPath
+            value: "{{vault.envFromPath}}"
 
+          # Istio
+          - name: istio.enabled
+            value: "{{istio.enabled}}"
+          - name: istio.peerAuthentication.mode
+            value: "{{istio.peerAuthentication.mode}}"
+          - name: istio.authorizationPolicy.allowInternal
+            value: "{{istio.authorizationPolicy.allowInternal}}"
       destination:
         server: https://kubernetes.default.svc
         namespace: healthy-menu-dev
