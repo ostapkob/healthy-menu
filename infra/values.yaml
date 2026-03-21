@@ -27,8 +27,15 @@ vault:
   addr: "http://vault.vault.svc:8200"
   skipVerify: "true"
   authPath: "kubernetes"
-  role: ""
-  envFromPath: ""
+  
+  # Роль Vault для Kubernetes auth
+  role: "backend-role"
+  
+  # Пути к секретам в Vault (список через запятую)
+  # Vault Agent Injector прочитает ВСЕ переменные из указанных путей
+  envFromPath: "secret/data/minio,secret/data/postgres,secret/data/kafka"
+  
+  # Метод аутентификации
   vaultAuthMethod: kubernetes
 
 # Docker registry credentials

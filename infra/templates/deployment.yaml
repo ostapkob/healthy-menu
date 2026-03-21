@@ -29,8 +29,6 @@ spec:
         - containerPort: {{ .Values.service.port }}
         {{- if .Values.vault.enabled }}
         envFrom:
-          - secretRef:
-              name: {{ .Release.Name }}-secret
           - configMapRef:
               name: {{ .Release.Name }}-config
         {{- end }}

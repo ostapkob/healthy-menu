@@ -8,24 +8,51 @@ metadata:
   labels:
     app: {{ .Release.Name }}
   annotations:
+    # Настройки подключения к Vault
     vault.security.banzaicloud.io/vault-addr: "{{ .Values.vault.addr }}"
     vault.security.banzaicloud.io/vault-skip-verify: "{{ .Values.vault.skipVerify }}"
     vault.security.banzaicloud.io/vault-path: "{{ .Values.vault.authPath }}"
     vault.security.banzaicloud.io/vault-role: "{{ .Values.vault.role }}"
     vault.security.banzaicloud.io/vault-serviceaccount: "{{ .Release.Name }}"
-    vault.security.banzaicloud.io/vault-env-from-path: "{{ .Values.vault.envFromPath }}"
     vault.security.banzaicloud.io/vault-auth-method: "{{ .Values.vault.vaultAuthMethod }}"
+    
+    # Пути к секретам в Vault (список через запятую)
+    {{- if .Values.vault.envFromPath }}
+    vault.security.banzaicloud.io/vault-env-from-path: "{{ .Values.vault.envFromPath }}"
+    {{- end }}
+    
+    {{- with .Values.vault.annotations }}
+    {{- toYaml . | nindent 8 }}
+    {{- end }}
 data:
+  {{- if .Values.vault.envFromPath }}
+  {{- $paths := splitList "," .Values.vault.envFromPath }}
+  {{- range $paths }}
+  {{- $path := trim . }}
+  {{- if contains "minio" $path }}
   MINIO_HOST: vault:secret/data/minio#MINIO_HOST
   MINIO_URL: vault:secret/data/minio#MINIO_URL
   MINIO_PORT: vault:secret/data/minio#MINIO_PORT
   MINIO_BUCKET: vault:secret/data/minio#MINIO_BUCKET
-  POSTGRES_DATABASE_TEST_URL: vault:secret/data/postgres#POSTGRES_DATABASE_TEST_URL
-  POSTGRES_DATABASE_URL: vault:secret/data/postgres#POSTGRES_DATABASE_URL
-  POSTGRES_DB: vault:secret/data/postgres#POSTGRES_DB
+  MINIO_ROOT_USER: vault:secret/data/minio#MINIO_ROOT_USER
+  MINIO_ROOT_PASSWORD: vault:secret/data/minio#MINIO_ROOT_PASSWORD
+  {{- else if contains "postgres" $path }}
   POSTGRES_HOST: vault:secret/data/postgres#POSTGRES_HOST
   POSTGRES_PORT: vault:secret/data/postgres#POSTGRES_PORT
-  KAFKA_ADVERTISED_LISTENERS: vault:secret/data/kafka#KAFKA_ADVERTISED_LISTENERS
+  POSTGRES_USER: vault:secret/data/postgres#POSTGRES_USER
+  POSTGRES_PASSWORD: vault:secret/data/postgres#POSTGRES_PASSWORD
+  POSTGRES_DB: vault:secret/data/postgres#POSTGRES_DB
+  POSTGRES_DATABASE_URL: vault:secret/data/postgres#POSTGRES_DATABASE_URL
+  POSTGRES_DATABASE_TEST_URL: vault:secret/data/postgres#POSTGRES_DATABASE_TEST_URL
+  {{- else if contains "kafka" $path }}
   KAFKA_BOOTSTRAP_SERVERS: vault:secret/data/kafka#KAFKA_BOOTSTRAP_SERVERS
+  KAFKA_ADVERTISED_LISTENERS: vault:secret/data/kafka#KAFKA_ADVERTISED_LISTENERS
   KAFKA_ZOOKEEPER_CONNECT: vault:secret/data/kafka#KAFKA_ZOOKEEPER_CONNECT
+  {{- else if contains "jwt" $path }}
+  JWT_SECRET: vault:secret/data/jwt#JWT_SECRET
+  JWT_ALGORITHM: vault:secret/data/jwt#JWT_ALGORITHM
+  JWT_EXPIRATION: vault:secret/data/jwt#JWT_EXPIRATION
+  {{- end }}
+  {{- end }}
+  {{- end }}
 {{- end }}

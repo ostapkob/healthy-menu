@@ -1,6 +1,6 @@
 # Order Backend Service
 name: order-backend
-tag: "164"
+tag: "168"
 
 # Service port
 port: 8000
