@@ -1,0 +1,106 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: test-vault
+  namespace: healthy-menu-dev
+  labels:
+    app: test-vault
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: test-vault
+  template:
+    metadata:
+      labels:
+        app: test-vault
+      annotations:
+        vault.security.banzaicloud.io/vault-addr: "http://vault.vault.svc:8200"
+        vault.security.banzaicloud.io/vault-skip-verify: "true"
+        vault.security.banzaicloud.io/vault-auth-method: "kubernetes"
+        vault.security.banzaicloud.io/vault-role: "backend-role"
+        vault.security.banzaicloud.io/vault-serviceaccount: "admin-backend"
+    spec:
+      serviceAccountName: admin-backend
+      imagePullSecrets:
+        - name: nexus-creds
+      containers:
+      - name: test-vault
+        image: nexus:5000/debug-env:latest
+        imagePullPolicy: Always
+        command:
+          - python
+          - /app/app.py
+        env:
+        # MinIO - явное указание path и key для каждой переменной
+        - name: MINIO_HOST
+          valueFrom:
+            vault:
+              path: secret/data/minio
+              key: MINIO_HOST
+        - name: MINIO_PORT
+          valueFrom:
+            vault:
+              path: secret/data/minio
+              key: MINIO_PORT
+        - name: MINIO_ROOT_USER
+          valueFrom:
+            vault:
+              path: secret/data/minio
+              key: MINIO_ROOT_USER
+        - name: MINIO_ROOT_PASSWORD
+          valueFrom:
+            vault:
+              path: secret/data/minio
+              key: MINIO_ROOT_PASSWORD
+        - name: MINIO_BUCKET
+          valueFrom:
+            vault:
+              path: secret/data/minio
+              key: MINIO_BUCKET
+        - name: MINIO_URL
+          valueFrom:
+            vault:
+              path: secret/data/minio
+              key: MINIO_URL
+
+        # PostgreSQL
+        - name: POSTGRES_HOST
+          valueFrom:
+            vault:
+              path: secret/data/postgres
+              key: POSTGRES_HOST
+        - name: POSTGRES_PORT
+          valueFrom:
+            vault:
+              path: secret/data/postgres
+              key: POSTGRES_PORT
+        - name: POSTGRES_USER
+          valueFrom:
+            vault:
+              path: secret/data/postgres
+              key: POSTGRES_USER
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            vault:
+              path: secret/data/postgres
+              key: POSTGRES_PASSWORD
+        - name: POSTGRES_DB
+          valueFrom:
+            vault:
+              path: secret/data/postgres
+              key: POSTGRES_DB
+
+        # Kafka
+        - name: KAFKA_BOOTSTRAP_SERVERS
+          valueFrom:
+            vault:
+              path: secret/data/kafka
+              key: KAFKA_BOOTSTRAP_SERVERS
+
+        # JWT
+        - name: JWT_SECRET
+          valueFrom:
+            vault:
+              path: secret/data/jwt
+              key: JWT_SECRET

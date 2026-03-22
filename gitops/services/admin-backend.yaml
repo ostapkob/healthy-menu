@@ -1,16 +1,23 @@
 # Admin Backend Service
 name: admin-backend
-tag: "137"
+tag: "166"
 
 # Service port
 port: 8000
 targetPort: 8000
 
+# Vault configuration
+vault:
+  enabled: true
+  role: admin-backend-role
+  # Admin нужен доступ только к minio и postgres
+  envFromPath: "secret/data/minio,secret/data/postgres"
+
 # Istio configuration
 istio:
   enabled: true
   peerAuthentication:
-    mode: "PERMISSIVE"  # STRICT для продакшена
+    mode: "PERMISSIVE"
   destinationRule:
     trafficPolicy:
       connectionPool:

@@ -1,10 +1,16 @@
 # Order Backend Service
 name: order-backend
-tag: "147"
+tag: "168"
 
 # Service port
 port: 8000
 targetPort: 8000
+
+# Vault configuration
+vault:
+  enabled: true
+  role: order-backend-role
+  envFromPath: "secret/data/minio,secret/data/postgres,secret/data/kafka"
 
 # Istio configuration
 istio:

@@ -1,10 +1,16 @@
 # Courier Backend Service
 name: courier-backend
-tag: "158"
+tag: "167"
 
 # Service port
 port: 8000
 targetPort: 8000
+
+# Vault configuration
+vault:
+  enabled: true
+  role: courier-backend-role
+  envFromPath: "secret/data/minio,secret/data/postgres,secret/data/kafka"
 
 # Istio configuration
 istio:

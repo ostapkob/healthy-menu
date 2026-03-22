@@ -1,0 +1,73 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: debug-env-secret
+  namespace: healthy-menu-dev
+  annotations:
+    vault.security.banzaicloud.io/vault-addr: "http://vault.vault.svc:8200"
+    vault.security.banzaicloud.io/vault-skip-verify: "true"
+    vault.security.banzaicloud.io/vault-path: "kubernetes"
+    vault.security.banzaicloud.io/vault-role: "backend-role"
+    vault.security.banzaicloud.io/vault-serviceaccount: "admin-backend"
+    # Загружаем все секреты из нескольких путей
+    vault.security.banzaicloud.io/vault-env-from-path: "secret/data/postgres,secret/data/minio,secret/data/kafka,secret/data/jwt"
+type: Opaque
+stringData:
+  # PostgreSQL
+  POSTGRES_HOST: vault:secret/data/postgres#POSTGRES_HOST
+  POSTGRES_PORT: vault:secret/data/postgres#POSTGRES_PORT
+  POSTGRES_USER: vault:secret/data/postgres#POSTGRES_USER
+  POSTGRES_PASSWORD: vault:secret/data/postgres#POSTGRES_PASSWORD
+  POSTGRES_DB: vault:secret/data/postgres#POSTGRES_DB
+
+  # MinIO
+  MINIO_HOST: vault:secret/data/minio#MINIO_HOST
+  MINIO_PORT: vault:secret/data/minio#MINIO_PORT
+  MINIO_ROOT_USER: vault:secret/data/minio#MINIO_ROOT_USER
+  MINIO_ROOT_PASSWORD: vault:secret/data/minio#MINIO_ROOT_PASSWORD
+  MINIO_BUCKET: vault:secret/data/minio#MINIO_BUCKET
+  MINIO_URL: vault:secret/data/minio#MINIO_URL
+
+  # Kafka
+  KAFKA_BOOTSTRAP_SERVERS: vault:secret/data/kafka#KAFKA_BOOTSTRAP_SERVERS
+
+  # JWT
+  JWT_SECRET: vault:secret/data/jwt#JWT_SECRET
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: debug-env
+  namespace: healthy-menu-dev
+  labels:
+    app: debug-env
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: debug-env
+  template:
+    metadata:
+      labels:
+        app: debug-env
+    spec:
+      serviceAccountName: admin-backend
+      imagePullSecrets:
+        - name: nexus-creds
+      containers:
+      - name: debug-env
+        image: nexus:5000/debug-env:latest
+        imagePullPolicy: Always
+        command:
+          ["sh", "-c", 'echo "MINIO_HOST=$MINIO_HOST" && echo "MINIO_ROOT_USER=$MINIO_ROOT_USER" && echo "POSTGRES_USER=$POSTGRES_USER" && sleep 3600']
+        envFrom:
+          - secretRef:
+              name: debug-env-secret
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: debug-env
+  namespace: healthy-menu-dev
+  labels:
+    app: debug-env

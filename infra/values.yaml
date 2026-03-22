@@ -1,6 +1,8 @@
 # Реплики
 replicaCount: 1
 
+# Namespace (по умолчанию берётся из Helm release)
+
 # Образ
 image:
   repository: nexus:5000
@@ -14,31 +16,39 @@ service:
   targetPort: 8000
   type: ClusterIP
 
-# Конфигурации из ConfigMaps и Secrets
-config:
-  postgres:
-    configMap: postgres-config
-    secret: postgres-secret
-  minio:
-    configMap: minio-config
-    secret: minio-secret
-  kafka:
-    configMap: kafka-config
+# Command (опционально)
+# command: ["sh", "-c", "echo Hello && sleep 3600"]
 
-# Переменные окружения (опционально, если хотите переопределить)
-env:
-  # Пример добавления дополнительных переменных:
-  # - name: LOG_LEVEL
-  #   value: "info"
+# Vault конфигурация
+vault:
+  enabled: true
 
-# ============================================
+  # Настройки подключения к Vault
+  addr: "http://vault.vault.svc:8200"
+  skipVerify: "true"
+  authPath: "kubernetes"
+  
+  # Роль Vault для Kubernetes auth
+  role: "backend-role"
+  
+  # Пути к секретам в Vault (список через запятую)
+  # Vault Agent Injector прочитает ВСЕ переменные из указанных путей
+  envFromPath: "secret/data/minio,secret/data/postgres,secret/data/kafka"
+  
+  # Метод аутентификации
+  vaultAuthMethod: kubernetes
+
+# Docker registry credentials
+imagePullSecretName: "nexus-creds"
+
+# Дополнительные переменные окружения (опционально)
+env: []
+
 # Istio конфигурация
-# ============================================
 istio:
-  # Включить генерацию Istio ресурсов
   enabled: false
-
-  # DestinationRule - управление трафиком
+  peerAuthentication:
+    mode: "PERMISSIVE"
   destinationRule:
     trafficPolicy:
       connectionPool:
@@ -49,23 +59,5 @@ istio:
         interval: "10s"
         baseEjectionTime: "30s"
         maxEjectionPercent: 50
-
-  # PeerAuthentication - mTLS настройки
-  peerAuthentication:
-    # Режим: DISABLE, PERMISSIVE, STRICT
-    mode: "PERMISSIVE"
-
-  # AuthorizationPolicy - правила доступа
   authorizationPolicy:
-    # Разрешить трафик изнутри namespace
     allowInternal: true
-    # Кастомные правила (кол-во строк не влияет)
-    # rules:
-    #   - from:
-    #     - source:
-    #         principals:
-    #         - "cluster.local/ns/istio-system/sa/istio-ingressgateway-service-account"
-    #     to:
-    #     - operation:
-    #         methods: ["GET", "POST"]
-    #         paths: ["/api/*"]

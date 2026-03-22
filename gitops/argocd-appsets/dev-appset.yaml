@@ -9,7 +9,7 @@ spec:
       repoURL: http://gitlab:8060/ostapkob/gitops.git
       revision: master
       files:
-      - path: "services/*.yaml"  # <-- Все .yaml в services/
+      - path: "services/*.yaml"
   template:
     metadata:
       name: "{{name}}"
@@ -22,12 +22,30 @@ spec:
         helm:
           releaseName: "{{name}}"
           parameters:
+          # Базовые параметры
           - name: image.tag
             value: "{{tag}}"
           - name: service.port
             value: "{{port}}"
           - name: service.targetPort
             value: "{{targetPort}}"
+          - name: imagePullSecretName
+            value: "nexus-creds"
+          # Vault - просто список сервисов
+          - name: vault.enabled
+            value: "{{vault.enabled}}"
+          - name: vault.role
+            value: "{{vault.role}}"
+          - name: vault.envFromPath
+            value: "{{vault.envFromPath}}"
+
+          # Istio
+          - name: istio.enabled
+            value: "{{istio.enabled}}"
+          - name: istio.peerAuthentication.mode
+            value: "{{istio.peerAuthentication.mode}}"
+          - name: istio.authorizationPolicy.allowInternal
+            value: "{{istio.authorizationPolicy.allowInternal}}"
       destination:
         server: https://kubernetes.default.svc
         namespace: healthy-menu-dev
@@ -35,5 +53,3 @@ spec:
         automated:
           prune: true
           selfHeal: true
-
-

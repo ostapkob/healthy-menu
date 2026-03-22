@@ -55,7 +55,8 @@ GITLAB_NAME=ostap_kob
 GITLAB_PASSWORD=superpass123
 GITLAB_EMAIL=ostapkob@gmail.com
 GITLAB_ROOT_TOKEN=glpat-qsFcCZfwqlVLZ0ZHpB_D3G86MQp1OjEH.01.0w00gl2ej
-GITLAB_ACCESS_TOKEN=glpat-LhZk-MWkPeRCn9NbvTnwFW86MQp1OnkH.01.0w00q2acu
+# GITLAB_ACCESS_TOKEN=glpat-LhZk-MWkPeRCn9NbvTnwFW86MQp1OnkH.01.0w00q2acu
+GITLAB_ACCESS_TOKEN=glpat-0aKShetbAG3UaEgAgrxz3286MQp1OnkH.01.0w1plz73c
 
 # jenkins
 JENKINS_HOST=nixos
@@ -94,9 +95,11 @@ SONAR_USER_TOKEN=sqa_5fbabed883da6028d729f42153359f999a618c97
 # argo
 ARGO_PASSWORD=M4jtlopYrP3xoUb!m4ePoTpas!+1
 
+# vault
+VAULT_TOKEN=hvs.wwwwwwwwwwwwwwwwww
+VAULT_ADDR=http://localhost:8200
+
+
 # redis
 REDIS_URL=redis://redis:6379
 
-
-FEDORA=192.168.1.171
-NIX=192.168.1.163

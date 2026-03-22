@@ -1,0 +1,93 @@
+# Тестовый манифест для проверки работы BankVaults Vault Agent Injector
+# apiVersion: v1
+# kind: Namespace
+# metadata:
+#   name: vault-test
+# ---
+# apiVersion: v1
+# kind: ServiceAccount
+# metadata:
+#   name: vault
+#   namespace: vault-test
+
+# ---
+# apiVersion: v1
+# kind: Secret
+# metadata:
+#   name: test-minio-secret
+#   namespace: healthy-menu-dev
+#   annotations:
+#         vault.security.banzaicloud.io/vault-addr: "http://vault.vault.svc:8200"
+#         vault.security.banzaicloud.io/vault-skip-verify: "true"
+#         vault.security.banzaicloud.io/vault-path: "kubernetes"
+#         vault.security.banzaicloud.io/vault-role: "backend-role"
+#         vault.security.banzaicloud.io/vault-serviceaccount: "admin-backend"
+#         vault.security.banzaicloud.io/vault-auth-method: "kubernetes"
+#         vault.security.banzaicloud.io/vault-env-from-path: "secret/data/minio"
+# type: Opaque
+# stringData:
+#   MINIO_ROOT_PASSWORD: vault:secret/data/minio#MINIO_ROOT_PASSWORD
+#   MINIO_ROOT_USER: vault:secret/data/minio#MINIO_ROOT_USER
+
+# ---
+# apiVersion: v1
+# kind: ConfigMap
+# metadata:
+#   name: test-minio-configmap
+#   namespace: healthy-menu-dev
+#   annotations:
+#         vault.security.banzaicloud.io/vault-addr: "http://vault.vault.svc:8200"
+#         vault.security.banzaicloud.io/vault-skip-verify: "true"
+#         vault.security.banzaicloud.io/vault-path: "kubernetes"
+#         vault.security.banzaicloud.io/vault-role: "backend-role"
+#         vault.security.banzaicloud.io/vault-serviceaccount: "admin-backend"
+#         vault.security.banzaicloud.io/vault-auth-method: "kubernetes"
+#         vault.security.banzaicloud.io/vault-env-from-path: "secret/data/minio"
+# data:
+#   MINIO_HOST: vault:secret/data/minio#MINIO_HOST
+#   MINIO_URL: vault:secret/data/minio#MINIO_URL
+#   MINIO_PORT: vault:secret/data/minio#MINIO_PORT
+#   MINIO_BUCKET: vault:secret/data/minio#MINIO_BUCKET
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: www
+  namespace: healthy-menu-dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: www
+  template:
+    metadata:
+      labels:
+        app: www
+      annotations:
+        # Vault конфигурация (только на Pod!)
+        vault.security.banzaicloud.io/vault-addr: "http://vault.vault.svc:8200"
+        vault.security.banzaicloud.io/vault-skip-verify: "true"
+        vault.security.banzaicloud.io/vault-path: "kubernetes"
+        vault.security.banzaicloud.io/vault-role: "backend-role"
+        vault.security.banzaicloud.io/vault-serviceaccount: "admin-backend"
+        vault.security.banzaicloud.io/vault-auth-method: "kubernetes"
+        vault.security.banzaicloud.io/vault-env-from-path: "secret/data/minio"
+    spec:
+      serviceAccountName: admin-backend
+      containers:
+        - name: www
+          image: nexus:5000/debug-env:latest
+          # command:
+          #   - sh
+          #   - -c
+          #   - |
+          #     echo "=== Переменные окружения ==="
+          #     env | grep -i minio || true
+          #     echo "=== Sleep forever ==="
+          #     sleep infinity
+          envFrom:
+            - secretRef:
+                name: admin-backend-secret
+            - configMapRef:
+                name: admin-backend-config

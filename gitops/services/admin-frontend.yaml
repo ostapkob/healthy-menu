@@ -1,15 +1,30 @@
 # Admin Frontend Service
 name: admin-frontend
-tag: "139"
+tag: "161"
 
 # Service port
 port: 80
 targetPort: 80
+
+# Vault configuration - frontend не требует доступа к секретам
+vault:
+  enabled: false
+  services: []
 
 # Istio configuration
 istio:
   enabled: true
   peerAuthentication:
     mode: "PERMISSIVE"
+  destinationRule:
+    trafficPolicy:
+      connectionPool:
+        http1MaxPendingRequests: 100
+        maxRequestsPerConnection: 100
+      outlierDetection:
+        consecutive5xxErrors: 5
+        interval: "10s"
+        baseEjectionTime: "30s"
+        maxEjectionPercent: 50
   authorizationPolicy:
-    allowInternal: false  # Frontend принимает только от Gateway
+    allowInternal: false
