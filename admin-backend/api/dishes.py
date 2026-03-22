@@ -9,6 +9,9 @@ from uuid import uuid4
 from shared.database import get_db
 from shared.models import Dish
 from shared.minio_s3 import s3, MINIO_BUCKET, MINIO_HOST, MINIO_PORT
+from shared.logging import get_logger
+
+logger = get_logger()
 
 router = APIRouter(prefix="/dishes", tags=["dishes"])
 
@@ -69,8 +72,11 @@ def upload_dish_image(
     file: UploadFile = File(...),
     db: Session = Depends(get_db)
 ):
+    logger = get_logger()
+    
     dish = db.query(Dish).filter(Dish.id == dish_id).first()
     if not dish:
+        logger.warning("dish_not_found", dish_id=dish_id)
         raise HTTPException(status_code=404, detail="Dish not found")
 
     # расширение файла
@@ -92,4 +98,6 @@ def upload_dish_image(
     dish.image_url = public_url
     db.commit()
     db.refresh(dish)
+    
+    logger.info("dish_image_uploaded", dish_id=dish_id, image_url=public_url)
     return dish

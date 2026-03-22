@@ -6,9 +6,15 @@ from core.kafka import manager, startup_kafka
 from shared.models import Courier as CourierModel
 from api import  couriers, deliveries, orders
 from core.config import settings
+from shared.logging import setup_logging, LoggingMiddleware, get_logger
 
 
 app = FastAPI(title="Courier Service")
+
+# Настройка логирования
+setup_logging()
+
+app.add_middleware(LoggingMiddleware)
 
 app.add_middleware(
     CORSMiddleware,
@@ -35,30 +41,34 @@ app.include_router(orders.router, prefix=settings.API_PREFIX)
 @app.on_event("startup")
 async def startup_event():
     await startup_kafka()
+    logger = get_logger()
+    logger.info("courier_service_started")
 
 # === WebSocket Endpoint ===
 @app.websocket("/api/v1/courier/ws/{courier_id}")
 async def websocket_endpoint(websocket: WebSocket, courier_id: int, db: Session = Depends(get_db)):
-    print(f"✅ WebSocket connection attempt for courier_id: {courier_id}")
+    logger = get_logger()
+    
+    logger.info("websocket_connection_attempt", courier_id=courier_id)
     await manager.connect(websocket, courier_id)
 
     # Обновляем статус курьера на "available"
     courier = db.query(CourierModel).filter(CourierModel.id == courier_id).first()
     if courier:
-        print(f"🔄 Updating courier {courier_id} status to 'available'")
+        logger.info("courier_status_updated", courier_id=courier_id, status="available")
         courier.status = "available"
         db.commit()
 
     try:
         while True:
             data = await websocket.receive_text()
-            print(f"💬 Received: {data}")
+            logger.debug("websocket_message_received", courier_id=courier_id, data=data)
     except WebSocketDisconnect:
-        print(f"⚠️ WebSocket disconnected for courier_id: {courier_id}")
+        logger.info("websocket_disconnected", courier_id=courier_id)
         manager.disconnect(courier_id)
         # Обновляем статус курьера на "offline"
         courier = db.query(CourierModel).filter(CourierModel.id == courier_id).first()
         if courier:
-            print(f"🔄 Updating courier {courier_id} status to 'offline'")
+            logger.info("courier_status_updated", courier_id=courier_id, status="offline")
             courier.status = "offline"
             db.commit()

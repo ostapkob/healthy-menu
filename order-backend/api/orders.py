@@ -8,18 +8,24 @@ from shared.shared_models import  Dish
 
 from api.schemas import OrderCreate, OrderResponse, OrderItemResponse
 from core.kafka import produce_order_created
+from shared.logging import get_logger
+
+logger = get_logger()
 
 router = APIRouter(prefix="/orders", tags=["orders"])
 
 
 @router.post("/", response_model=OrderResponse)
 def create_order(order_data: OrderCreate, db: Session = Depends(get_db)):
+    logger = get_logger()
+    
     total = 0.0
     order_items_data = []
 
     for item in order_data.items:
         dish = db.query(Dish).filter(Dish.id == item.dish_id).first()
         if not dish:
+            logger.warning("dish_not_found", dish_id=item.dish_id)
             raise HTTPException(404, f"Dish {item.dish_id} not found")
 
         item_total = float(dish.price) * item.quantity
@@ -51,6 +57,8 @@ def create_order(order_data: OrderCreate, db: Session = Depends(get_db)):
         "status": "pending",
     }
     produce_order_created(payload)
+    
+    logger.info("order_created", order_id=order.id, user_id=order.user_id, total_price=total, items_count=len(order_items_data))
 
     items = db.query(OrderItem).filter(OrderItem.order_id == order.id).all()
     return OrderResponse(

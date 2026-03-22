@@ -2,7 +2,14 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from api import dishes, orders, nutrients
 from core.config import settings
+from shared.logging import setup_logging, LoggingMiddleware
+
 app = FastAPI(title="Order Service")
+
+# Настройка логирования
+setup_logging()
+
+app.add_middleware(LoggingMiddleware)
 
 app.add_middleware(
     CORSMiddleware,

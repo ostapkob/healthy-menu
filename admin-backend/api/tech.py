@@ -7,6 +7,9 @@ from sqlalchemy.orm import Session
 
 from shared.database import get_db
 from shared.models import Dish, DishFood, Food
+from shared.logging import get_logger
+
+logger = get_logger()
 
 router = APIRouter(prefix="/tech", tags=["tech"])
 
@@ -41,9 +44,12 @@ class DishTechResponse(BaseModel):
 
 @router.post("/dishes/", response_model=DishTechResponse)
 def create_dish_tech(data: DishTechCreate, db: Session = Depends(get_db)):
+    logger = get_logger()
+    
     # проверим, что такого имени блюда ещё нет
     exists = db.query(Dish).filter(Dish.name == data.name).first()
     if exists:
+        logger.warning("dish_name_exists", name=data.name)
         raise HTTPException(status_code=400, detail="Dish with this name already exists")
 
     # создаём блюдо без цены, описания и фото
@@ -62,6 +68,7 @@ def create_dish_tech(data: DishTechCreate, db: Session = Depends(get_db)):
     existing_ids = {row.fdc_id for row in existing_food}
     missing = set(food_ids) - existing_ids
     if missing:
+        logger.warning("food_ids_missing", missing=sorted(missing))
         raise HTTPException(
             status_code=400,
             detail=f"Some food_ids do not exist: {sorted(missing)}",
@@ -82,6 +89,7 @@ def create_dish_tech(data: DishTechCreate, db: Session = Depends(get_db)):
 
     # загружаем ингредиенты через relationship для ответа
     db.refresh(dish)  # обновляем связи
+    logger.info("dish_tech_created", dish_id=dish.id, dish_name=dish.name, ingredients_count=len(data.ingredients))
     return DishTechResponse(
         id=dish.id,
         name=dish.name,
@@ -171,13 +179,17 @@ def update_dish_ingredients(
 
 @router.delete("/dishes/{dish_id}")
 def delete_dish_tech(dish_id: int, db: Session = Depends(get_db)):
+    logger = get_logger()
+    
     dish = db.query(Dish).filter(Dish.id == dish_id).first()
     if not dish:
+        logger.warning("dish_not_found", dish_id=dish_id)
         raise HTTPException(status_code=404, detail="Dish not found")
-    
+
     # каскадное удаление DishFood через ondelete
     db.delete(dish)
     db.commit()
+    logger.info("dish_tech_deleted", dish_id=dish_id)
     return {"ok": True}
 
 

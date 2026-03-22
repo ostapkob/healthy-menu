@@ -8,6 +8,9 @@ from typing import List
 from shared.shared_models import (
     Order as OrderModel
 )
+from shared.logging import get_logger
+
+logger = get_logger()
 
 router = APIRouter(
     prefix="/orders",
@@ -17,6 +20,8 @@ router = APIRouter(
 
 @router.get("/available-orders/", response_model=List[dict])
 def get_available_orders(db: Session = Depends(get_db)):
+    logger = get_logger()
+    
     # Найти заказы, которые находятся в активной доставке
     active_delivery_order_ids = db.query(DeliveryModel.order_id).filter(
         DeliveryModel.status != "delivered"
@@ -29,6 +34,8 @@ def get_available_orders(db: Session = Depends(get_db)):
         OrderModel.id.notin_(active_ids),
         OrderModel.status != "delivered"
     ).all()
+    
+    logger.info("available_orders_fetched", count=len(orders))
 
     return [
         {

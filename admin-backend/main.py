@@ -2,8 +2,14 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from api import dishes, tech, foods
+from shared.logging import setup_logging, LoggingMiddleware
 
 app = FastAPI(title="Admin Service")
+
+# Настройка логирования
+setup_logging()
+
+app.add_middleware(LoggingMiddleware)
 
 app.add_middleware(
     CORSMiddleware,
