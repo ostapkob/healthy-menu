@@ -1,6 +1,6 @@
 # Admin Backend Service
 name: admin-backend
-tag: "166"
+tag: "171"
 
 # Service port
 port: 8000

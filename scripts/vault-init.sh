@@ -80,6 +80,29 @@ fi
 echo ""
 
 # =============================================================================
+# Функция для создания секрета с проверкой обязательных переменных
+# =============================================================================
+
+create_secret() {
+    local secret_path="$1"
+    local secret_name="$2"
+    shift 2
+    local key_values=("$@")
+    
+    echo -e "${BLUE}  📦 ${secret_name}${NC}"
+    
+    # Создаём секрет (kv put создаёт или перезаписывает существующий)
+    local output
+    if output=$(vault kv put "$secret_path" "${key_values[@]}" 2>&1); then
+        echo -e "${GREEN}     ✅ Создан/обновлён${NC}"
+        return 0
+    else
+        echo -e "${RED}     ❌ Ошибка: $output${NC}"
+        return 1
+    fi
+}
+
+# =============================================================================
 # Создание секретов из .env файла
 # =============================================================================
 
@@ -87,105 +110,92 @@ echo -e "${GREEN}🔑 Создание секретов...${NC}"
 echo ""
 
 # PostgreSQL
-echo -e "${BLUE}  📦 PostgreSQL${NC}"
-vault kv put secret/postgres \
-    POSTGRES_USER="${POSTGRES_USER}" \
-    POSTGRES_PASSWORD="${POSTGRES_PASSWORD}" \
-    POSTGRES_DB="${POSTGRES_DB}" \
-    POSTGRES_HOST="${POSTGRES_HOST:-postgres}" \
-    POSTGRES_PORT="${POSTGRES_PORT:-5432}" \
-    POSTGRES_DATABASE_URL="${POSTGRES_DATABASE_URL}" \
-    POSTGRES_DATABASE_TEST_URL="${POSTGRES_DATABASE_TEST_URL:-}" 2>/dev/null && \
-    echo -e "${GREEN}     ✅ Создан${NC}" || echo -e "${YELLOW}     ⚠️  Ошибка${NC}"
+create_secret "secret/postgres" "PostgreSQL" \
+    "POSTGRES_USER=${POSTGRES_USER}" \
+    "POSTGRES_PASSWORD=${POSTGRES_PASSWORD}" \
+    "POSTGRES_DB=${POSTGRES_DB}" \
+    "POSTGRES_HOST=${POSTGRES_HOST:-postgres}" \
+    "POSTGRES_PORT=${POSTGRES_PORT:-5432}" \
+    "POSTGRES_DATABASE_URL=${POSTGRES_DATABASE_URL}" \
+    "POSTGRES_DATABASE_TEST_URL=${POSTGRES_DATABASE_TEST_URL:-}"
 
 # MinIO
-echo -e "${BLUE}  📦 MinIO${NC}"
-vault kv put secret/minio \
-    MINIO_HOST="${MINIO_HOST:-minio}" \
-    MINIO_PORT="${MINIO_PORT:-9000}" \
-    MINIO_ROOT_USER="${MINIO_ROOT_USER}" \
-    MINIO_ROOT_PASSWORD="${MINIO_ROOT_PASSWORD}" \
-    MINIO_BUCKET="${MINIO_BUCKET}" \
-    MINIO_URL="${MINIO_URL:-http://$MINIO_HOST:$MINIO_PORT}" 2>/dev/null && \
-    echo -e "${GREEN}     ✅ Создан${NC}" || echo -e "${YELLOW}     ⚠️  Ошибка${NC}"
+create_secret "secret/minio" "MinIO" \
+    "MINIO_HOST=${MINIO_HOST:-minio}" \
+    "MINIO_PORT=${MINIO_PORT:-9000}" \
+    "MINIO_ROOT_USER=${MINIO_ROOT_USER}" \
+    "MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}" \
+    "MINIO_BUCKET=${MINIO_BUCKET}" \
+    "MINIO_URL=${MINIO_URL:-http://$MINIO_HOST:$MINIO_PORT}"
 
 # Kafka
-echo -e "${BLUE}  📦 Kafka${NC}"
-vault kv put secret/kafka \
-    KAFKA_BOOTSTRAP_SERVERS="${KAFKA_BOOTSTRAP_SERVERS}" \
-    KAFKA_ADVERTISED_LISTENERS="${KAFKA_ADVERTISED_LISTENERS}" \
-    KAFKA_ZOOKEEPER_CONNECT="${KAFKA_ZOOKEEPER_CONNECT:-zookeeper:2181}" 2>/dev/null && \
-    echo -e "${GREEN}     ✅ Создан${NC}" || echo -e "${YELLOW}     ⚠️  Ошибка${NC}"
+create_secret "secret/kafka" "Kafka" \
+    "KAFKA_BOOTSTRAP_SERVERS=${KAFKA_BOOTSTRAP_SERVERS}" \
+    "KAFKA_ADVERTISED_LISTENERS=${KAFKA_ADVERTISED_LISTENERS}" \
+    "KAFKA_ZOOKEEPER_CONNECT=${KAFKA_ZOOKEEPER_CONNECT:-zookeeper:2181}"
 
 # Nexus
-echo -e "${BLUE}  📦 Nexus${NC}"
-vault kv put secret/nexus \
-    NEXUS_HOST="${NEXUS_HOST:-nexus}" \
-    NEXUS_PORT="${NEXUS_PORT:-8081}" \
-    NEXUS_REGISTRY_PORT="${NEXUS_REGISTRY_PORT:-5000}" \
-    NEXUS_USER_NAME="${NEXUS_USER_NAME}" \
-    NEXUS_USER_PASSWORD="${NEXUS_USER_PASSWORD}" \
-    NEXUS_ADMIN_NEW_PASS="${NEXUS_ADMIN_NEW_PASS}" \
-    NEXUS_URL="${NEXUS_URL:-http://$NEXUS_HOST:$NEXUS_PORT}" \
-    NEXUS_REGISTRY_URL="${NEXUS_REGISTRY_URL:-$NEXUS_HOST:$NEXUS_REGISTRY_PORT}" 2>/dev/null && \
-    echo -e "${GREEN}     ✅ Создан${NC}" || echo -e "${YELLOW}     ⚠️  Ошибка${NC}"
+create_secret "secret/nexus" "Nexus" \
+    "NEXUS_HOST=${NEXUS_HOST:-nexus}" \
+    "NEXUS_PORT=${NEXUS_PORT:-8081}" \
+    "NEXUS_REGISTRY_PORT=${NEXUS_REGISTRY_PORT:-5000}" \
+    "NEXUS_USER_NAME=${NEXUS_USER_NAME}" \
+    "NEXUS_USER_PASSWORD=${NEXUS_USER_PASSWORD}" \
+    "NEXUS_ADMIN_NEW_PASS=${NEXUS_ADMIN_NEW_PASS}" \
+    "NEXUS_URL=${NEXUS_URL:-http://$NEXUS_HOST:$NEXUS_PORT}" \
+    "NEXUS_REGISTRY_URL=${NEXUS_REGISTRY_URL:-$NEXUS_HOST:$NEXUS_REGISTRY_PORT}"
 
 # GitLab
-echo -e "${BLUE}  📦 GitLab${NC}"
-vault kv put secret/gitlab \
-    GITLAB_HOST="${GITLAB_HOST:-gitlab}" \
-    GITLAB_PORT="${GITLAB_PORT:-8060}" \
-    GITLAB_URL="${GITLAB_URL:-http://$GITLAB_HOST:$GITLAB_PORT}" \
-    GITLAB_ROOT_PASSWORD="${GITLAB_ROOT_PASSWORD}" \
-    GITLAB_ROOT_TOKEN="${GITLAB_ROOT_TOKEN}" \
-    GITLAB_ACCESS_TOKEN="${GITLAB_ACCESS_TOKEN}" \
-    GITLAB_USER="${GITLAB_USER}" \
-    GITLAB_PASSWORD="${GITLAB_PASSWORD}" \
-    GITLAB_EMAIL="${GITLAB_EMAIL:-}" 2>/dev/null && \
-    echo -e "${GREEN}     ✅ Создан${NC}" || echo -e "${YELLOW}     ⚠️  Ошибка${NC}"
+create_secret "secret/gitlab" "GitLab" \
+    "GITLAB_HOST=${GITLAB_HOST:-gitlab}" \
+    "GITLAB_PORT=${GITLAB_PORT:-8060}" \
+    "GITLAB_URL=${GITLAB_URL:-http://$GITLAB_HOST:$GITLAB_PORT}" \
+    "GITLAB_ROOT_PASSWORD=${GITLAB_ROOT_PASSWORD}" \
+    "GITLAB_ROOT_TOKEN=${GITLAB_ROOT_TOKEN}" \
+    "GITLAB_ACCESS_TOKEN=${GITLAB_ACCESS_TOKEN}" \
+    "GITLAB_USER=${GITLAB_USER}" \
+    "GITLAB_PASSWORD=${GITLAB_PASSWORD}" \
+    "GITLAB_EMAIL=${GITLAB_EMAIL:-}"
 
 # SonarQube
-echo -e "${BLUE}  📦 SonarQube${NC}"
-vault kv put secret/sonarqube \
-    SONAR_HOST="${SONAR_HOST:-sonarqube}" \
-    SONAR_PORT="${SONAR_PORT:-9000}" \
-    SONAR_URL="${SONAR_URL:-http://$SONAR_HOST:$SONAR_PORT}" \
-    SONAR_ADMIN="${SONAR_ADMIN:-admin}" \
-    SONAR_ADMIN_PASSWORD="${SONAR_ADMIN_NEW_PASS:-admin}" \
-    SONAR_ADMIN_TOKEN="${SONAR_ADMIN_TOKEN}" \
-    SONAR_USER_TOKEN="${SONAR_USER_TOKEN}" \
-    SONAR_JDBC_URL="${SONAR_JDBC_URL}" \
-    SONAR_JDBC_USERNAME="${SONAR_JDBC_USERNAME}" \
-    SONAR_JDBC_PASSWORD="${SONAR_JDBC_PASSWORD}" \
-    SONAR_JENKINS_WEBHOOK_URL="${SONAR_JENKINS_WEBHOOK_URL}" 2>/dev/null && \
-    echo -e "${GREEN}     ✅ Создан${NC}" || echo -e "${YELLOW}     ⚠️  Ошибка${NC}"
+create_secret "secret/sonarqube" "SonarQube" \
+    "SONAR_HOST=${SONAR_HOST:-sonarqube}" \
+    "SONAR_PORT=${SONAR_PORT:-9000}" \
+    "SONAR_URL=${SONAR_URL:-http://$SONAR_HOST:$SONAR_PORT}" \
+    "SONAR_ADMIN=${SONAR_ADMIN:-admin}" \
+    "SONAR_ADMIN_PASSWORD=${SONAR_ADMIN_NEW_PASS:-admin}" \
+    "SONAR_ADMIN_TOKEN=${SONAR_ADMIN_TOKEN}" \
+    "SONAR_USER_TOKEN=${SONAR_USER_TOKEN}" \
+    "SONAR_JDBC_URL=${SONAR_JDBC_URL}" \
+    "SONAR_JDBC_USERNAME=${SONAR_JDBC_USERNAME}" \
+    "SONAR_JDBC_PASSWORD=${SONAR_JDBC_PASSWORD}" \
+    "SONAR_JENKINS_WEBHOOK_URL=${SONAR_JENKINS_WEBHOOK_URL}"
 
 # Jenkins
-echo -e "${BLUE}  📦 Jenkins${NC}"
-vault kv put secret/jenkins \
-    JENKINS_HOST="${JENKINS_HOST:-jenkins}" \
-    JENKINS_PORT="${JENKINS_PORT:-8080}" \
-    JENKINS_URL="${JENKINS_URL:-http://$JENKINS_HOST:$JENKINS_PORT}" \
-    JENKINS_SECRET="${JENKINS_SECRET}" \
-    JENKINS_AGENT_NAME="${JENKINS_AGENT_NAME}" \
-    JENKINS_AGENT_WORKDIR="${JENKINS_AGENT_WORKDIR}" 2>/dev/null && \
-    echo -e "${GREEN}     ✅ Создан${NC}" || echo -e "${YELLOW}     ⚠️  Ошибка${NC}"
+create_secret "secret/jenkins" "Jenkins" \
+    "JENKINS_HOST=${JENKINS_HOST:-jenkins}" \
+    "JENKINS_PORT=${JENKINS_PORT:-8080}" \
+    "JENKINS_URL=${JENKINS_URL:-http://$JENKINS_HOST:$JENKINS_PORT}" \
+    "JENKINS_SECRET=${JENKINS_SECRET}" \
+    "JENKINS_AGENT_NAME=${JENKINS_AGENT_NAME}" \
+    "JENKINS_AGENT_WORKDIR=${JENKINS_AGENT_WORKDIR}"
 
 # ArgoCD
-echo -e "${BLUE}  📦 ArgoCD${NC}"
-vault kv put secret/argocd \
-    ARGO_PASSWORD="${ARGO_PASSWORD}" \
-    ARGO_ADMIN_USERNAME="admin" 2>/dev/null && \
-    echo -e "${GREEN}     ✅ Создан${NC}" || echo -e "${YELLOW}     ⚠️  Ошибка${NC}"
+create_secret "secret/argocd" "ArgoCD" \
+    "ARGO_PASSWORD=${ARGO_PASSWORD}" \
+    "ARGO_ADMIN_USERNAME=admin"
 
 # JWT (генерируем случайный ключ если не задан)
 echo -e "${BLUE}  📦 JWT${NC}"
 JWT_SECRET="${JWT_SECRET:-$(openssl rand -hex 32)}"
-vault kv put secret/jwt \
+if vault kv put secret/jwt \
     JWT_SECRET="$JWT_SECRET" \
     JWT_ALGORITHM="HS256" \
-    JWT_EXPIRATION="3600" 2>/dev/null && \
-    echo -e "${GREEN}     ✅ Создан${NC}" || echo -e "${YELLOW}     ⚠️  Ошибка${NC}"
+    JWT_EXPIRATION="3600" 2>&1 | grep -q "Error"; then
+    echo -e "${RED}     ❌ Ошибка${NC}"
+else
+    echo -e "${GREEN}     ✅ Создан/обновлён${NC}"
+fi
 
 echo ""
 

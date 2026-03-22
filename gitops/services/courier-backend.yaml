@@ -1,6 +1,6 @@
 # Courier Backend Service
 name: courier-backend
-tag: "167"
+tag: "172"
 
 # Service port
 port: 8000
