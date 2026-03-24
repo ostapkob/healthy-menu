@@ -88,9 +88,9 @@ create_secret() {
     local secret_name="$2"
     shift 2
     local key_values=("$@")
-    
+
     echo -e "${BLUE}  📦 ${secret_name}${NC}"
-    
+
     # Создаём секрет (kv put создаёт или перезаписывает существующий)
     local output
     if output=$(vault kv put "$secret_path" "${key_values[@]}" 2>&1); then
@@ -132,7 +132,16 @@ create_secret "secret/minio" "MinIO" \
 create_secret "secret/kafka" "Kafka" \
     "KAFKA_BOOTSTRAP_SERVERS=${KAFKA_BOOTSTRAP_SERVERS}" \
     "KAFKA_ADVERTISED_LISTENERS=${KAFKA_ADVERTISED_LISTENERS}" \
-    "KAFKA_ZOOKEEPER_CONNECT=${KAFKA_ZOOKEEPER_CONNECT:-zookeeper:2181}"
+    "KAFKA_ZOOKEEPER_CONNECT=${KAFKA_ZOOKEEPER_CONNECT:-zookeeper:2181}" \
+    "KAFKA_AUTO_CREATE_TOPICS_ENABLE=${KAFKA_AUTO_CREATE_TOPICS_ENABLE:-true}" \
+    "KAFKA_BROKER_ID=${KAFKA_BROKER_ID:-1}" \
+    "KAFKA_DEFAULT_REPLICATION_FACTOR=${KAFKA_DEFAULT_REPLICATION_FACTOR:-1}" \
+    "KAFKA_INTER_BROKER_LISTENER_NAME=${KAFKA_INTER_BROKER_LISTENER_NAME:-PLAINTEXT}" \
+    "KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=${KAFKA_LISTENER_SECURITY_PROTOCOL_MAP:-PLAINTEXT:PLAINTEXT}" \
+    "KAFKA_NUM_PARTITIONS=${KAFKA_NUM_PARTITIONS:-1}" \
+    "KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=${KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR:-1}" \
+    "ZOOKEEPER_CLIENT_PORT=${ZOOKEEPER_CLIENT_PORT:-2181}" \
+    "ZOOKEEPER_TICK_TIME=${ZOOKEEPER_TICK_TIME:-2000}"
 
 # Nexus
 create_secret "secret/nexus" "Nexus" \
