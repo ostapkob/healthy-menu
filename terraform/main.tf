@@ -139,7 +139,8 @@ resource "docker_container" "kafka" {
   env = [
     "KAFKA_BROKER_ID=1",
     "KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181",
-    "KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://localhost:9092",
+    "KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092",
+    "KAFKA_LISTENERS=PLAINTEXT://0.0.0.0:9092",
     "KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=PLAINTEXT:PLAINTEXT",
     "KAFKA_INTER_BROKER_LISTENER_NAME=PLAINTEXT",
     "KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1",
@@ -618,6 +619,9 @@ resource "docker_container" "jenkins_agent" {
     "KAFKA_IP=${docker_container.kafka.network_data[0].ip_address}",
     "SONAR_IP=${docker_container.sonarqube.network_data[0].ip_address}",
     "NEXUS_REGISTRY_URL=${docker_container.nexus.name}:${var.nexus_registry_port}"
+
+
+
   ]
 
   # FIX: after https rm insecure

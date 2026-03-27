@@ -47,6 +47,7 @@ kafka_queue: asyncio.Queue = asyncio.Queue()
 
 def create_kafka_consumer() -> Consumer:
     bootstrap = settings.KAFKA_BOOTSTRAP_SERVERS
+    print(f"🔧 Creating Kafka consumer with bootstrap servers: {bootstrap!r}")
     return Consumer(
         {
             "bootstrap.servers": bootstrap,
@@ -79,10 +80,11 @@ def process_kafka_message(msg) -> Optional[dict]:
 def kafka_listener():
     """Kafka consumer в отдельном потоке"""
     global kafka_queue
-    
+
     while True:
         try:
             consumer = create_kafka_consumer()
+            print(f"📢 Subscribing to topic: {settings.TOPIC!r}")
             consumer.subscribe([settings.TOPIC])
             print("✅ Connected to Kafka successfully!")
             print(f"👂 Kafka слушает топик {settings.TOPIC}")

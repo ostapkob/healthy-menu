@@ -25,7 +25,7 @@ pipeline {
                 '',
                 'admin-backend',
                 'admin-frontend',
-                'courier-backend', 
+                'courier-backend',
                 'courier-frontend',
                 'order-backend',
                 'order-frontend'
@@ -92,9 +92,9 @@ pipeline {
 
         stage('Run tests') {
             steps {
-                // FIX: rm env 
+                // FIX: rm env
                 sh '''
-                    env | grep -E "(POSTGRES|MINIO)" > /tmp/envfile
+                    env | grep -E "(POSTGRES|MINIO|KAFKA)" > /tmp/envfile
                     docker run --rm \
                       --env-file /tmp/envfile \
                       --network host \

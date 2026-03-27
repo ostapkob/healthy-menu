@@ -6,6 +6,11 @@ class Settings:
     API_PREFIX: str = "/api/v1/courier"
     TOPIC: str = "new_orders"
     KAFKA_BOOTSTRAP_SERVERS: str = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "kafka:9092")
+    
+    def __init__(self):
+        # Логирование для отладки
+        print(f"🔧 KAFKA_BOOTSTRAP_SERVERS = {self.KAFKA_BOOTSTRAP_SERVERS!r}")
+        print(f"🔧 TOPIC = {self.TOPIC!r}")
 
 
 @lru_cache()
