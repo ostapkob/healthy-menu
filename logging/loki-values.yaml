@@ -55,17 +55,24 @@ singleBinary:
   replicas: 1
   persistence:
     enabled: true
-    size: 10Gi
+    size: 2Gi  # Уменьшили с 10Gi до 2Gi для экономии памяти
     storageClass: null
     accessModes:
       - ReadWriteOnce
   resources:
     requests:
       cpu: 100m
-      memory: 512Mi
+      memory: 256Mi  # Уменьшили для экономии памяти
     limits:
       cpu: 500m
-      memory: 1Gi
+      memory: 512Mi
+
+# Отключаем кэш компоненты для экономии памяти
+chunksCache:
+  enabled: false
+
+resultsCache:
+  enabled: false
 
 # Отключаем лишние компоненты для single binary
 backend:

@@ -21,6 +21,7 @@ dependencies = [
     "idna==3.11",
     "jmespath==1.0.1",
     "packaging==25.0",
+    "prometheus-client>=0.24.1",
     "psycopg2-binary==2.9.11",
     "pydantic==2.12.5",
     "pydantic-core==2.41.5",
