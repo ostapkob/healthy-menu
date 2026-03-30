@@ -1,0 +1,104 @@
+# Promtail Helm values для namespace logging
+# Сбор логов с backend'ов в namespace healthy-menu-dev
+
+# Полная кастомная конфигурация
+config:
+  clients:
+    # Подключение к Loki Gateway в namespace logging
+    - url: http://loki-gateway.logging.svc.cluster.local:80/loki/api/v1/push
+      tenant_id: healthy-menu-dev
+
+  positions:
+    filename: /run/promtail/positions.yaml
+
+  scrape_configs:
+    # Сбор логов с подов в namespace healthy-menu-dev
+    - job_name: kubernetes-pods
+      pipeline_stages:
+        # Парсинг JSON логов (structlog)
+        - json:
+            expressions:
+              level: level
+              event: event
+              logger: logger
+              timestamp: timestamp
+        # Добавление меток из логов
+        - labels:
+            level:
+            logger:
+      kubernetes_sd_configs:
+        - role: pod
+          namespaces:
+            names:
+              - healthy-menu-dev
+      relabel_configs:
+        # Собираем логи только с backend'ов
+        - source_labels: [__meta_kubernetes_pod_label_app]
+          action: keep
+          regex: ".*-backend"
+        # Добавляем метку namespace
+        - source_labels: [__meta_kubernetes_namespace]
+          target_label: namespace
+        # Добавляем метку pod name
+        - source_labels: [__meta_kubernetes_pod_name]
+          target_label: pod
+        # Добавляем метку container name
+        - source_labels: [__meta_kubernetes_pod_container_name]
+          target_label: container
+        # Добавляем метку app
+        - source_labels: [__meta_kubernetes_pod_label_app]
+          target_label: app
+        # Путь к логам
+        - source_labels: [__meta_kubernetes_pod_uid, __meta_kubernetes_pod_container_name]
+          action: replace
+          regex: (.+)
+          replacement: /var/log/pods/*$1/*.log
+          target_label: __path__
+
+# ServiceAccount
+serviceAccount:
+  create: true
+  name: promtail
+
+# PodSecurityContext
+podSecurityContext:
+  runAsUser: 0
+  runAsGroup: 0
+  runAsNonRoot: false
+  fsGroup: 0
+
+# SecurityContext для контейнера
+securityContext:
+  privileged: true
+  readOnlyRootFilesystem: false
+  capabilities:
+    drop:
+      - ALL
+  allowPrivilegeEscalation: true
+
+# Ресурсы
+resources:
+  requests:
+    cpu: 50m
+    memory: 128Mi
+  limits:
+    cpu: 200m
+    memory: 512Mi
+
+# PriorityClass для важности
+priorityClassName: system-cluster-critical
+
+# Tolerations для запуска на всех нодах (включая master)
+tolerations:
+  - key: node-role.kubernetes.io/master
+    operator: Exists
+    effect: NoSchedule
+  - key: node-role.kubernetes.io/control-plane
+    operator: Exists
+    effect: NoSchedule
+
+# Affinity
+affinity: {}
+
+# Node Selector
+nodeSelector: {}

@@ -1,0 +1,495 @@
+# Grafana Helm values для healthy-menu-dev
+# Установка: helm install grafana grafana/grafana -n healthy-menu-dev -f grafana-values.yaml
+
+# Режим развертывания
+deploymentStrategy:
+  type: RollingUpdate
+
+# Реплики
+replicas: 1
+
+# Образ Grafana (используем стабильную версию 10.x)
+image:
+  repository: grafana/grafana
+  tag: "10.4.2"
+  pullPolicy: IfNotPresent
+
+# ServiceAccount
+serviceAccount:
+  create: true
+  name: grafana
+  autoMount: true
+
+# Ingress (опционально)
+ingress:
+  enabled: false
+
+# Service
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 3000
+
+# Persistence (хранение дашбордов и настроек)
+persistence:
+  enabled: true
+  type: pvc
+  accessModes:
+    - ReadWriteOnce
+  size: 2Gi  # Уменьшили размер
+  storageClassName: null
+  annotations: {}
+  finalizers:
+    - kubernetes.io/pvc-protection
+
+# Ресурсы (минимальные для работы в Minikube)
+resources:
+  requests:
+    cpu: 50m
+    memory: 128Mi
+  limits:
+    cpu: 300m
+    memory: 300Mi
+
+# Environment variables
+env:
+  # Время зоны
+  TZ: "Europe/Moscow"
+  # Отключаем телеметрию
+  GF_ANALYTICS_REPORTING_ENABLED: "false"
+  GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
+  # Логирование
+  GF_LOG_LEVEL: "info"
+  GF_LOG_FILTERS: "rendering:debug"
+
+# Переменные окружения из Secret (пароль админа)
+adminUser: admin
+adminPassword: "admin123"  # Измени в продакшене!
+
+# Отключаем init контейнер chown (проблема с правами)
+initChownData:
+  enabled: false
+
+# Настройка datasource Loki
+datasources:
+  datasources.yaml:
+    apiVersion: 1
+    datasources:
+      - name: Loki
+        type: loki
+        access: proxy
+        url: http://loki-gateway.logging.svc.cluster.local:80
+        isDefault: true
+        editable: true
+        jsonData:
+          maxLines: 1000
+          httpHeaderName1: "X-Scope-OrgId"
+        secureJsonData:
+          httpHeaderValue1: "healthy-menu-dev"
+
+# Настройка дашбордов
+dashboardProviders:
+  dashboardproviders.yaml:
+    apiVersion: 1
+    providers:
+      - name: "default"
+        orgId: 1
+        folder: ""
+        type: file
+        disableDeletion: false
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/default
+
+# Дашборды
+dashboards:
+  default:
+    # Дашборд для просмотра логов
+    healthy-menu-logs:
+      json: |
+        {
+          "annotations": {
+            "list": []
+          },
+          "editable": true,
+          "fiscalYearStartMonth": 0,
+          "graphTooltip": 0,
+          "id": null,
+          "links": [],
+          "liveNow": false,
+          "panels": [
+            {
+              "datasource": {
+                "type": "loki",
+                "uid": "loki"
+              },
+              "gridPos": {
+                "h": 10,
+                "w": 24,
+                "x": 0,
+                "y": 0
+              },
+              "id": 1,
+              "options": {
+                "dedupStrategy": "none",
+                "enableLogDetails": true,
+                "prettifyLogMessage": true,
+                "showCommonLabels": true,
+                "showLabels": true,
+                "showTime": true,
+                "sortOrder": "Descending",
+                "wrapLogMessage": true
+              },
+              "targets": [
+                {
+                  "datasource": {
+                    "type": "loki",
+                    "uid": "loki"
+                  },
+                  "editorMode": "code",
+                  "expr": "{namespace=\"healthy-menu-dev\", app=~\".*-backend\"}",
+                  "queryType": "range",
+                  "refId": "A"
+                }
+              ],
+              "title": "Логи Backend'ов",
+              "type": "logs"
+            },
+            {
+              "datasource": {
+                "type": "loki",
+                "uid": "loki"
+              },
+              "gridPos": {
+                "h": 8,
+                "w": 12,
+                "x": 0,
+                "y": 10
+              },
+              "id": 2,
+              "options": {
+                "legend": {
+                  "displayMode": "table",
+                  "placement": "right",
+                  "showLegend": true
+                },
+                "tooltip": {
+                  "mode": "single",
+                  "sort": "none"
+                }
+              },
+              "targets": [
+                {
+                  "datasource": {
+                    "type": "loki",
+                    "uid": "loki"
+                  },
+                  "editorMode": "code",
+                  "expr": "sum by (level) (count_over_time({namespace=\"healthy-menu-dev\", app=~\".*-backend\"} | json | level != \"\" [$__interval]))",
+                  "legendFormat": "{{level}}",
+                  "queryType": "range",
+                  "refId": "A"
+                }
+              ],
+              "title": "Уровень логирования по времени",
+              "type": "timeseries"
+            },
+            {
+              "datasource": {
+                "type": "loki",
+                "uid": "loki"
+              },
+              "gridPos": {
+                "h": 8,
+                "w": 12,
+                "x": 12,
+                "y": 10
+              },
+              "id": 3,
+              "options": {
+                "legend": {
+                  "displayMode": "table",
+                  "placement": "right",
+                  "showLegend": true
+                },
+                "tooltip": {
+                  "mode": "single",
+                  "sort": "none"
+                }
+              },
+              "targets": [
+                {
+                  "datasource": {
+                    "type": "loki",
+                    "uid": "loki"
+                  },
+                  "editorMode": "code",
+                  "expr": "sum by (app) (count_over_time({namespace=\"healthy-menu-dev\", app=~\".*-backend\"} [$__interval]))",
+                  "legendFormat": "{{app}}",
+                  "queryType": "range",
+                  "refId": "A"
+                }
+              ],
+              "title": "Количество логов по сервисам",
+              "type": "timeseries"
+            },
+            {
+              "datasource": {
+                "type": "loki",
+                "uid": "loki"
+              },
+              "gridPos": {
+                "h": 8,
+                "w": 8,
+                "x": 0,
+                "y": 18
+              },
+              "id": 4,
+              "options": {
+                "colorMode": "value",
+                "graphMode": "area",
+                "justifyMode": "auto",
+                "orientation": "auto",
+                "reduceOptions": {
+                  "calcs": ["lastNotNull"],
+                  "fields": "",
+                  "values": false
+                },
+                "textMode": "auto"
+              },
+              "targets": [
+                {
+                  "datasource": {
+                    "type": "loki",
+                    "uid": "loki"
+                  },
+                  "editorMode": "code",
+                  "expr": "sum(count_over_time({namespace=\"healthy-menu-dev\", app=~\".*-backend\"} | json | level=\"error\" [$__range]))",
+                  "legendFormat": "Errors",
+                  "queryType": "range",
+                  "refId": "A"
+                }
+              ],
+              "title": "Всего ошибок",
+              "type": "stat"
+            },
+            {
+              "datasource": {
+                "type": "loki",
+                "uid": "loki"
+              },
+              "gridPos": {
+                "h": 8,
+                "w": 8,
+                "x": 8,
+                "y": 18
+              },
+              "id": 5,
+              "options": {
+                "colorMode": "value",
+                "graphMode": "area",
+                "justifyMode": "auto",
+                "orientation": "auto",
+                "reduceOptions": {
+                  "calcs": ["lastNotNull"],
+                  "fields": "",
+                  "values": false
+                },
+                "textMode": "auto"
+              },
+              "targets": [
+                {
+                  "datasource": {
+                    "type": "loki",
+                    "uid": "loki"
+                  },
+                  "editorMode": "code",
+                  "expr": "sum(count_over_time({namespace=\"healthy-menu-dev\", app=~\".*-backend\"} | json | level=\"info\" [$__range]))",
+                  "legendFormat": "Info",
+                  "queryType": "range",
+                  "refId": "A"
+                }
+              ],
+              "title": "Всего Info",
+              "type": "stat"
+            },
+            {
+              "datasource": {
+                "type": "loki",
+                "uid": "loki"
+              },
+              "gridPos": {
+                "h": 8,
+                "w": 8,
+                "x": 16,
+                "y": 18
+              },
+              "id": 6,
+              "options": {
+                "colorMode": "value",
+                "graphMode": "area",
+                "justifyMode": "auto",
+                "orientation": "auto",
+                "reduceOptions": {
+                  "calcs": ["lastNotNull"],
+                  "fields": "",
+                  "values": false
+                },
+                "textMode": "auto"
+              },
+              "targets": [
+                {
+                  "datasource": {
+                    "type": "loki",
+                    "uid": "loki"
+                  },
+                  "editorMode": "code",
+                  "expr": "sum(count_over_time({namespace=\"healthy-menu-dev\", app=~\".*-backend\"} [$__range]))",
+                  "legendFormat": "Total",
+                  "queryType": "range",
+                  "refId": "A"
+                }
+              ],
+              "title": "Всего логов",
+              "type": "stat"
+            },
+            {
+              "datasource": {
+                "type": "loki",
+                "uid": "loki"
+              },
+              "gridPos": {
+                "h": 10,
+                "w": 24,
+                "x": 0,
+                "y": 26
+              },
+              "id": 7,
+              "options": {
+                "dedupStrategy": "none",
+                "enableLogDetails": true,
+                "prettifyLogMessage": true,
+                "showCommonLabels": true,
+                "showLabels": true,
+                "showTime": true,
+                "sortOrder": "Descending",
+                "wrapLogMessage": true
+              },
+              "targets": [
+                {
+                  "datasource": {
+                    "type": "loki",
+                    "uid": "loki"
+                  },
+                  "editorMode": "code",
+                  "expr": "{namespace=\"healthy-menu-dev\", app=~\".*-backend\"} | json | level=\"error\"",
+                  "queryType": "range",
+                  "refId": "A"
+                }
+              ],
+              "title": "Только ошибки",
+              "type": "logs"
+            }
+          ],
+          "refresh": "10s",
+          "schemaVersion": 38,
+          "style": "dark",
+          "tags": ["healthy-menu", "logs"],
+          "templating": {
+            "list": [
+              {
+                "current": {},
+                "datasource": {
+                  "type": "loki",
+                  "uid": "loki"
+                },
+                "definition": "label_values({namespace=\"healthy-menu-dev\"}, app)",
+                "hide": 0,
+                "includeAll": true,
+                "label": "Сервис",
+                "multi": true,
+                "name": "app",
+                "options": [],
+                "query": "label_values({namespace=\"healthy-menu-dev\"}, app)",
+                "refresh": 2,
+                "regex": ".*-backend",
+                "skipUrlSync": false,
+                "sort": 0,
+                "type": "query"
+              },
+              {
+                "current": {},
+                "datasource": {
+                  "type": "loki",
+                  "uid": "loki"
+                },
+                "definition": "label_values({namespace=\"healthy-menu-dev\", app=~\"$app\"}, level)",
+                "hide": 0,
+                "includeAll": true,
+                "label": "Уровень",
+                "multi": true,
+                "name": "level",
+                "options": [],
+                "query": "label_values({namespace=\"healthy-menu-dev\", app=~\"$app\"}, level)",
+                "refresh": 2,
+                "skipUrlSync": false,
+                "sort": 0,
+                "type": "query"
+              }
+            ]
+          },
+          "time": {
+            "from": "now-1h",
+            "to": "now"
+          },
+          "timepicker": {},
+          "timezone": "",
+          "title": "Healthy Menu - Логи Backend'ов",
+          "uid": "healthy-menu-logs",
+          "version": 1,
+          "weekStart": ""
+        }
+
+# Дополнительные volume mounts
+extraMounts: []
+extraVolumes: []
+
+# Sidecar контейнеры
+sidecar:
+  dashboards:
+    enabled: false
+  datasources:
+    enabled: false
+
+# Init containers
+initContainers: []
+
+# Pod annotations
+podAnnotations: {}
+
+# Pod labels
+podLabels: {}
+
+# Security Context
+securityContext:
+  fsGroup: 472
+
+# Container Security Context
+containerSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 472
+  runAsGroup: 472
+  fsGroup: 472
+
+# Node Selector
+nodeSelector: {}
+
+# Tolerations
+tolerations: []
+
+# Affinity
+affinity: {}
+
+# Test
+test:
+  enabled: false
