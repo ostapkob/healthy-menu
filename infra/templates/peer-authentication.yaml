@@ -13,4 +13,20 @@ spec:
       app: {{ .Release.Name }}
   mtls:
     mode: {{ .Values.istio.peerAuthentication.mode | default "PERMISSIVE" }}
+---
+# Разрешаем Prometheus scrape без mTLS
+apiVersion: security.istio.io/v1
+kind: PeerAuthentication
+metadata:
+  name: {{ .Release.Name }}-prometheus
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ .Release.Name }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}
+  portLevelMtls:
+    8000:
+      mode: DISABLE
 {{- end }}

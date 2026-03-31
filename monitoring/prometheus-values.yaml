@@ -1,0 +1,50 @@
+# Prometheus Helm values - чистая конфигурация
+server:
+  enabled: true
+  image:
+    repository: quay.io/prometheus/prometheus
+    tag: v2.55.0
+  
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  
+  persistentVolume:
+    enabled: true
+    size: 2Gi
+    storageClass: null
+  
+  service:
+    type: ClusterIP
+    port: 9090
+  
+  global:
+    scrape_interval: 30s
+    evaluation_interval: 30s
+  
+  alerting:
+    alertmanagers: []
+  
+  rules:
+    alerting: []
+
+# Отключаем все дополнительные компоненты
+alertmanager:
+  enabled: false
+
+nodeExporter:
+  enabled: false
+
+kubeStateMetrics:
+  enabled: false
+
+pushgateway:
+  enabled: false
+
+serverFiles:
+  alerts: {}
+  rules: {}

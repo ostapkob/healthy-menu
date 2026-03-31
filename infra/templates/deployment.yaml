@@ -1,4 +1,3 @@
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -26,9 +25,13 @@ spec:
         image: "{{ .Values.image.repository }}/{{ .Release.Name }}:{{ .Values.image.tag }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         ports:
-        - containerPort: {{ .Values.service.port }}
+        - name: http
+          containerPort: {{ .Values.service.port }}
+        - name: metrics
+          containerPort: 8000
         {{- if .Values.vault.enabled }}
         envFrom:
           - configMapRef:
               name: {{ .Release.Name }}-config
         {{- end }}
+

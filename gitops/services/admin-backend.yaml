@@ -1,10 +1,16 @@
 # Admin Backend Service
 name: admin-backend
-tag: "171"
+tag: "177"
 
 # Service port
 port: 8000
 targetPort: 8000
+
+# Prometheus annotations для сбора метрик
+annotations:
+  prometheus.io/scrape: "true"
+  prometheus.io/port: "8000"
+  prometheus.io/path: "/metrics"
 
 # Vault configuration
 vault:

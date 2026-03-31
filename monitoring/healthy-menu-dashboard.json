@@ -1,0 +1,106 @@
+{
+  "dashboard": {
+    "id": null,
+    "uid": "healthy-menu-metrics",
+    "title": "Healthy Menu - Метрики Backend'ов",
+    "tags": ["healthy-menu", "prometheus"],
+    "timezone": "browser",
+    "schemaVersion": 38,
+    "version": 1,
+    "refresh": "30s",
+    "panels": [
+      {
+        "id": 1,
+        "gridPos": {"h": 4, "w": 24, "x": 0, "y": 0},
+        "type": "stat",
+        "title": "Backend Status",
+        "targets": [
+          {
+            "refId": "A",
+            "datasource": {"type": "prometheus", "uid": "dfhjopd8sjrwga"},
+            "expr": "up{app=~\".*-backend\"}",
+            "legendFormat": "{{app}}"
+          }
+        ],
+        "options": {
+          "colorMode": "background",
+          "graphMode": "none",
+          "justifyMode": "center",
+          "orientation": "auto",
+          "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false},
+          "textMode": "auto"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "mappings": [
+              {"options": {"0": {"text": "DOWN"}, "1": {"text": "UP"}}, "type": "value"}
+            ],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"color": "red", "value": null},
+                {"color": "green", "value": 1}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 2,
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 4},
+        "type": "timeseries",
+        "title": "CPU Usage (seconds)",
+        "targets": [
+          {
+            "refId": "A",
+            "datasource": {"type": "prometheus", "uid": "dfhjopd8sjrwga"},
+            "expr": "rate(process_cpu_seconds_total{app=~\".*-backend\"}[5m])",
+            "legendFormat": "{{app}}"
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 4},
+        "type": "timeseries",
+        "title": "Memory Usage (bytes)",
+        "targets": [
+          {
+            "refId": "A",
+            "datasource": {"type": "prometheus", "uid": "dfhjopd8sjrwga"},
+            "expr": "process_resident_memory_bytes{app=~\".*-backend\"}",
+            "legendFormat": "{{app}}"
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 12},
+        "type": "timeseries",
+        "title": "Open File Descriptors",
+        "targets": [
+          {
+            "refId": "A",
+            "datasource": {"type": "prometheus", "uid": "dfhjopd8sjrwga"},
+            "expr": "process_open_fds{app=~\".*-backend\"}",
+            "legendFormat": "{{app}}"
+          }
+        ]
+      },
+      {
+        "id": 5,
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 12},
+        "type": "timeseries",
+        "title": "HTTP Request Duration (seconds)",
+        "targets": [
+          {
+            "refId": "A",
+            "datasource": {"type": "prometheus", "uid": "dfhjopd8sjrwga"},
+            "expr": "rate(http_request_duration_seconds_sum{app=~\".*-backend\"}[5m]) / rate(http_request_duration_seconds_count{app=~\".*-backend\"}[5m])",
+            "legendFormat": "{{app}}"
+          }
+        ]
+      }
+    ]
+  }
+}

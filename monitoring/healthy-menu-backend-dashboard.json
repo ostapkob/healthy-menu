@@ -1,0 +1,152 @@
+{
+  "dashboard": {
+    "id": null,
+    "uid": "healthy-menu-backends",
+    "title": "Healthy Menu - Backend Metrics",
+    "tags": ["healthy-menu", "prometheus"],
+    "timezone": "browser",
+    "schemaVersion": 38,
+    "version": 1,
+    "refresh": "10s",
+    "time": {
+      "from": "now-30m",
+      "to": "now"
+    },
+    "panels": [
+      {
+        "id": 1,
+        "gridPos": {"h": 4, "w": 24, "x": 0, "y": 0},
+        "type": "stat",
+        "title": "Backend Status",
+        "targets": [
+          {
+            "refId": "A",
+            "datasource": {"type": "prometheus", "uid": "prometheus"},
+            "expr": "up{namespace=\"healthy-menu-dev\", job=~\".*-backend\"}",
+            "legendFormat": "{{job}}"
+          }
+        ],
+        "options": {
+          "colorMode": "background",
+          "graphMode": "none",
+          "justifyMode": "center",
+          "orientation": "auto",
+          "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false},
+          "textMode": "auto"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "mappings": [
+              {"options": {"0": {"text": "DOWN", "color": "red"}, "1": {"text": "UP", "color": "green"}}, "type": "value"}
+            ],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"color": "red", "value": null},
+                {"color": "green", "value": 1}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 2,
+        "gridPos": {"h": 8, "w": 8, "x": 0, "y": 4},
+        "type": "timeseries",
+        "title": "Memory Usage (bytes)",
+        "targets": [
+          {
+            "refId": "A",
+            "datasource": {"type": "prometheus", "uid": "prometheus"},
+            "expr": "process_resident_memory_bytes{namespace=\"healthy-menu-dev\"}",
+            "legendFormat": "{{job}}"
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "gridPos": {"h": 8, "w": 8, "x": 8, "y": 4},
+        "type": "timeseries",
+        "title": "CPU Usage (rate)",
+        "targets": [
+          {
+            "refId": "A",
+            "datasource": {"type": "prometheus", "uid": "prometheus"},
+            "expr": "rate(process_cpu_seconds_total{namespace=\"healthy-menu-dev\"}[5m])",
+            "legendFormat": "{{job}}"
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "gridPos": {"h": 8, "w": 8, "x": 16, "y": 4},
+        "type": "timeseries",
+        "title": "Open File Descriptors",
+        "targets": [
+          {
+            "refId": "A",
+            "datasource": {"type": "prometheus", "uid": "prometheus"},
+            "expr": "process_open_fds{namespace=\"healthy-menu-dev\"}",
+            "legendFormat": "{{job}}"
+          }
+        ]
+      },
+      {
+        "id": 5,
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 12},
+        "type": "timeseries",
+        "title": "HTTP Requests Total",
+        "targets": [
+          {
+            "refId": "A",
+            "datasource": {"type": "prometheus", "uid": "prometheus"},
+            "expr": "sum by (job) (rate(http_requests_total{namespace=\"healthy-menu-dev\"}[5m]))",
+            "legendFormat": "{{job}}"
+          }
+        ]
+      },
+      {
+        "id": 6,
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 12},
+        "type": "timeseries",
+        "title": "HTTP Request Duration (avg)",
+        "targets": [
+          {
+            "refId": "A",
+            "datasource": {"type": "prometheus", "uid": "prometheus"},
+            "expr": "sum by (job) (rate(http_request_duration_seconds_sum{namespace=\"healthy-menu-dev\"}[5m]) / rate(http_request_duration_seconds_count{namespace=\"healthy-menu-dev\"}[5m]))",
+            "legendFormat": "{{job}}"
+          }
+        ]
+      },
+      {
+        "id": 7,
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 20},
+        "type": "timeseries",
+        "title": "HTTP Requests by Status",
+        "targets": [
+          {
+            "refId": "A",
+            "datasource": {"type": "prometheus", "uid": "prometheus"},
+            "expr": "sum by (status) (rate(http_requests_total{namespace=\"healthy-menu-dev\"}[5m]))",
+            "legendFormat": "HTTP {{status}}"
+          }
+        ]
+      },
+      {
+        "id": 8,
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 20},
+        "type": "timeseries",
+        "title": "Python GC Collections",
+        "targets": [
+          {
+            "refId": "A",
+            "datasource": {"type": "prometheus", "uid": "prometheus"},
+            "expr": "rate(python_gc_collections_total{namespace=\"healthy-menu-dev\"}[5m])",
+            "legendFormat": "{{job}} gen{{generation}}"
+          }
+        ]
+      }
+    ]
+  }
+}
